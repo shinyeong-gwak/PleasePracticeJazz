@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<select id="fileSelect">
+
+  {% for file in mp3_files %}
+  <option>{{ file }}</option>
+  {% endfor %}
+
+</select>
+
+<button onclick="loadAudio()">
+  불러오기
+</button>
+
+<br><br>
+
+<audio
+        id="player"
+        controls>
+</audio>
+
+<label>속도</label>
+
+<select
+        id="playbackRate"
+        onchange="changePlaybackRate()">
+
+  <option value="0.5">0.5x</option>
+  <option value="0.75">0.75x</option>
+  <option value="1" selected>1.0x</option>
+  <option value="1.25">1.25x</option>
+  <option value="1.5">1.5x</option>
+  <option value="2">2.0x</option>
+
+</select>
+<label>Pitch</label>
+
+<select id="pitch">
+
+  <option value="-3">-3</option>
+  <option value="-2">-2</option>
+  <option value="-1">-1</option>
+
+  <option
+          value="0"
+          selected>
+    0
+  </option>
+
+  <option value="1">+1</option>
+  <option value="2">+2</option>
+  <option value="3">+3</option>
+
+</select>
+
+<button
+        onclick="createPitchVersion()">
+
+  피치 생성
+
+</button>
+
+<br><br>
+
+<button onclick="captureStart()">
+  현재위치를 Start로
+</button>
+
+<button onclick="captureEnd()">
+  현재위치를 End로
+</button>
+
+Start
+
+<input
+        id="startTime"
+        type="text"
+        placeholder="1:25">
+
+<button onclick="moveStart()">
+  이동
+</button>
+
+<br>
+
+End
+
+<input
+        id="endTime"
+        type="text"
+        placeholder="1:32">
+
+<button onclick="moveEnd()">
+  이동
+</button>
+
+<br><br>
+
+<button onclick="createClip()">
+  Clip 생성
+</button>
+
+<script src="/static/js/clips.js"></script>
+{% endblock %}

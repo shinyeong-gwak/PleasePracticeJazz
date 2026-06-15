@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>{{ page_title }}</title>
+
+    <link
+            rel="stylesheet"
+            href="/static/css/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="sidebar">
+
+        {% for group in navigation %}
+
+        <div>
+
+            <div
+                    class="menu-title"
+                    onclick="toggleMenu('{{ loop.index }}')">
+
+                {{ group.title }}
+
+            </div>
+
+            <div
+                    id="submenu-{{ loop.index }}"
+                    class="submenu">
+
+                {% for item in group["items"] %}
+
+                <a href="{{ item.url }}">
+                    {{ item.name }}
+                </a>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="main">
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</div>
+
+<script src="/static/js/sidebar.js"></script>
+
+</body>
+
+</html>

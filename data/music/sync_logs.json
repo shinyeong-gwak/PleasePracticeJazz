@@ -1,0 +1,72 @@
+[
+    {
+        "time": "2026-06-15T13:31:42.269694",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-15T13:31:42.270697",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
+    },
+    {
+        "time": "2026-06-15T13:34:20.520520",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-15T13:34:20.521857",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
+    },
+    {
+        "time": "2026-06-15T13:34:53.167813",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-15T13:34:55.406623",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
+    },
+    {
+        "time": "2026-06-15T13:35:21.371747",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-15T13:35:33.860086",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
+    },
+    {
+        "time": "2026-06-15T13:36:29.722870",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-15T13:36:44.552059",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
+    }
+]

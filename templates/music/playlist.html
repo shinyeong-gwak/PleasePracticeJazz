@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>MP3 File</h1>
+
+<form
+        action="/music/playlist/add"
+        method="post">
+
+    <input
+            type="text"
+            name="name"
+            placeholder="Playlist Name">
+
+    <input
+            type="text"
+            name="url"
+            placeholder="Playlist URL">
+
+    <button type="submit">
+        추가
+    </button>
+
+</form>
+
+<hr>
+
+<h2>Play Lists</h2>
+
+<table>
+
+    <tr>
+        <th>Name</th>
+        <th>URL</th>
+        <th></th>
+    </tr>
+
+    {% for playlist in playlists %}
+
+    <tr>
+        <td>{{ playlist["name"] }}</td>
+        <td>{{ playlist["url"] }}</td>
+
+        <td>
+
+            <form
+                    action="/music/playlist/sync"
+                    method="post">
+
+                <input
+                        type="hidden"
+                        name="url"
+                        value="{{ playlist.url }}">
+
+                <input
+                        type="hidden"
+                        name="playlist_name"
+                        value="{{ playlist['name'] }}">
+
+                <button type="submit">
+                    동기화
+                </button>
+
+            </form>
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% endblock %}

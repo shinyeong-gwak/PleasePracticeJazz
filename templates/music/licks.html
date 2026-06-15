@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="lick-workbench">
+
+    <!-- LEFT: LIST -->
+    <div class="panel left">
+        <h3>Licks</h3>
+
+        {% for lick in licks %}
+        <div class="lick-item" onclick="selectLick('{{ lick }}')">
+            {{ lick }}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- CENTER -->
+    <div class="panel center">
+
+        <audio id="audioPlayer"></audio>
+        <div class="time-display">
+            <span id="currentTime">0:00</span>
+            /
+            <span id="duration">0:00</span>
+        </div>
+
+        <input id="seekBar" type="range">
+        <div class="controls">
+
+            <div>
+                Pitch:
+                <input id="pitch" type="range" min="-12" max="12" value="0">
+                <span id="pitchVal">0</span>
+            </div>
+
+            <div>
+                Tempo:
+                <input id="tempo" type="range" min="30" max="200" value="100">
+                <span id="tempoVal">100%</span>
+            </div>
+
+            <button onclick="applyEffects()">Apply</button>
+        </div>
+
+        <!-- 악보 / 분석 영역 -->
+        <div class="notation-area">
+            <div class="sequencer">
+
+                <!-- CODE -->
+                <div class="track">
+                    <h4>코드</h4>
+                    <input id="chordsInput" value="| Cm7 | F7 | BbM7 |">
+                </div>
+
+                <!-- RIGHT HAND -->
+                <div class="track">
+                    <h4>오른손 - 멜로디</h4>
+                    <textarea id="melodyInput" value="|d5eb5g5bb5 | d6bb5g5eb5 |">|d5eb5g5bb5 | d6bb5g5eb5 |</textarea>
+                </div>
+
+                <!-- LEFT HAND -->
+                <div class="track">
+                    <h4>왼손 - 보이싱</h4>
+                    <textarea id="voicingInput"
+                              placeholder="c5-eb5-g5-bb5 | f5-a5-c6-eb6 |"></textarea>
+                </div>
+
+                <button onclick="renderSequencer()">Render</button>
+                <button onclick="renderScore()">Render Score</button>
+
+            </div>
+
+            <canvas id="sequencerCanvas"></canvas>
+            <div class="score-container">
+                <canvas id="scoreCanvas"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel right">
+        <h3>Metadata</h3>
+        <div id="metaBox">Select a lick</div>
+    </div>
+
+</div>
+
+<script src="/static/js/licks.js"></script>
+<link rel="stylesheet" href="/static/css/style.css">
+
+{% endblock %}

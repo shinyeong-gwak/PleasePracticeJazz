@@ -1,0 +1,151 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background: #232323;
+    color: white;
+    overflow-y: auto;
+}
+
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+.menu-title {
+    padding: 15px;
+    background: #2d2d2d;
+    cursor: pointer;
+    user-select: none;
+}
+
+.menu-title:hover {
+    background: #3a3a3a;
+}
+
+.submenu {
+    display: none;
+}
+
+.submenu a {
+    display: block;
+    color: white;
+    text-decoration: none;
+    padding: 12px 25px;
+}
+
+.submenu a:hover {
+    background: #444;
+}
+
+.lick-workbench {
+    display: flex;
+    height: 100vh;
+    font-family: sans-serif;
+}
+
+.panel {
+    padding: 10px;
+    overflow: auto;
+}
+
+.left { width: 20%; border-right: 1px solid #ddd; }
+.center { width: 55%; border-right: 1px solid #ddd; }
+.right { width: 25%; }
+
+audio {
+    width: 100%;
+    max-width: 600px;
+}
+
+.lick-item {
+    padding: 6px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.lick-item:hover {
+    background: #f5f5f5;
+}
+
+.controls {
+    margin: 10px 0;
+}
+
+.notation-area {
+    margin-top: 20px;
+    height: 300px;
+    border: 1px dashed #aaa;
+    position: relative;
+}
+
+.placeholder {
+    position: absolute;
+    top: 40%;
+    left: 20%;
+    color: #aaa;
+}
+
+.player {
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.timeline-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#seekBar {
+    flex: 1;
+    height: 6px;
+    cursor: pointer;
+}
+
+#seekBar::-webkit-slider-thumb {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.play-controls {
+    margin-top: 10px;
+}
+
+.play-controls button {
+    font-size: 18px;
+    padding: 6px 12px;
+}
+
+/*====*/
+.sequencer {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.track {
+    margin-bottom: 10px;
+}
+
+.track input,
+.track textarea {
+    width: 100%;
+    padding: 6px;
+    font-family: monospace;
+}

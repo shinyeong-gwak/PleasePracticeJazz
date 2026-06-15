@@ -1,0 +1,33 @@
+<div class="sidebar">
+
+    {% for group in navigation %}
+
+    <div class="menu-group">
+
+        <div
+                class="menu-title"
+                onclick="toggleMenu('{{ loop.index }}')">
+
+            {{ group["title"] }}
+
+        </div>
+
+        <div
+                id="submenu-{{ loop.index }}"
+                class="submenu">
+
+            {% for item in group["items"] %}
+
+            <a href="{{ item["url"] }}">
+            {{ item["name"] }}
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
