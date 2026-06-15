@@ -12,6 +12,9 @@ NAVIGATION = [
             }, {
                 "name": "Lick 연습",
                 "url": "/music/licks"
+            }, {
+                "name": "악보 파일 렌더",
+                "url": "/music/render"
             }
         ]
     },

@@ -69,6 +69,11 @@ function pauseAudio() {
     audio.pause();
 }
 
+function stopAudio() {
+    audio.pause();
+    audio.currentTime = 0;
+}
+
 function formatTime(sec) {
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);

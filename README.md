@@ -1,3 +1,9 @@
+### 이거 먼저 하셈
+- pip install --upgrade pip
+- pip install -r requirements.txt 
+- ffmpeg 로컬에 설치하기
+- uvicorn app:app
+
 ```text
 .
 ├── app.py

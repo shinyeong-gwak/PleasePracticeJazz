@@ -1,6 +1,9 @@
 import os
 import ssl
 import yt_dlp
+import platform
+import subprocess
+
 
 # ---- HTTPS 인증 문제 우회 ----
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -11,11 +14,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FILE_PATH = BASE_DIR / "downloads" / "mp3"
 os.makedirs(str(FILE_PATH), exist_ok=True)
 
+ffmpeg_loc=""
+if platform.system() == "Darwin":  # macOS
+    # brew prefix 가져오기 (Intel / Apple Silicon 모두 대응)
+    brew_prefix = subprocess.check_output(["brew", "--prefix"], text=True).strip()
+    ffmpeg_loc = str(Path(brew_prefix) / "bin")
+
+elif platform.system() == "windows":
+    ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
+
+else:
+    print(platform.system())
+    raise RuntimeError(f"Unsupported OS: {platform.system()}")
+
+
 def youtube_to_mp3(url):
     try:
         ydl_opts = {
             "format": "bestaudio/best",
-            "ffmpeg_location": r".\lib\ffmpeg\bin",
+            "ffmpeg_location": ffmpeg_loc,
             "postprocessors": [
                 {
                     "key": "FFmpegExtractAudio",

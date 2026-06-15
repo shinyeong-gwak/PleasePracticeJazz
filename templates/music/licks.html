@@ -18,7 +18,13 @@
     <!-- CENTER -->
     <div class="panel center">
 
-        <audio id="audioPlayer"></audio>
+        <audio id="audioPlayer" controls>
+            <button onclick="skip(-15)">⏪ 15s</button>
+            <button onclick="playAudio()">▶</button>
+            <button onclick="pauseAudio()">⏸</button>
+            <button onclick="stopAudio()">⏹</button>
+            <button onclick="skip(15)">15s ⏩</button>
+        </audio>
         <div class="time-display">
             <span id="currentTime">0:00</span>
             /
