@@ -113,6 +113,23 @@ function parseVoicing(bar) {
     return bar.split("-").map(n => n.trim());
 }
 
+function countAccidentals(notes) {
+
+    let count = 0;
+
+    notes.forEach(note => {
+
+        if (
+            note.includes("#") ||
+            note.includes("b")
+        ) {
+            count++;
+        }
+    });
+
+    return count;
+}
+
 function renderSequencer() {
     const canvas = document.getElementById("sequencerCanvas");
     const ctx = canvas.getContext("2d");
@@ -170,20 +187,34 @@ const NOTE_MAP = {
     b: 11
 };
 
+const STAFF_INDEX = {
+    c: 0,
+    d: 1,
+    e: 2,
+    f: 3,
+    g: 4,
+    a: 5,
+    b: 6
+};
+
 function parseNote(note) {
-    // d5, eb5, g#4
-    const match = note.match(/([a-g])(#|b)?(\d)/i);
-    if (!match) return null;
 
-    let [, n, acc, oct] = match;
+    const match =
+        note.match(
+            /([a-g])(#|b)?(\d)/i
+        );
 
-    let semitone = NOTE_MAP[n.toLowerCase()];
+    if (!match) {
+        return null;
+    }
 
-    if (acc === "#") semitone += 1;
-    if (acc === "b") semitone -= 1;
+    const [, letter, accidental, octave] =
+        match;
 
     return {
-        pitch: semitone + (parseInt(oct) * 12)
+        letter: letter.toLowerCase(),
+        accidental: accidental || "",
+        octave: parseInt(octave)
     };
 }
 
@@ -200,60 +231,278 @@ function parseVoicing(input) {
 }
 
 function renderScore() {
+
+    updateGrid();
+
     const canvas = document.getElementById("scoreCanvas");
     const ctx = canvas.getContext("2d");
 
-    const melody = parseMelody(document.getElementById("melodyInput").value);
-    const voicing = parseVoicing(document.getElementById("voicingInput").value);
-    const chords = document.getElementById("chordsInput").value.split("|").map(x => x.trim()).filter(Boolean);
+    const melody =
+        parseMelody(
+            document.getElementById("melodyInput").value
+        );
 
-    canvas.width = 1200;
+    const voicing =
+        parseVoicing(
+            document.getElementById("voicingInput").value
+        );
+
+    const chords =
+        document
+            .getElementById("chordsInput")
+            .value
+            .split("|")
+            .map(x => x.trim())
+            .filter(Boolean);
+
+    const layouts =
+        buildBarLayouts(melody);
+
+    const totalWidth =
+        layouts.reduce(
+            (sum, layout) => sum + layout.width,
+            0
+        );
+
+    canvas.width = totalWidth + 50;
     canvas.height = 400;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-    const barWidth = 120;
-
-    // ======================
-    // 1. STAFF DRAW (오선)
-    // ======================
     drawStaff(ctx, canvas.width);
 
-    // ======================
-    // 2. CHORDS
-    // ======================
-    ctx.fillStyle = "black";
-    ctx.font = "14px monospace";
+    //--------------------------------------------------
+    // 마디선
+    //--------------------------------------------------
 
-    chords.forEach((c, i) => {
-        ctx.fillText(c, i * barWidth + 10, 50);
+    layouts.forEach(layout => {
+
+        ctx.beginPath();
+
+        ctx.moveTo(layout.startX, 60);
+        ctx.lineTo(layout.startX, 320);
+
+        ctx.stroke();
     });
 
-    // ======================
-    // 3. MELODY NOTES (STAFF 위)
-    // ======================
+    //--------------------------------------------------
+    // 마지막 마디선
+    //--------------------------------------------------
+
+    const lastLayout =
+        layouts[layouts.length - 1];
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        lastLayout.startX + lastLayout.width,
+        60
+    );
+
+    ctx.lineTo(
+        lastLayout.startX + lastLayout.width,
+        320
+    );
+
+    ctx.stroke();
+
+    //--------------------------------------------------
+    // 코드
+    //--------------------------------------------------
+
+    chords.forEach((barChord, index) => {
+
+        const layout = layouts[index];
+
+        if (!layout) {
+            return;
+        }
+
+        const chordParts =
+            barChord
+                .split(" ")
+                .filter(Boolean);
+
+        if (chordParts.length === 1) {
+
+            ctx.fillText(
+                chordParts[0],
+                layout.startX + 10,
+                50
+            );
+        }
+
+        else if (chordParts.length === 2) {
+
+            ctx.fillText(
+                chordParts[0],
+                layout.startX + 10,
+                50
+            );
+
+            ctx.fillText(
+                chordParts[1],
+                layout.startX + layout.width / 2,
+                50
+            );
+        }
+    });
+
+    //--------------------------------------------------
+    // Melody
+    //--------------------------------------------------
+
     melody.forEach((bar, barIndex) => {
+
+        const layout =
+            layouts[barIndex];
+
         bar.forEach((note, i) => {
-            const x = barIndex * barWidth + i * NOTE_SPACING - 100;
-            const y = noteToY(note);
+
+            let accidentalOffset = 0;
+
+            bar.forEach((note, i) => {
+
+                const parsed =
+                    parseNote(note);
+
+                const x =
+                    layout.startX +
+                    BAR_PADDING_LEFT +
+                    i * layout.spacing +
+                    accidentalOffset;
+
+                const y =
+                    noteToY(note);
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    4,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fill();
+
+                //----------------------------------
+                // 임시표
+                //----------------------------------
+
+                if (parsed.accidental) {
+
+                    ctx.font =
+                        "14px serif";
+
+                    ctx.fillText(
+                        parsed.accidental === "b"
+                            ? "♭"
+                            : "♯",
+                        x - 12,
+                        y + 4
+                    );
+
+                    accidentalOffset += 5;
+                }
+
+            });
+
+            const y =
+                noteToY(note);
 
             ctx.beginPath();
-            ctx.arc(x, y, 4, 0, Math.PI * 2);
+
+            ctx.arc(
+                x,
+                y,
+                4,
+                0,
+                Math.PI * 2
+            );
+
             ctx.fill();
         });
     });
 
-    // ======================
-    // 4. VOICING (아래 영역)
-    // ======================
+    //--------------------------------------------------
+    // Voicing
+    //--------------------------------------------------
+
     voicing.forEach((bar, barIndex) => {
+
+        const layout =
+            layouts[barIndex];
+
         bar.forEach((note, i) => {
-            const x = barIndex * barWidth + i * NOTE_SPACING;
+
+            const x =
+                layout.startX +
+                BAR_PADDING_LEFT +
+                i * layout.spacing;
+
             const y = 280;
 
-            ctx.fillRect(x, y - (parseNote(note)?.pitch % 60), 6, 6);
+            ctx.fillRect(
+                x,
+                y,
+                6,
+                6
+            );
         });
     });
+}
+
+function buildBarLayouts(melodyBars) {
+
+    const layouts = [];
+
+    let currentX = 0;
+
+    melodyBars.forEach(bar => {
+
+        const noteCount = bar.length;
+
+        const accidentalCount =
+            countAccidentals(bar);
+
+        const overflowRatio =
+            Math.max(
+                1,
+                noteCount / GRID
+            );
+
+        const accidentalWidth =
+            accidentalCount * 6;
+
+        const width =
+            BASE_BAR_WIDTH *
+            overflowRatio +
+            accidentalWidth;
+
+        const spacing =
+            Math.max(
+                MIN_NOTE_SPACING,
+                width / GRID
+            );
+
+        layouts.push({
+            startX: currentX,
+            width: width,
+            spacing: spacing,
+            accidentalCount: accidentalCount
+        });
+
+        currentX += width;
+    });
+
+    return layouts;
 }
 
 function drawStaff(ctx, width) {
@@ -277,23 +526,44 @@ const LINE_GAP = 11.7;
 
 // 기준 음 (middle C)
 const REFERENCE_MIDI = 60; // C4
-const STEP_PER_SEMITONE = 3.25; // <- 핵심 (비율)
+const STEP_PER_SEMITONE = 5.16; // <- 핵심 (비율)
 
 const BAR_WIDTH = 180;  // 기존 120 → 확대
 const NOTE_SPACING = 14; // 10 → 확대
 
+const BAR_PADDING_LEFT = 6;
+
+const BASE_BAR_WIDTH = 180;
+const centerLineY =
+    STAFF_TOP +
+    LINE_GAP * 2 +
+    207;
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        loadSavedLicks();
+    }
+);
+
 function noteToY(note) {
-    if (!note) return STAFF_TOP;
 
-    const midi = parseNote(note)?.pitch;
-    if (!midi) return STAFF_TOP;
+    const n = parseNote(note);
 
-    const offset = (REFERENCE_MIDI - midi) * STEP_PER_SEMITONE;
+    if (!n) {
+        return centerLineY;
+    }
 
-    // staff 중심 기준선
-    const centerLineY = STAFF_TOP + LINE_GAP * 2 + 33;
+    const diatonicIndex =
+        n.octave * 7 +
+        STAFF_INDEX[n.letter];
 
-    return centerLineY + offset;
+    return (
+        centerLineY -
+        diatonicIndex * STEP_PER_SEMITONE
+    );
 }
 
 function drawStaff(ctx, width) {
@@ -310,4 +580,206 @@ function drawStaff(ctx, width) {
         ctx.lineTo(width, y);
         ctx.stroke();
     }
+}
+
+let GRID = 8; // default
+const MIN_NOTE_SPACING = 6;
+function updateGrid() {
+    const select = document.getElementById("gridSelect");
+    GRID = parseInt(select.value);
+}
+
+function calcBarWidth(noteCount) {
+    const spacing = Math.max(MIN_NOTE_SPACING, BASE_BAR_WIDTH / GRID);
+
+    const requiredWidth = noteCount * spacing;
+
+    return Math.max(BASE_BAR_WIDTH, requiredWidth);
+}
+
+function getNoteSpacing(barWidth) {
+    return Math.max(MIN_NOTE_SPACING, barWidth / GRID);
+}
+
+function renderChords(ctx, chords, barWidth) {
+    chords.forEach((c, i) => {
+
+        const parts = c.split(" ").filter(x => x);
+
+        if (parts.length === 1) {
+            ctx.fillText(parts[0], i * barWidth + 10, 50);
+        }
+
+        if (parts.length === 2) {
+            ctx.fillText(parts[0], i * barWidth + 10, 50);
+            ctx.fillText(parts[1], i * barWidth + barWidth / 2, 50);
+        }
+    });
+}
+
+async function saveLick() {
+
+    const payload = {
+
+        file: currentFile,
+
+        title:
+        document.getElementById(
+            "lickName"
+        ).value,
+
+        chords:
+        document.getElementById(
+            "chordsInput"
+        ).value,
+
+        degrees:
+        document.getElementById(
+            "degreesInput"
+        ).value,
+
+        melody:
+        document.getElementById(
+            "melodyInput"
+        ).value,
+
+        melodyRhythm:
+        document.getElementById(
+            "melodyRhythmInput"
+        ).value,
+
+        voicing:
+        document.getElementById(
+            "voicingInput"
+        ).value,
+
+        voicingRhythm:
+        document.getElementById(
+            "voicingRhythmInput"
+        ).value
+    };
+
+    await fetch(
+        "/music/licks/save",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body:
+                JSON.stringify(payload)
+        }
+    );
+
+    loadSavedLicks();
+}
+
+let savedLicks = {};
+
+async function loadSavedLicks() {
+
+    const response =
+        await fetch(
+            "/music/licks/metadata"
+        );
+
+    savedLicks =
+        await response.json();
+
+    renderSavedLicks();
+}
+
+function renderSavedLicks() {
+
+    const container =
+        document.getElementById(
+            "savedLicks"
+        );
+
+    container.innerHTML = "";
+
+    if (!currentFile) {
+        return;
+    }
+
+    const licks =
+        savedLicks[currentFile] || [];
+
+    licks.forEach((lick, index) => {
+
+        const card =
+            document.createElement("div");
+
+        card.className =
+            "saved-lick-card";
+
+        card.innerHTML = `
+            <div>
+                <strong>
+                    ${lick.title || "Untitled"}
+                </strong>
+            </div>
+
+            <div>
+                ${lick.chords || ""}
+            </div>
+        `;
+
+        card.onclick =
+            () => loadSavedLick(
+                currentFile,
+                index
+            );
+
+        container.appendChild(
+            card
+        );
+    });
+}
+
+function loadSavedLick(
+    fileName,
+    index
+) {
+
+    const lick =
+        savedLicks[fileName][index];
+
+    document.getElementById(
+        "lickName"
+    ).value =
+        lick.title || "";
+
+    document.getElementById(
+        "chordsInput"
+    ).value =
+        lick.chords || "";
+
+    document.getElementById(
+        "degreesInput"
+    ).value =
+        lick.degrees || "";
+
+    document.getElementById(
+        "melodyInput"
+    ).value =
+        lick.melody || "";
+
+    document.getElementById(
+        "melodyRhythmInput"
+    ).value =
+        lick.melodyRhythm || "";
+
+    document.getElementById(
+        "voicingInput"
+    ).value =
+        lick.voicing || "";
+
+    document.getElementById(
+        "voicingRhythmInput"
+    ).value =
+        lick.voicingRhythm || "";
+
+    renderScore();
 }

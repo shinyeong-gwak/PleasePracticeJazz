@@ -18,7 +18,7 @@
     <!-- CENTER -->
     <div class="panel center">
 
-        <audio id="audioPlayer" controls>
+        <audio controls id="audioPlayer">
             <button onclick="skip(-15)">⏪ 15s</button>
             <button onclick="playAudio()">▶</button>
             <button onclick="pauseAudio()">⏸</button>
@@ -36,13 +36,13 @@
 
             <div>
                 Pitch:
-                <input id="pitch" type="range" min="-12" max="12" value="0">
+                <input id="pitch" max="12" min="-12" type="range" value="0">
                 <span id="pitchVal">0</span>
             </div>
 
             <div>
                 Tempo:
-                <input id="tempo" type="range" min="30" max="200" value="100">
+                <input id="tempo" max="200" min="30" type="range" value="100">
                 <span id="tempoVal">100%</span>
             </div>
 
@@ -53,16 +53,44 @@
         <div class="notation-area">
             <div class="sequencer">
 
+                <div class="track">
+                    <h4>이름</h4>
+                    <input id="lickName">
+                </div>
+
                 <!-- CODE -->
                 <div class="track">
                     <h4>코드</h4>
                     <input id="chordsInput" value="| Cm7 | F7 | BbM7 |">
                 </div>
 
+                <label>Grid</label>
+                <select id="gridSelect" onchange="renderScore()">
+                    <option selected value="8">8 (8 subdivisions)</option>
+                    <option value="12">12 (triplet)</option>
+                    <option value="16">16</option>
+                    <option value="20">20 (5-tuplet)</option>
+                    <option value="24">24 (6-tuplet)</option>
+                </select>
+
                 <!-- RIGHT HAND -->
                 <div class="track">
                     <h4>오른손 - 멜로디</h4>
                     <textarea id="melodyInput" value="|d5eb5g5bb5 | d6bb5g5eb5 |">|d5eb5g5bb5 | d6bb5g5eb5 |</textarea>
+                </div>
+
+                <div class="track">
+                    <h4>멜로디 리듬</h4>
+                    <input
+                            id="melodyRhythmInput"
+                            placeholder="11111111">
+                </div>
+
+                <div class="track">
+                    <h4>음정</h4>
+                    <input
+                            id="degreesInput"
+                            placeholder="2 b3 5 b7">
                 </div>
 
                 <!-- LEFT HAND -->
@@ -72,28 +100,37 @@
                               placeholder="c5-eb5-g5-bb5 | f5-a5-c6-eb6 |"></textarea>
                 </div>
 
+                <div class="track">
+                    <h4>보이싱 리듬</h4>
+                    <input
+                            id="voicingRhythmInput"
+                            placeholder="1">
+                </div>
+
                 <button onclick="renderSequencer()">Render</button>
                 <button onclick="renderScore()">Render Score</button>
+                <button onclick="saveLick()">
+                    Save
+                </button>
 
             </div>
 
-            <canvas id="sequencerCanvas"></canvas>
             <div class="score-container">
                 <canvas id="scoreCanvas"></canvas>
             </div>
+            <canvas id="sequencerCanvas"></canvas>
         </div>
 
     </div>
 
     <!-- RIGHT -->
-    <div class="panel right">
-        <h3>Metadata</h3>
-        <div id="metaBox">Select a lick</div>
+    <div id="savedLicks">
+
     </div>
 
 </div>
 
 <script src="/static/js/licks.js"></script>
-<link rel="stylesheet" href="/static/css/style.css">
+<link href="/static/css/style.css" rel="stylesheet">
 
 {% endblock %}

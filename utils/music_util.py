@@ -20,7 +20,7 @@ if platform.system() == "Darwin":  # macOS
     brew_prefix = subprocess.check_output(["brew", "--prefix"], text=True).strip()
     ffmpeg_loc = str(Path(brew_prefix) / "bin")
 
-elif platform.system() == "windows":
+elif platform.system() == "Windows":
     ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
 
 else:

@@ -42,3 +42,10 @@ def serve_lick(filename: str):
 @router.get("/audio/processed/{filename}")
 def serve_processed(filename: str):
     return FileResponse(Path("downloads/processed") / filename)
+
+@router.get("/music/audio/{filename}")
+def audio(filename: str):
+
+    path = Path("downloads/mp3") / filename
+
+    return FileResponse(path)

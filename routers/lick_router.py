@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from repositories import lick_repository
 from core.render import render_page
@@ -16,3 +16,15 @@ def licks_page(request):
         "Lick 연습",
         {"licks": licks}
     )
+
+@router.post("/music/licks/save")
+async def save_lick(request: Request):
+
+    data = await request.json()
+
+    return lick_repository.save(data)
+
+@router.get("/music/licks/metadata")
+def get_lick_metadata():
+
+    return lick_repository.get_metadata()

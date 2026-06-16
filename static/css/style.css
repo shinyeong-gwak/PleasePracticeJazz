@@ -151,3 +151,23 @@ audio {
     padding: 6px;
     font-family: monospace;
 }
+
+.saved-lick-card {
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    padding: 8px;
+
+    margin-bottom: 8px;
+
+    cursor: pointer;
+
+    background: white;
+}
+
+.saved-lick-card:hover {
+
+    background: #f3f3f3;
+}
