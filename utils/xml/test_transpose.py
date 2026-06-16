@@ -2,31 +2,26 @@ from parser import parse_lead_sheet
 from transpose import generate_circle_of_fifths
 
 sheet = parse_lead_sheet(
-    key_signature="Bb",
-    time_signature="4/4",
+    key="Bb",
+    time="4/4",
 
-    chord_text="""
+    chords="""
 | CM7 CM7 F7 E7 |
 """,
 
-    rh_text="""
+    rh="""
 | D E G B F B G E |
 """,
 
-    rh_rhythm_text="""
+    rh_r="""
 | 8 8 8 8 8 8 8 8 |
 """,
 
-    lh_text="""
+    lh="""
 | E-B-D |
 """,
 
-    lh_rhythm_text="""
+    lh_r="""
 | 1 |
 """
 )
-
-scores = generate_circle_of_fifths(sheet)
-
-for key_name, score in scores.items():
-    print(key_name)

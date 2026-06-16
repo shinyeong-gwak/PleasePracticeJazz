@@ -1,131 +1,100 @@
-# normalize.py
-
 from music_theory import (
-    note_to_midi,
-    choose_nearest_pitch,
     parse_note_token,
+    choose_nearest_pitch,
     RIGHT_LOW,
     RIGHT_HIGH,
     LEFT_LOW,
-    LEFT_HIGH,
+    LEFT_HIGH, note_to_midi,
 )
+import re
+from models import NormalizedToken
 
 
-def _normalize_single_note(
-        token: str,
-        previous_midi: int,
-        key_signature: str,
-        low: int,
-        high: int,
-):
+def _normalize(token, prev, key, low, high):
 
-    pitch_class = parse_note_token(
-        token,
-        key_signature
-    )
+    # 옥타브가 지정된 경우
+    if re.match(r"^[A-Ga-g][#bn]?\d+$", token):
+        return note_to_midi(token)
 
-    if pitch_class is None:
-        raise ValueError(
-            f"Invalid note token: {token}"
-        )
+    pc = parse_note_token(token, key)
 
-    midi = choose_nearest_pitch(
-        pitch_class,
-        previous_midi,
+    if pc is None:
+        raise ValueError(token)
+
+    return choose_nearest_pitch(
+        pc,
+        prev,
         low,
         high,
     )
 
-    return midi
 
+# ---------------- RH ----------------
 
-def normalize_melody_tokens(
-        tokens: list[str],
-        key_signature: str,
-):
+def normalize_melody_tokens(tokens, key):
 
-    result = []
+    out = []
+    prev = 72
 
-    previous = 72  # C5
+    for t in tokens:
 
-    for token in tokens:
-
-        if token == "!":
-            result.append("!")
+        if t == "!":
+            out.append(NormalizedToken([], False, True))
             continue
 
-        if "-" in token:
-            raise ValueError(
-                f"Chord/voicing token not allowed in RH: {token}"
-            )
+        tie = False
 
-        midi = _normalize_single_note(
-            token,
-            previous,
-            key_signature,
-            RIGHT_LOW,
-            RIGHT_HIGH,
-        )
+        if t.endswith("~"):
+            tie = True
+            t = t[:-1]
 
-        previous = midi
+        midi = _normalize(t, prev, key, RIGHT_LOW, RIGHT_HIGH)
 
-        result.append(midi)
+        prev = midi
 
-    return result
+        out.append(NormalizedToken([midi], tie, False))
+
+    return out
 
 
-def normalize_voicing_token(
-        token: str,
-        previous_midi: int,
-        key_signature: str,
-):
+# ---------------- LH ----------------
 
-    notes = token.split("-")
+def normalize_voicing(token, prev, key):
 
-    result = []
+    notes = []
+    cur = prev
 
-    current_previous = previous_midi
+    for n in token.split("-"):
 
-    for note in notes:
+        midi = _normalize(n, cur, key, LEFT_LOW, LEFT_HIGH)
 
-        midi = _normalize_single_note(
-            note,
-            current_previous,
-            key_signature,
-            LEFT_LOW,
-            LEFT_HIGH,
-        )
+        notes.append(midi)
+        cur = midi
 
-        result.append(midi)
-
-        current_previous = midi
-
-    return result
+    return notes
 
 
-def normalize_left_hand_tokens(
-        tokens: list[str],
-        key_signature: str,
-):
+def normalize_left_hand_tokens(tokens, key):
 
-    result = []
+    out = []
+    prev = 48
 
-    previous = 48  # C3
+    for t in tokens:
 
-    for token in tokens:
-
-        if token == "!":
-            result.append("!")
+        if t == "!":
+            out.append(NormalizedToken([], False, True))
             continue
 
-        voicing = normalize_voicing_token(
-            token,
-            previous,
-            key_signature,
-        )
+        tie = False
 
-        previous = voicing[-1]
+        if t.endswith("~"):
+            tie = True
+            t = t[:-1]
 
-        result.append(voicing)
+        voicing = normalize_voicing(t, prev, key)
 
-    return result
+        prev = voicing[-1]
+
+        out.append(NormalizedToken(voicing, tie, False))
+
+    return out

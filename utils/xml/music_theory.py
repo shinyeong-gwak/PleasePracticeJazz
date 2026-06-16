@@ -90,14 +90,17 @@ def midi_to_note(midi: int, accidental_mode="flat"):
 
 def note_to_midi(note: str):
 
-    m = re.match(r"^([A-G])([#b]?)(\d+)$", note)
+    m = re.match(r"^([A-Ga-g])([#bn]?)(\d+)$", note)
 
     if not m:
         raise ValueError(f"Invalid note: {note}")
 
-    step = m.group(1)
-    accidental = m.group(2)
+    step = m.group(1).upper()
+    accidental = m.group(2).lower()
     octave = int(m.group(3))
+
+    if accidental == "n":
+        accidental = ""
 
     pitch_name = step + accidental
 
@@ -136,8 +139,8 @@ def apply_key_signature(
         key_signature: str,
 ):
 
-    if note_name.startswith("n"):
-        return note_name[1:]
+    if note_name.endswith("n"):
+        return note_name[:-1]
 
     if "#" in note_name or "b" in note_name:
         return note_name
@@ -166,15 +169,18 @@ def parse_note_token(
     )
 
     m = re.match(
-        r"^([A-G])([#b]?)$",
+        r"^([A-Ga-g])([#bn]?)(\d+)?$",
         token
     )
 
     if not m:
         return None
 
-    step = m.group(1)
-    accidental = m.group(2)
+    step = m.group(1).upper()
+    accidental = m.group(2).lower()
+
+    if accidental == "n":
+        accidental = ""
 
     return NOTE_TO_SEMITONE[
         step + accidental

@@ -88,14 +88,14 @@ def transpose_chord_symbol(
 ):
 
     m = re.match(
-        r"^([A-G])([#b]?)(.*)$",
+        r"^([A-Ga-g])([#b]?)(.*)$",
         chord
     )
 
     if not m:
         return chord
 
-    root = m.group(1) + m.group(2)
+    root = m.group(1).upper() + m.group(2)
     suffix = m.group(3)
 
     if "/" in suffix:
@@ -143,12 +143,15 @@ def transpose_lead_sheet(
     for measure in result.measures:
 
         measure.chords = [
-            transpose_chord_symbol(
-                chord,
-                semitones,
-                accidental_mode,
+            (
+                transpose_chord_symbol(
+                    chord_name,
+                    semitones,
+                    accidental_mode,
+                ),
+                count,
             )
-            for chord in measure.chords
+            for chord_name, count in measure.chords
         ]
 
         for event in measure.right_hand:

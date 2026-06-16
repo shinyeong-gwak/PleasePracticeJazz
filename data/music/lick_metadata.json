@@ -1,5 +1,5 @@
 {
-  "null": [
+  "1lick땀": [
     {
       "file": null,
       "title": "",
@@ -19,6 +19,38 @@
       "degrees": "",
       "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
       "melodyRhythm": "",
+      "voicing": "",
+      "voicingRhythm": ""
+    },
+    {
+      "file": "Ugetsu-lick-1.mp3",
+      "title": "",
+      "chords": "| Cm7 | F7 | BbM7 |",
+      "degrees": "",
+      "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
+      "melodyRhythm": "",
+      "voicing": "",
+      "voicingRhythm": ""
+    },
+    {
+      "file": "Ugetsu-lick-1.mp3",
+      "title": "",
+      "chords": "| Cm7 | F7 | BbM7 |",
+      "degrees": "",
+      "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
+      "melodyRhythm": "",
+      "voicing": "",
+      "voicingRhythm": ""
+    }
+  ],
+  "lick2": [
+    {
+      "file": null,
+      "title": "ugetsu 20bit",
+      "chords": "|Ab7 | Ab7| DbM7 |",
+      "degrees": "",
+      "melody": "|bb6ab6f6eb6c6bb5 | d6bb5g5eb5 |",
+      "melodyRhythm": "|20 20 20 20 20 |",
       "voicing": "",
       "voicingRhythm": ""
     }

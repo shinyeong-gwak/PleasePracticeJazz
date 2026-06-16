@@ -1,56 +1,53 @@
-<style>
-    body {
-        font-family: sans-serif;
-        margin: 20px;
-    }
-
-    textarea {
-        width: 100%;
-        height: 300px;
-    }
-
-    #output {
-        margin-top: 20px;
-        border: 1px solid #ddd;
-        padding: 10px;
-        overflow-x: auto;
-    }
-</style>
 {% extends "layout.html" %}
 
 {% block content %}
 
-<h2>🎼 MusicXML Live Renderer</h2>
-
-<textarea id="xmlInput" placeholder="여기에 MusicXML 붙여넣기"></textarea>
-
-<br>
-<button onclick="render()">Render</button>
-
-<div id="output">SVG will appear here</div>
-
-<script>
-    async function render() {
-        const xml = document.getElementById("xmlInput").value;
-
-        if (!xml.trim()) {
-            alert("XML 넣어라");
-            return;
-        }
-
-        const res = await fetch("/render", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ xml })
-        });
-
-        const svg = await res.text();
-
-        document.getElementById("output").innerHTML = svg;
+<style>
+    .score-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 18px;
     }
-</script>
+
+    .score-item {
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #444;
+        cursor: pointer;
+        transition: .15s;
+        user-select: none;
+    }
+
+    .score-item:hover {
+        background: #e5e7eb;
+    }
+
+    .score-item.active {
+        background: #4f8cff;
+        color: white;
+    }
+
+    .viewer {
+        height: 700px;          /* 원하는 높이 */
+        overflow: auto;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        padding: 16px;
+        background: #fff;
+    }
+</style>
+
+<h2>🎼 MusicXML Renderer</h2>
+
+<div id="scoreList" class="score-list"></div>
+
+<div id="output" class="viewer">
+    파일을 선택하세요.
+</div>
+
+<script src="/static/js/render.js"/>
 
 
 {% endblock %}

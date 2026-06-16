@@ -571,7 +571,7 @@ function drawStaff(ctx, width) {
 
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
-
+음
     for (let i = 0; i < 5; i++) {
         const y = startY + i * LINE_GAP;
 

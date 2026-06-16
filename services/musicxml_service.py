@@ -7,9 +7,13 @@ app = FastAPI()
 # Verovio 초기 설정
 vrv_toolkit = verovio.toolkit()
 vrv_toolkit.setOptions({
-    "scale": 40,
-    "pageWidth": 2000,
-    "pageHeight": 10000
+    "pageWidth": 2100,
+    "pageHeight": 2970,
+    "pageMarginTop": 120,
+    "pageMarginBottom": 80,
+    "pageMarginLeft": 80,
+    "pageMarginRight": 80,
+    "adjustPageHeight": True,
 })
 
 

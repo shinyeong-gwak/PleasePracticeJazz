@@ -6,11 +6,14 @@ import uuid
 import librosa
 import numpy as np
 
+from utils.audio_config import init_ffmpeg
+
 LICKS_DIR = Path("downloads/licks")
 OUTPUT_DIR = Path("downloads/processed")
-
-
 class AudioService:
+
+    def __init__(self):
+        init_ffmpeg()
 
     @staticmethod
     def load(file_name: str) -> AudioSegment:
