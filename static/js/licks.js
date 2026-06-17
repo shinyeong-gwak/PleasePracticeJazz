@@ -4,7 +4,13 @@ let currentFile = null;
 function selectLick(file) {
     currentFile = file;
 
-    document.getElementById("metaBox").innerText = file;
+    document.getElementById(
+        "metaBox"
+    ).innerHTML =
+        `<strong>${file}</strong>`;
+
+    renderSavedLicks();
+
 
     const audio = document.getElementById("audioPlayer");
     audio.src = `/audio/lick/${file}`;
@@ -505,22 +511,6 @@ function buildBarLayouts(melodyBars) {
     return layouts;
 }
 
-function drawStaff(ctx, width) {
-    const startY = 80;
-    const lineGap = 12;
-
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 1;
-
-    for (let i = 0; i < 5; i++) {
-        const y = startY + i * lineGap;
-
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-    }
-}
 const STAFF_TOP = 80;
 const LINE_GAP = 11.7;
 
@@ -540,13 +530,6 @@ const centerLineY =
     207;
 
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        loadSavedLicks();
-    }
-);
 
 function noteToY(note) {
 
@@ -571,7 +554,7 @@ function drawStaff(ctx, width) {
 
     ctx.strokeStyle = "#333";
     ctx.lineWidth = 1;
-음
+
     for (let i = 0; i < 5; i++) {
         const y = startY + i * LINE_GAP;
 
@@ -623,9 +606,19 @@ async function saveLick() {
 
         file: currentFile,
 
-        title:
+        name:
         document.getElementById(
             "lickName"
+        ).value,
+
+        key:
+        document.getElementById(
+            "keyInput"
+        ).value,
+
+        time:
+        document.getElementById(
+            "timeInput"
         ).value,
 
         chords:
@@ -694,7 +687,7 @@ function renderSavedLicks() {
 
     const container =
         document.getElementById(
-            "savedLicks"
+            "metaBox"
         );
 
     container.innerHTML = "";
@@ -708,32 +701,34 @@ function renderSavedLicks() {
 
     licks.forEach((lick, index) => {
 
-        const card =
+        const block =
             document.createElement("div");
 
-        card.className =
+        block.className =
             "saved-lick-card";
 
-        card.innerHTML = `
+        block.innerHTML = `
             <div>
                 <strong>
-                    ${lick.title || "Untitled"}
+                    ${lick.name || "Unnamed"}
                 </strong>
             </div>
-
+        
             <div>
-                ${lick.chords || ""}
+                ${lick.key || "C"}
+                /
+                ${lick.time || "4/4"}
             </div>
         `;
 
-        card.onclick =
+        block.onclick =
             () => loadSavedLick(
                 currentFile,
                 index
             );
 
         container.appendChild(
-            card
+            block
         );
     });
 }
@@ -749,7 +744,17 @@ function loadSavedLick(
     document.getElementById(
         "lickName"
     ).value =
-        lick.title || "";
+        lick.name || "";
+
+    document.getElementById(
+        "keyInput"
+    ).value =
+        lick.key || "C";
+
+    document.getElementById(
+        "timeInput"
+    ).value =
+        lick.time || "4/4";
 
     document.getElementById(
         "chordsInput"
@@ -782,4 +787,145 @@ function loadSavedLick(
         lick.voicingRhythm || "";
 
     renderScore();
+}
+
+
+async function exportMusicXml() {
+
+    const payload = {
+
+        file: currentFile,
+
+        name:
+        document.getElementById(
+            "lickName"
+        ).value,
+
+        key:
+        document.getElementById(
+            "keyInput"
+        ).value,
+
+        time:
+        document.getElementById(
+            "timeInput"
+        ).value,
+
+        chords:
+        document.getElementById(
+            "chordsInput"
+        ).value,
+
+        rh:
+        document.getElementById(
+            "melodyInput"
+        ).value,
+
+        rh_r:
+        document.getElementById(
+            "melodyRhythmInput"
+        ).value,
+
+        lh:
+        document.getElementById(
+            "voicingInput"
+        ).value,
+
+        lh_r:
+        document.getElementById(
+            "voicingRhythmInput"
+        ).value
+    };
+
+    const response =
+        await fetch(
+            "/music/licks/export",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(payload)
+            }
+        );
+
+    const result =
+        await response.json();
+
+    alert(
+        "생성 완료\n" +
+        result.path
+    );
+}
+
+async function export12KeysMusicXml() {
+
+    const payload = {
+
+        file: currentFile,
+
+        name:
+        document.getElementById(
+            "lickName"
+        ).value,
+
+        key:
+        document.getElementById(
+            "keyInput"
+        ).value,
+
+        time:
+        document.getElementById(
+            "timeInput"
+        ).value,
+
+        chords:
+        document.getElementById(
+            "chordsInput"
+        ).value,
+
+        rh:
+        document.getElementById(
+            "melodyInput"
+        ).value,
+
+        rh_r:
+        document.getElementById(
+            "melodyRhythmInput"
+        ).value,
+
+        lh:
+        document.getElementById(
+            "voicingInput"
+        ).value,
+
+        lh_r:
+        document.getElementById(
+            "voicingRhythmInput"
+        ).value
+    };
+
+    const response =
+        await fetch(
+            "/music/licks/export12",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+                body:
+                    JSON.stringify(payload)
+            }
+        );
+
+    const result =
+        await response.json();
+
+    alert(
+        "12 Keys 생성 완료\n" +
+        result.path
+    );
 }

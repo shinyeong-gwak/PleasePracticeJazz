@@ -5,9 +5,11 @@
 
     <title>{{ page_title }}</title>
 
-    <link
-            rel="stylesheet"
-            href="/static/css/style.css">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet"
+          href="/static/css/style.css">
 
 </head>
 
@@ -57,6 +59,24 @@
     </div>
 
 </div>
+
+<!-- 여기 아래에 모바일 nav 추가 -->
+
+<div id="mobileNav" class="mobile-nav">
+
+    <div id="mobileNavContent"
+         class="mobile-nav-content">
+
+    </div>
+
+</div>
+
+<script id="navigation-data"
+        type="application/json">
+
+    {{ navigation | tojson | safe }}
+
+</script>
 
 <script src="/static/js/sidebar.js"></script>
 

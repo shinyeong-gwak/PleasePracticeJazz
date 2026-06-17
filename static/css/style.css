@@ -171,3 +171,184 @@ audio {
 
     background: #f3f3f3;
 }
+.left {
+    order: 2;
+}
+
+#savedLicks {
+    order: 3;
+}
+
+.center {
+    order: 1;
+}
+/*==========================================================*/
+
+.mobile-nav {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    input,
+    textarea,
+    select,
+    button {
+
+        width: 100%;
+    }
+
+    textarea {
+
+        min-height: 100px;
+    }
+
+    .container {
+
+        display: block;
+
+        height: auto;
+
+        min-height: 100vh;
+
+        padding-bottom: 60px;
+    }
+
+    .sidebar {
+
+        display: none;
+    }
+
+    .main {
+
+        width: 100%;
+    }
+
+    .mobile-nav {
+
+        position: fixed;
+
+        left: 0;
+
+        right: 0;
+
+        bottom: 0;
+
+        height: 60px;
+
+        background: #232323;
+
+        border-top: 1px solid #444;
+
+        display: flex;
+
+        align-items: center;
+
+        overflow-x: auto;
+
+        z-index: 1000;
+    }
+
+    .mobile-nav-content {
+
+        display: flex;
+
+        width: 100%;
+
+        height: 100%;
+    }
+
+    .mobile-root-btn {
+
+        flex: 1;
+
+        height: 100%;
+
+        font-size: 24px;
+
+        border: none;
+
+        background: transparent;
+
+        color: white;
+    }
+
+    .mobile-item-btn {
+
+        flex: 1;
+
+        height: 100%;
+
+        display: flex;
+
+        justify-content: center;
+
+        align-items: center;
+
+        text-decoration: none;
+
+        color: white;
+
+        border-left: 1px solid #444;
+    }
+
+    .mobile-item-btn:hover {
+
+        background: #444;
+    }
+}
+
+
+@media (max-width: 768px) {
+
+    .lick-workbench {
+
+        display: flex;
+
+        flex-direction: column;
+
+        height: auto;
+    }
+
+    .left {
+
+        width: 100%;
+
+        order: 1;
+
+        border-right: none;
+
+        border-bottom: 1px solid #ddd;
+    }
+
+    #savedLicks {
+
+        width: 100%;
+
+        order: 2;
+
+        border-bottom: 1px solid #ddd;
+
+        padding: 10px;
+    }
+
+    .center {
+
+        width: 100%;
+
+        order: 3;
+    }
+
+    .panel {
+
+        overflow: visible;
+    }
+
+    .notation-area {
+
+        height: auto;
+
+        min-height: 300px;
+    }
+}
+
+/*==============================================*/

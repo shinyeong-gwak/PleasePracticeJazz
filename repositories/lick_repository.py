@@ -33,6 +33,9 @@ def save(data):
 
     mp3 = data["file"]
 
+    if not mp3:
+        return {"success": False}
+
     metadata.setdefault(mp3, [])
 
     metadata[mp3].append(data)

@@ -1,20 +1,16 @@
 {
-  "1lick땀": [
+  "Ugetsu-lick-1.mp3": [
     {
-      "file": null,
-      "title": "",
+      "name": "1lick땀",
       "chords": "| Cm7 | F7 | BbM7 |",
       "degrees": "",
       "melody": "g5 d5 eb5 a5 e5 f5 b5 f5 g5 c6 g5 a5 | d6bb5g5eb5 |",
       "melodyRhythm": "",
       "voicing": "",
       "voicingRhythm": ""
-    }
-  ],
-  "Ugetsu-lick-1.mp3": [
+    },
     {
-      "file": "Ugetsu-lick-1.mp3",
-      "title": "",
+      "name": "",
       "chords": "| Cm7 | F7 | BbM7 |",
       "degrees": "",
       "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
@@ -23,8 +19,7 @@
       "voicingRhythm": ""
     },
     {
-      "file": "Ugetsu-lick-1.mp3",
-      "title": "",
+      "name": "",
       "chords": "| Cm7 | F7 | BbM7 |",
       "degrees": "",
       "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
@@ -33,20 +28,16 @@
       "voicingRhythm": ""
     },
     {
-      "file": "Ugetsu-lick-1.mp3",
-      "title": "",
+      "name": "",
       "chords": "| Cm7 | F7 | BbM7 |",
       "degrees": "",
       "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
       "melodyRhythm": "",
       "voicing": "",
       "voicingRhythm": ""
-    }
-  ],
-  "lick2": [
+    },
     {
-      "file": null,
-      "title": "ugetsu 20bit",
+      "name": "ugetsu 20bit",
       "chords": "|Ab7 | Ab7| DbM7 |",
       "degrees": "",
       "melody": "|bb6ab6f6eb6c6bb5 | d6bb5g5eb5 |",

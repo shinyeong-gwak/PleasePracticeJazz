@@ -222,5 +222,19 @@
         "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
         "status": "SUCCESS",
         "message": "동기화 완료"
+    },
+    {
+        "time": "2026-06-17T15:43:55.647547",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "RUNNING",
+        "message": "동기화 시작"
+    },
+    {
+        "time": "2026-06-17T15:44:23.304952",
+        "playlistName": "basic",
+        "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+        "status": "SUCCESS",
+        "message": "동기화 완료"
     }
 ]

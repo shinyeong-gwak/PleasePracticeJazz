@@ -14,7 +14,6 @@
         </div>
         {% endfor %}
 
-        <h3>selected</h3>
         <div id="metaBox"></div>
 
     </div>
@@ -38,12 +37,23 @@
         <input id="seekBar" type="range">
         <div class="controls">
 
-            <div>
-                Pitch:
-                <input id="pitch" max="12" min="-12" type="range" value="0">
-                <span id="pitchVal">0</span>
-            </div>
+            <select id="pitchVal">
 
+                <option value="-6">-6</option>
+                <option value="-5">-5</option>
+                <option value="-4">-4</option>
+                <option value="-3">-3</option>
+                <option value="-2">-2</option>
+                <option value="-1">-1</option>
+                <option value="0" selected>0</option>
+                <option value="1">+1</option>
+                <option value="2">+2</option>
+                <option value="3">+3</option>
+                <option value="4">+4</option>
+                <option value="5">+5</option>
+                <option value="6">+6</option>
+
+            </select>
             <div>
                 Tempo:
                 <input id="tempo" max="200" min="30" type="range" value="100">
@@ -62,6 +72,49 @@
                     <input id="lickName">
                 </div>
 
+                <div class="track">
+
+                    <h4>Key</h4>
+
+                    <select id="keyInput">
+
+                        <option value="C">C</option>
+                        <option value="Db">Db</option>
+                        <option value="D">D</option>
+                        <option value="Eb">Eb</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="F#">F#</option>
+                        <option value="G">G</option>
+                        <option value="Ab">Ab</option>
+                        <option value="A">A</option>
+                        <option value="Bb">Bb</option>
+                        <option value="B">B</option>
+
+                    </select>
+
+                </div>
+                <div class="track">
+
+                    <h4>Time</h4>
+
+                    <select id="timeInput">
+
+                        <option value="4/4">
+                            4/4
+                        </option>
+
+                        <option value="3/4">
+                            3/4
+                        </option>
+
+                        <option value="6/8">
+                            6/8
+                        </option>
+
+                    </select>
+
+                </div>
                 <!-- CODE -->
                 <div class="track">
                     <h4>코드</h4>
@@ -116,6 +169,13 @@
                 <button onclick="saveLick()">
                     Save
                 </button>
+                <button onclick="exportMusicXml()">
+                    Export MusicXML
+                </button>
+                <button onclick="export12KeysMusicXml()">
+                    Export 12 Keys
+                </button>
+
 
             </div>
 
@@ -132,7 +192,12 @@
     </div>
 
 </div>
-
+<script>
+    document.addEventListener(
+        "DOMContentLoaded", () =>
+        loadSavedLicks()
+    );
+</script>
 <script src="/static/js/licks.js"></script>
 <link href="/static/css/style.css" rel="stylesheet">
 
