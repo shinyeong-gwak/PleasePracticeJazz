@@ -1,5 +1,5 @@
-from models import LeadSheet, Measure, NoteEvent
-from normalize import (
+from data.model.models import LeadSheet, Measure, NoteEvent
+from utils.xml.normalize import (
     normalize_melody_tokens,
     normalize_left_hand_tokens,
 )

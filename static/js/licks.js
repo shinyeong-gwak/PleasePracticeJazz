@@ -21,10 +21,9 @@ function selectLick(file) {
 async function applyEffects() {
     if (!currentFile) return;
 
-    const pitch = parseInt(document.getElementById("pitch").value);
+    const pitch = parseInt(document.getElementById("pitchVal").value);
     const tempo = parseInt(document.getElementById("tempo").value) / 100;
 
-    document.getElementById("pitchVal").innerText = pitch;
     document.getElementById("tempoVal").innerText = tempo + "x";
 
     const res = await fetch("/api/audio/process", {
@@ -38,6 +37,21 @@ async function applyEffects() {
             tempo: tempo
         })
     });
+
+    const tempoSlider =
+        document.getElementById("tempo");
+
+    const tempoVal =
+        document.getElementById("tempoVal");
+
+    tempoSlider.addEventListener(
+        "input",
+        () => {
+
+            tempoVal.innerText =
+                tempoSlider.value + "%";
+        }
+    );
 
     const data = await res.json();
 
@@ -100,6 +114,23 @@ audio.addEventListener("timeupdate", () => {
         durationEl.innerText = formatTime(audio.duration);
     }
 });
+
+function resetEffects() {
+
+    document.getElementById(
+        "pitchVal"
+    ).value = "0";
+
+    document.getElementById(
+        "tempo"
+    ).value = 100;
+
+    document.getElementById(
+        "tempoVal"
+    ).innerText = "100%";
+
+    applyEffects();
+}
 
 //===========
 function parseBars(input) {

@@ -1,11 +1,8 @@
 from music21 import stream, note, chord, harmony, meter, key, tie, clef, layout
 
-from models import LeadSheet
-from utils.xml.parser import parse_lead_sheet
+from data.model.models import LeadSheet
 
 import re
-
-from utils.xml.transpose import generate_circle_of_fifths
 
 RHYTHM_TO_Q = {
     1: 4.0,
@@ -184,39 +181,39 @@ def export_circle_of_fifths_musicxml(scores, out_path):
 
     return out_path
 
-sheet = parse_lead_sheet(
-    key="Bb",
-    time="4/4",
-
-    chords="""
-    | Cm7 F7 | BbM7
-    """,
-
-    rh="""
-    | D F En D Eb F G5 A5 bb5 g5 Eb5 c5 d5 Bb4 G4 Eb4 | D4
-    """,
-
-    rh_r="""
-    | 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 | 4
-    """,
-
-    lh="""
-    | C2-Bb2 Eb3-A3 | Bb2-D3-A3 Bb2-D3-A3
-    """,
-
-    lh_r="""
-    | 4 !4 4 !4 | 4~ 8
-    """
-)
-
-scores = generate_circle_of_fifths(sheet)
-
-export_circle_of_fifths_musicxml(
-    scores,
-    "downloads/scores/circle_of_fifths.musicxml"
-)
-
-print("DONE")
+# sheet = parse_lead_sheet(
+#     key="Bb",
+#     time="4/4",
+#
+#     chords="""
+#     | Cm7 F7 | BbM7
+#     """,
+#
+#     rh="""
+#     | D F En D Eb F G5 A5 bb5 g5 Eb5 c5 d5 Bb4 G4 Eb4 | D4
+#     """,
+#
+#     rh_r="""
+#     | 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 16 | 4
+#     """,
+#
+#     lh="""
+#     | C2-Bb2 Eb3-A3 | Bb2-D3-A3 Bb2-D3-A3
+#     """,
+#
+#     lh_r="""
+#     | 4 !4 4 !4 | 4~ 8
+#     """
+# )
+#
+# scores = generate_circle_of_fifths(sheet)
+#
+# export_circle_of_fifths_musicxml(
+#     scores,
+#     "downloads/scores/circle_of_fifths.musicxml"
+# )
+#
+# print("DONE")
 
 
 # out = export_musicxml(

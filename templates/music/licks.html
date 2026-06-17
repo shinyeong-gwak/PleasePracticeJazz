@@ -61,6 +61,9 @@
             </div>
 
             <button onclick="applyEffects()">Apply</button>
+            <button onclick="resetEffects()">
+                Reset
+            </button>
         </div>
 
         <!-- 악보 / 분석 영역 -->
@@ -133,14 +136,14 @@
                 <!-- RIGHT HAND -->
                 <div class="track">
                     <h4>오른손 - 멜로디</h4>
-                    <textarea id="melodyInput" value="|d5eb5g5bb5 | d6bb5g5eb5 |">|d5eb5g5bb5 | d6bb5g5eb5 |</textarea>
+                    <textarea id="melodyInput" placeholder="|d5 eb5 g5 bb5 | d6 bb5 g5 eb5 |"></textarea>
                 </div>
 
                 <div class="track">
                     <h4>멜로디 리듬</h4>
                     <input
                             id="melodyRhythmInput"
-                            placeholder="11111111">
+                            value="| 8 8 8 8 8 8 8 8 | 8 8 8 8 8 8 8 8|">
                 </div>
 
                 <div class="track">

@@ -4,6 +4,7 @@ from repositories import lick_repository
 from core.render import render_page
 
 from utils.xml.musicxml_exporter import export_musicxml
+from data.model.models import LeadSheet
 from utils.xml.parser import parse_lead_sheet
 from utils.xml.transpose import generate_circle_of_fifths
 
@@ -50,7 +51,7 @@ async def export_lick_musicxml(
     lh = data["lh"]
     lh_r = data["lh_r"]
 
-    sheet = parse_lead_sheet(
+    sheet : LeadSheet = parse_lead_sheet(
         key=key,
         time=time,
 
@@ -107,7 +108,7 @@ async def export_12_keys_musicxml(
 
     data = await request.json()
 
-    sheet = parse_lead_sheet(
+    sheet : LeadSheet = parse_lead_sheet(
         key=data["key"],
         time=data["time"],
 

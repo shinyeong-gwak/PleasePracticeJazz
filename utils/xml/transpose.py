@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from models import (
+from data.model.models import (
     LeadSheet,
 )
 

@@ -1,4 +1,4 @@
-from music_theory import (
+from utils.xml.music_theory import (
     parse_note_token,
     choose_nearest_pitch,
     RIGHT_LOW,
@@ -7,7 +7,7 @@ from music_theory import (
     LEFT_HIGH, note_to_midi,
 )
 import re
-from models import NormalizedToken
+from data.model.models import NormalizedToken
 
 
 def _normalize(token, prev, key, low, high):

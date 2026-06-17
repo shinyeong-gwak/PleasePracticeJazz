@@ -62,5 +62,7 @@ def init_ffmpeg():
         AudioSegment.converter = str(bin_path / "ffmpeg.exe")
         AudioSegment.ffprobe = str(bin_path / "ffprobe.exe")
     else:
+
+        os.environ["PATH"] = "/opt/homebrew/bin:" + os.environ.get("PATH", "")
         AudioSegment.converter = str(bin_path / "ffmpeg")
         AudioSegment.ffprobe = str(bin_path / "ffprobe")
