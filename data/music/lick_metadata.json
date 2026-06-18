@@ -1,83 +1,12 @@
 {
   "Ugetsu-lick-1.mp3": [
     {
+      "file": "Ugetsu-lick-1.mp3",
       "name": "1lick땀",
       "chords": "| Cm7 | F7 | BbM7 |",
       "degrees": "",
       "melody": "g5 d5 eb5 a5 e5 f5 b5 f5 g5 c6 g5 a5 | d6bb5g5eb5 |",
       "melodyRhythm": "",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "name": "",
-      "chords": "| Cm7 | F7 | BbM7 |",
-      "degrees": "",
-      "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
-      "melodyRhythm": "",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "name": "",
-      "chords": "| Cm7 | F7 | BbM7 |",
-      "degrees": "",
-      "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
-      "melodyRhythm": "",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "name": "",
-      "chords": "| Cm7 | F7 | BbM7 |",
-      "degrees": "",
-      "melody": "|d5eb5g5bb5 | d6bb5g5eb5 |",
-      "melodyRhythm": "",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "name": "ugetsu 20bit",
-      "chords": "|Ab7 | Ab7| DbM7 |",
-      "degrees": "",
-      "melody": "|bb6ab6f6eb6c6bb5 | d6bb5g5eb5 |",
-      "melodyRhythm": "|20 20 20 20 20 |",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "file": "Ugetsu-lick-1.mp3",
-      "name": "",
-      "key": "C",
-      "time": "4/4",
-      "chords": "| Cm7 | F7 | BbM7 |",
-      "degrees": "",
-      "melody": "| f#7 e7 c#7 b6 F#6 e6 B6 f#6 e6 c#6 b5 f#5 e5 b5 f#5 e5 c#5 b4 F#4 e4 | c#4 b3 f#3 e3 b3 f#3 e3 c#3 b2 F#3 e3 c#3 b2 g2 A |",
-      "melodyRhythm": "| 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 |",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "file": "Ugetsu-lick-1.mp3",
-      "name": "실험이거 박자 애바",
-      "key": "C",
-      "time": "4/4",
-      "chords": "| Cm7 | F7 | BbM7 |",
-      "degrees": "",
-      "melody": "| f#7 e7 c#7 b6 F#6 e6 B6 f#6 e6 c#6 b5 f#5 e5 b5 f#5 e5 c#5 b4 F#4 e4 | c#4 b3 f#3 e3 b3 f#3 e3 c#3 b2 F#3 e3 c#3 b2 g2 A |",
-      "melodyRhythm": "| 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | ",
-      "voicing": "",
-      "voicingRhythm": ""
-    },
-    {
-      "file": "Ugetsu-lick-1.mp3",
-      "name": "실험이거 박자 애바",
-      "key": "C",
-      "time": "4/4",
-      "chords": "| A7 | A7 | DM7 |",
-      "degrees": "",
-      "melody": "| f#7 e7 c#7 b6 F#6 e6 B6 f#6 e6 c#6 b5 f#5 e5 b5 f#5 e5 c#5 b4 F#4 e4 | c#4 b3 f#3 e3 b3 f#3 e3 c#3 b2 F#3 e3 c#3 b2 g2 A |",
-      "melodyRhythm": "| 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | ",
       "voicing": "",
       "voicingRhythm": ""
     },
@@ -90,6 +19,18 @@
       "degrees": "",
       "melody": "| f#7 e7 c#7 b6 F#6 e6 B6 f#6 e6 c#6 b5 f#5 e5 b5 f#5 e5 c#5 b4 F#4 e4 | c#4 b3 f#3 e3 b3 f#3 e3 c#3 b2 F#3 e3 c#3 b2 g2 A |",
       "melodyRhythm": "| 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | ",
+      "voicing": "",
+      "voicingRhythm": ""
+    },
+    {
+      "file": "Ugetsu-lick-1.mp3",
+      "name": "왜안되냐실험이거 박자 애바",
+      "key": "D",
+      "time": "4/4",
+      "chords": "| A7 | A7 | DM7 |",
+      "degrees": "",
+      "melody": "| f#7 e7 c#7 b6 F#6 e6 B6 f#6 e6 c#6 b5 f#5 e5 b5 f#5 e5 c#5 b4 F#4 e4 | c#4 b3 f#3 e3 b3 f#3 e3 c#3 b2 F#3 e3 c#3 b2 g2 A2 |",
+      "melodyRhythm": "| 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 | ",
       "voicing": "",
       "voicingRhythm": ""
     }

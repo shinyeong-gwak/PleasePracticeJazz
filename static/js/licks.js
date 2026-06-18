@@ -630,6 +630,77 @@ function renderChords(ctx, chords, barWidth) {
         }
     });
 }
+function expandRhythmTokens(tokens) {
+
+    const result = [];
+
+    for (let i = 0; i < tokens.length; i++) {
+
+        const token = tokens[i];
+
+        if (
+            token.startsWith("*")
+        ) {
+
+            const repeatCount =
+                parseInt(
+                    token.substring(1)
+                );
+
+            if (
+                result.length === 0
+            ) {
+                throw new Error(
+                    "*N 앞에는 반드시 리듬값이 있어야 합니다."
+                );
+            }
+
+            const previous =
+                result[result.length - 1];
+
+            for (
+                let j = 1;
+                j < repeatCount;
+                j++
+            ) {
+                result.push(previous);
+            }
+
+            continue;
+        }
+
+        result.push(token);
+    }
+
+    return result;
+}
+function buildDefaultRhythm(
+    noteCount,
+    grid
+) {
+
+    const result = [];
+
+    for (
+        let i = 0;
+        i < noteCount;
+        i++
+    ) {
+        result.push(
+            String(grid)
+        );
+    }
+
+    while (
+        result.length < grid
+        ) {
+        result.push(
+            "!" + grid
+        );
+    }
+
+    return result;
+}
 
 async function saveLick() {
 
@@ -820,10 +891,8 @@ function loadSavedLick(
     renderScore();
 }
 
-
-async function exportMusicXml() {
-
-    const payload = {
+function createPayload() {
+    return {
 
         file: currentFile,
 
@@ -867,96 +936,97 @@ async function exportMusicXml() {
             "voicingRhythmInput"
         ).value
     };
+}
+async function exportMusicXml() {
+    try {
 
-    const response =
-        await fetch(
-            "/music/licks/export",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body:
-                    JSON.stringify(payload)
-            }
+        clearMessage();
+
+        const payload = createPayload();
+
+        const response =
+            await fetch(
+                "/music/licks/export",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(payload)
+                }
+            );
+
+        const result =
+            await response.json();
+
+        alert(
+            "생성 완료\n" +
+            result.path
         );
 
-    const result =
-        await response.json();
+    }catch  (e) {
 
-    alert(
-        "생성 완료\n" +
-        result.path
-    );
+        console.error(e);
+
+        showMessage(
+            e.message
+        );
+    }
+
 }
 
 async function export12KeysMusicXml() {
+    try {
 
-    const payload = {
+        clearMessage();
 
-        file: currentFile,
+        const payload = createPayload();
 
-        name:
-        document.getElementById(
-            "lickName"
-        ).value,
+        const response =
+            await fetch(
+                "/music/licks/export12",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify(payload)
+                }
+            );
 
-        key:
-        document.getElementById(
-            "keyInput"
-        ).value,
+        const result =
+            await response.json();
 
-        time:
-        document.getElementById(
-            "timeInput"
-        ).value,
-
-        chords:
-        document.getElementById(
-            "chordsInput"
-        ).value,
-
-        rh:
-        document.getElementById(
-            "melodyInput"
-        ).value,
-
-        rh_r:
-        document.getElementById(
-            "melodyRhythmInput"
-        ).value,
-
-        lh:
-        document.getElementById(
-            "voicingInput"
-        ).value,
-
-        lh_r:
-        document.getElementById(
-            "voicingRhythmInput"
-        ).value
-    };
-
-    const response =
-        await fetch(
-            "/music/licks/export12",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-                body:
-                    JSON.stringify(payload)
-            }
+        alert(
+            "12 Keys 생성 완료\n" +
+            result.path
         );
+    }catch  (e) {
 
-    const result =
-        await response.json();
+        console.error(e);
 
-    alert(
-        "12 Keys 생성 완료\n" +
-        result.path
-    );
+        showMessage(
+            e.message
+        );
+    }
+}
+
+function showMessage(message) {
+
+    document.getElementById(
+        "messageBox"
+    ).innerText =
+        message;
+}
+
+function clearMessage() {
+
+    document.getElementById(
+        "messageBox"
+    ).innerText =
+        "";
 }

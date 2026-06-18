@@ -182,6 +182,56 @@ audio {
 .center {
     order: 1;
 }
+
+.message-box {
+
+    margin-top: 12px;
+
+    min-height: 24px;
+
+    color: #c62828;
+
+    font-size: 14px;
+
+    white-space: pre-wrap;
+}
+
+.score-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.score-item {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #444;
+    cursor: pointer;
+    transition: .15s;
+    user-select: none;
+}
+
+.score-item:hover {
+    background: #e5e7eb;
+}
+
+.score-item.active {
+    background: #4f8cff;
+    color: white;
+}
+
+.viewer {
+    height: 700px;          /* 원하는 높이 */
+    overflow: auto;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+}
+
+
 /*==========================================================*/
 
 .mobile-nav {
