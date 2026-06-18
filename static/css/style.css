@@ -182,6 +182,21 @@ audio {
 .center {
     order: 1;
 }
+
+.message-box {
+
+    margin-top: 12px;
+
+    min-height: 24px;
+
+    color: #c62828;
+
+    font-size: 14px;
+
+    white-space: pre-wrap;
+}
+
+
 /*==========================================================*/
 
 .mobile-nav {

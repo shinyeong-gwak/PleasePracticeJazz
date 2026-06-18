@@ -141,16 +141,16 @@
 
                 <div class="track">
                     <h4>멜로디 리듬</h4>
-                    <input
+                    <textarea
                             id="melodyRhythmInput"
-                            value="| 8 8 8 8 8 8 8 8 | 8 8 8 8 8 8 8 8|">
+                            placeholder="| 8 8 8 8 8 8 8 8 | 8 8 8 8 8 8 8 8|"></textarea>
                 </div>
 
                 <div class="track">
                     <h4>음정</h4>
-                    <input
+                    <textarea
                             id="degreesInput"
-                            placeholder="2 b3 5 b7">
+                            placeholder="2 b3 5 b7"></textarea>
                 </div>
 
                 <!-- LEFT HAND -->
@@ -162,9 +162,9 @@
 
                 <div class="track">
                     <h4>보이싱 리듬</h4>
-                    <input
+                    <textarea
                             id="voicingRhythmInput"
-                            placeholder="1">
+                            placeholder="1"></textarea>
                 </div>
 
                 <button onclick="renderSequencer()">Render</button>
@@ -180,6 +180,11 @@
                 </button>
 
 
+            </div>
+
+            <div
+                    id="messageBox"
+                    class="message-box">
             </div>
 
             <div class="score-container">
