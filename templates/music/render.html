@@ -2,43 +2,6 @@
 
 {% block content %}
 
-<style>
-    .score-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 18px;
-    }
-
-    .score-item {
-        padding: 8px 14px;
-        border-radius: 999px;
-        background: #f3f4f6;
-        color: #444;
-        cursor: pointer;
-        transition: .15s;
-        user-select: none;
-    }
-
-    .score-item:hover {
-        background: #e5e7eb;
-    }
-
-    .score-item.active {
-        background: #4f8cff;
-        color: white;
-    }
-
-    .viewer {
-        height: 700px;          /* 원하는 높이 */
-        overflow: auto;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 16px;
-        background: #fff;
-    }
-</style>
-
 <h2>🎼 MusicXML Renderer</h2>
 
 <div id="scoreList" class="score-list"></div>
@@ -48,6 +11,8 @@
 </div>
 
 <script src="/static/js/render.js"/>
+<link href="/static/css/style.css">
+
 
 
 {% endblock %}
