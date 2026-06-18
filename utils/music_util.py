@@ -24,12 +24,7 @@ elif platform.system() == "Windows":
     ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
 
 elif platform.system() == "Linux":
-    # ffmpeg가 설치된 디렉터리(/usr/bin 등)
-    ffmpeg = shutil.which("ffmpeg")
-    if ffmpeg:
-        ffmpeg_loc = str(Path(ffmpeg).parent)
-    else:
-        raise RuntimeError("ffmpeg가 설치되어 있지 않습니다. (sudo apt install ffmpeg)")
+    ffmpeg_loc = "/usr/bin/ffmpeg"
 
 else:
     print(platform.system())
