@@ -23,7 +23,7 @@ if platform.system() == "Darwin":  # macOS
 elif platform.system() == "Windows":
     ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
 
-elif system == "Linux":
+elif platform.system() == "Linux":
     # ffmpeg가 설치된 디렉터리(/usr/bin 등)
     ffmpeg = shutil.which("ffmpeg")
     if ffmpeg:
