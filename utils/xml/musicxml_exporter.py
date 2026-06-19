@@ -17,11 +17,17 @@ RHYTHM_TO_Q = {
 
 def to_music21_chord(chord: str):
 
-    m = re.match(r"^([A-Ga-g])([#b]?)(.*)$", chord)
+    m = re.match(
+        r'^([A-Ga-g][b#]?)(.*?)(?:/([A-Ga-g][b#]?))?$',
+        chord
+    )
 
-    root = m.group(1).upper()
-    accidental = m.group(2)
-    suffix = m.group(3)
+    if not m:
+        return chord
+
+    root = m.group(1)
+    suffix = m.group(2)
+    bass = m.group(3)
 
     mapping = {
         "M": "maj",
@@ -39,14 +45,26 @@ def to_music21_chord(chord: str):
         "+7": "aug7",
     }
 
-    suffix = mapping.get(suffix, suffix)
+    suffix = mapping.get(
+        suffix,
+        suffix
+    )
 
-    if accidental == "b":
-        root += "-"
-    elif accidental == "#":
-        root += "#"
+    root = m21_note(root)
 
-    return root + suffix
+    result = root + suffix
+
+    if bass:
+        result += "/" + m21_note(bass)
+
+    return result
+
+def m21_note(note):
+    if note.endswith("b"):
+        return note[0].upper() + "-"
+    if note.endswith("#"):
+        return note[0].upper() + "#"
+    return note.upper()
 
 def build_measure(events):
     meas = stream.Measure()

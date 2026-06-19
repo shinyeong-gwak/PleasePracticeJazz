@@ -67,15 +67,7 @@ audio.addEventListener("loadedmetadata", () => {
     seekBar.max = Math.floor(audio.duration);
 });
 
-audio.addEventListener("timeupdate", () => {
-    seekBar.value = audio.currentTime;
 
-    document.getElementById("currentTime").innerText =
-        formatTime(audio.currentTime);
-
-    document.getElementById("duration").innerText =
-        formatTime(audio.duration);
-});
 
 seekBar.addEventListener("input", () => {
     audio.currentTime = seekBar.value;
@@ -133,6 +125,13 @@ function resetEffects() {
 }
 
 //===========
+function parseBarsKeepEmpty(input) {
+
+    return input
+        .split("|")
+        .map(bar => bar.trim());
+
+}
 function parseBars(input) {
     return input
         .split("|")
@@ -172,7 +171,12 @@ function renderSequencer() {
     const ctx = canvas.getContext("2d");
 
     const chords = parseBars(document.getElementById("chordsInput").value);
-    const melodyBars = parseBars(document.getElementById("melodyInput").value);
+    const melodyBars =
+        parseBarsKeepEmpty(
+            document.getElementById(
+                "melodyRhythmInput"
+            ).value
+        );
     const voicingBars = parseBars(document.getElementById("voicingInput").value);
 
     canvas.width = 1000;
@@ -266,9 +270,72 @@ function parseVoicing(input) {
         return bar.trim().split("-").map(n => n.trim());
     });
 }
+function getRhythmBars() {
 
+    const grid =
+        parseInt(
+            document.getElementById(
+                "gridSelect"
+            ).value
+        );
+
+    const melodyBars =
+        parseBars(
+            document.getElementById(
+                "melodyInput"
+            ).value
+        );
+
+    const rhythmBars =
+        getRhythmBars();
+
+    return melodyBars.map(
+        (melodyBar, index) => {
+
+            //---------------------------------
+            // 비어있으면 Grid 자동 생성
+            //---------------------------------
+
+            if (
+                !rhythmBars[index] ||
+                rhythmBars[index].trim() === ""
+            ) {
+
+                const noteCount =
+                    parseMelody(
+                        "|" + melodyBar + "|"
+                    )[0].length;
+
+                return buildDefaultRhythm(
+                    noteCount,
+                    grid
+                );
+            }
+
+            //---------------------------------
+            // 확장
+            //---------------------------------
+
+            return expandRhythmTokens(
+
+                rhythmBars[index]
+                    .split(" ")
+                    .filter(Boolean)
+
+            );
+        }
+    );
+}
+
+function rhythmToSlots(rhythm) {
+
+    rhythm =
+        rhythm.replace("!", "")
+            .replace("~", "");
+
+    return 1;
+}
 function renderScore() {
-
     updateGrid();
 
     const canvas = document.getElementById("scoreCanvas");
@@ -284,6 +351,9 @@ function renderScore() {
             document.getElementById("voicingInput").value
         );
 
+    const rhythmBars =
+        getRhythmBars();
+
     const chords =
         document
             .getElementById("chordsInput")
@@ -293,8 +363,10 @@ function renderScore() {
             .filter(Boolean);
 
     const layouts =
-        buildBarLayouts(melody);
-
+        buildBarLayouts(
+            melody,
+            rhythmBars
+        );
     const totalWidth =
         layouts.reduce(
             (sum, layout) => sum + layout.width,
@@ -394,62 +466,27 @@ function renderScore() {
     // Melody
     //--------------------------------------------------
 
+    //--------------------------------------------------
+// Melody
+//--------------------------------------------------
+
     melody.forEach((bar, barIndex) => {
 
         const layout =
             layouts[barIndex];
 
+        let accidentalOffset = 0;
+
         bar.forEach((note, i) => {
 
-            let accidentalOffset = 0;
+            const parsed =
+                parseNote(note);
 
-            bar.forEach((note, i) => {
-
-                const parsed =
-                    parseNote(note);
-
-                const x =
-                    layout.startX +
-                    BAR_PADDING_LEFT +
-                    i * layout.spacing +
-                    accidentalOffset;
-
-                const y =
-                    noteToY(note);
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    x,
-                    y,
-                    4,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fill();
-
-                //----------------------------------
-                // 임시표
-                //----------------------------------
-
-                if (parsed.accidental) {
-
-                    ctx.font =
-                        "14px serif";
-
-                    ctx.fillText(
-                        parsed.accidental === "b"
-                            ? "♭"
-                            : "♯",
-                        x - 12,
-                        y + 4
-                    );
-
-                    accidentalOffset += 5;
-                }
-
-            });
+            const x =
+                layout.startX +
+                BAR_PADDING_LEFT +
+                i * layout.spacing +
+                accidentalOffset;
 
             const y =
                 noteToY(note);
@@ -465,6 +502,26 @@ function renderScore() {
             );
 
             ctx.fill();
+
+            //----------------------------------
+            // accidental
+            //----------------------------------
+
+            if (parsed.accidental) {
+
+                ctx.font =
+                    "14px serif";
+
+                ctx.fillText(
+                    parsed.accidental === "b"
+                        ? "♭"
+                        : "♯",
+                    x - 12,
+                    y + 4
+                );
+
+                accidentalOffset += 5;
+            }
         });
     });
 
@@ -496,15 +553,19 @@ function renderScore() {
     });
 }
 
-function buildBarLayouts(melodyBars) {
+function buildBarLayouts(
+    melodyBars,
+    rhythmBars
+) {
 
     const layouts = [];
 
     let currentX = 0;
 
-    melodyBars.forEach(bar => {
+    melodyBars.forEach((bar, index) => {
 
-        const noteCount = bar.length;
+        const noteCount =
+            rhythmBars[index].length;
 
         const accidentalCount =
             countAccidentals(bar);
@@ -890,6 +951,102 @@ function loadSavedLick(
 
     renderScore();
 }
+function buildExportRhythm(
+    notesInputId,
+    rhythmInputId
+) {
+
+    const rhythmRaw =
+        document
+            .getElementById(
+                rhythmInputId
+            )
+            .value
+            .trim();
+
+    //--------------------------------------------------
+    // 직접 입력했으면 그대로 사용
+    //--------------------------------------------------
+
+    if (rhythmRaw) {
+        return rhythmRaw;
+    }
+
+    const grid =
+        parseInt(
+            document
+                .getElementById(
+                    "gridSelect"
+                )
+                .value
+        );
+
+    const bars =
+        parseBars(
+            document
+                .getElementById(
+                    notesInputId
+                )
+                .value
+        );
+
+    const result = [];
+
+    bars.forEach(bar => {
+
+        const noteCount =
+            bar
+                .split(/\s+/)
+                .filter(Boolean)
+                .length;
+
+        if (noteCount > grid) {
+
+            throw new Error(
+                `음표 개수(${noteCount})가 Grid(${grid})보다 많습니다.`
+            );
+        }
+
+        const restCount =
+            grid - noteCount;
+
+        let rhythm = "";
+
+        //----------------------------------------------
+        // 음표
+        //----------------------------------------------
+
+        if (noteCount > 0) {
+
+            rhythm =
+                `${grid} *${noteCount}`;
+        }
+
+        //----------------------------------------------
+        // 남는 공간 쉼표
+        //----------------------------------------------
+
+        if (restCount > 0) {
+
+            if (rhythm.length > 0) {
+                rhythm += " ";
+            }
+
+            rhythm +=
+                `!${grid} *${restCount}`;
+        }
+
+        result.push(
+            rhythm
+        );
+    });
+
+    return (
+        "| " +
+        result.join(" | ") +
+        " |"
+    );
+}
 
 function createPayload() {
     return {
@@ -922,9 +1079,10 @@ function createPayload() {
         ).value,
 
         rh_r:
-        document.getElementById(
-            "melodyRhythmInput"
-        ).value,
+            buildExportRhythm(
+                "melodyInput",
+                "melodyRhythmInput"
+            ),
 
         lh:
         document.getElementById(
@@ -932,9 +1090,10 @@ function createPayload() {
         ).value,
 
         lh_r:
-        document.getElementById(
-            "voicingRhythmInput"
-        ).value
+            buildExportRhythm(
+                "voicingInput",
+                "voicingRhythmInput")
+
     };
 }
 async function exportMusicXml() {

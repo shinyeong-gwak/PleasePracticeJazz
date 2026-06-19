@@ -7,5 +7,4 @@ python-multipart
 pydantic
 pydub
 numpy
-verovio
 music21

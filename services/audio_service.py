@@ -30,7 +30,7 @@ class AudioService:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         cleanup_processed_files(OUTPUT_DIR)
 
-        out_name = f"{uuid.uuid4().hex}_{int(time())}.mp3"
+        out_name = f"{uuid.uuid4().hex}_{int(time.time())}.mp3"
         out_path = OUTPUT_DIR / out_name
 
         audio.export(out_path, format="mp3")

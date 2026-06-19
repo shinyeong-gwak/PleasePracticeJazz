@@ -66,6 +66,39 @@ def compress(chords):
     out.append((prev, c))
     return out
 
+def expand_rhythm(tokens):
+
+    result = []
+
+    i = 0
+
+    while i < len(tokens):
+
+        token = tokens[i]
+
+        # 20 *15
+        if (
+                i + 1 < len(tokens)
+                and tokens[i + 1].startswith("*")
+        ):
+
+            count = int(
+                tokens[i + 1][1:]
+            )
+
+            result.extend(
+                [token] * count
+            )
+
+            i += 2
+
+        else:
+
+            result.append(token)
+            i += 1
+
+    return result
+
 def parse_rhythm_token(token: str):
 
     is_rest = False
@@ -172,7 +205,9 @@ def parse_lead_sheet(
         lh,
         lh_r,
 ):
-
+    print("안나옴!!!!!!!!!!\n")
+    print(rh_r)
+    print(lh_r)
     chords = split_measures(chords)
     rh = split_measures(rh)
     rh_r = split_measures(rh_r)
@@ -193,9 +228,14 @@ def parse_lead_sheet(
 
         ct = c.split() if c else []
         rt = r.split() if r else []
-        rrt = rr.split() if rr else []
         lt = l.split() if l else []
-        lrt = lr.split() if lr else []
+        rrt = expand_rhythm(
+            rr.split()
+        ) if rr else []
+
+        lrt = expand_rhythm(
+            lr.split()
+        ) if lr else []
 
         validate(rrt)
         validate(lrt)
@@ -206,6 +246,7 @@ def parse_lead_sheet(
         ln = normalize_left_hand_tokens(lt, key)
 
         measure_length = get_measure_length(time)
+
 
         rh_events = build(
             rn,

@@ -39,20 +39,47 @@ def normalize_melody_tokens(tokens, key):
     for t in tokens:
 
         if t == "!":
-            out.append(NormalizedToken([], False, True))
+
+            out.append(
+                NormalizedToken(
+                    [],
+                    False,
+                    True
+                )
+            )
+
             continue
 
         tie = False
 
         if t.endswith("~"):
+
             tie = True
             t = t[:-1]
 
-        midi = _normalize(t, prev, key, RIGHT_LOW, RIGHT_HIGH)
+        notes = []
 
-        prev = midi
+        for note_token in t.split("-"):
 
-        out.append(NormalizedToken([midi], tie, False))
+            midi = _normalize(
+                note_token,
+                prev,
+                key,
+                RIGHT_LOW,
+                RIGHT_HIGH
+            )
+
+            prev = midi
+
+            notes.append(midi)
+
+        out.append(
+            NormalizedToken(
+                notes,
+                tie,
+                False
+            )
+        )
 
     return out
 
