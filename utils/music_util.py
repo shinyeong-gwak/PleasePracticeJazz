@@ -23,6 +23,9 @@ if platform.system() == "Darwin":  # macOS
 elif platform.system() == "Windows":
     ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
 
+elif platform.system() == "Linux":
+    ffmpeg_loc = "/usr/bin/ffmpeg"
+
 else:
     print(platform.system())
     raise RuntimeError(f"Unsupported OS: {platform.system()}")
