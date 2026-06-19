@@ -602,6 +602,37 @@ function buildBarLayouts(
 
     return layouts;
 }
+let playerLocked = false;
+
+function togglePlayerLock() {
+
+    const player =
+        document.getElementById(
+            "audioPlayer"
+        );
+
+    const button =
+        document.getElementById(
+            "lockPlayerBtn"
+        );
+
+    playerLocked = !playerLocked;
+    if (playerLocked) {
+
+        player.classList.add(
+            "player-fixed"
+        );
+
+        button.innerText = "🔒";
+    } else {
+
+        player.classList.remove(
+            "player-fixed"
+        );
+
+        button.innerText = "🔓";
+    }
+}
 
 const STAFF_TOP = 80;
 const LINE_GAP = 11.7;
