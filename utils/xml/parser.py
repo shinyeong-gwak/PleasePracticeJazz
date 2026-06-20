@@ -31,7 +31,23 @@ def get_measure_length(time_signature):
 
 
 def split_measures(text):
-    return [m.strip() for m in text.strip().split("|") if m.strip()]
+    text = text.strip()
+
+    if not text:
+        return []
+
+    if "|" not in text:
+        return [text]
+
+    measures = [part.strip() for part in text.split("|")]
+
+    if text.startswith("|"):
+        measures = measures[1:]
+
+    if text.endswith("|"):
+        measures = measures[:-1]
+
+    return measures
 
 
 def validate(rh):
@@ -205,9 +221,6 @@ def parse_lead_sheet(
         lh,
         lh_r,
 ):
-    print("안나옴!!!!!!!!!!\n")
-    print(rh_r)
-    print(lh_r)
     chords = split_measures(chords)
     rh = split_measures(rh)
     rh_r = split_measures(rh_r)

@@ -2,74 +2,57 @@
 
 {% block content %}
 
-<h1>MP3 File</h1>
+<section class="page-shell">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Music Library</p>
+            <h1>MP3 File</h1>
+            <p class="page-copy">플레이리스트를 등록하고, 바로 동기화하거나 정리할 수 있습니다.</p>
+        </div>
+    </div>
 
-<form
-        action="/music/playlist/add"
-        method="post">
+    <div class="card form-card">
+        <form action="/music/playlist/add" method="post" class="stack-form">
+            <input type="text" name="name" placeholder="Playlist Name">
+            <input type="text" name="url" placeholder="Playlist URL">
+            <button class="primary-button" type="submit">추가</button>
+        </form>
+    </div>
 
-    <input
-            type="text"
-            name="name"
-            placeholder="Playlist Name">
+    <div class="card table-card">
+        <div class="section-title-row">
+            <h2>Play Lists</h2>
+            <span class="section-count">{{ playlists | length }} items</span>
+        </div>
 
-    <input
-            type="text"
-            name="url"
-            placeholder="Playlist URL">
+        <table class="data-table">
+            <tr>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Actions</th>
+            </tr>
 
-    <button type="submit">
-        추가
-    </button>
+            {% for playlist in playlists %}
+            <tr>
+                <td>{{ playlist["name"] }}</td>
+                <td class="table-url">{{ playlist["url"] }}</td>
+                <td class="table-actions">
+                    <form action="/music/playlist/sync" method="post">
+                        <input type="hidden" name="url" value="{{ playlist['url'] }}">
+                        <input type="hidden" name="playlist_name" value="{{ playlist['name'] }}">
+                        <button class="secondary-button" type="submit">동기화</button>
+                    </form>
 
-</form>
-
-<hr>
-
-<h2>Play Lists</h2>
-
-<table>
-
-    <tr>
-        <th>Name</th>
-        <th>URL</th>
-        <th></th>
-    </tr>
-
-    {% for playlist in playlists %}
-
-    <tr>
-        <td>{{ playlist["name"] }}</td>
-        <td>{{ playlist["url"] }}</td>
-
-        <td>
-
-            <form
-                    action="/music/playlist/sync"
-                    method="post">
-
-                <input
-                        type="hidden"
-                        name="url"
-                        value="{{ playlist.url }}">
-
-                <input
-                        type="hidden"
-                        name="playlist_name"
-                        value="{{ playlist['name'] }}">
-
-                <button type="submit">
-                    동기화
-                </button>
-
-            </form>
-
-        </td>
-
-    </tr>
-
-    {% endfor %}
-
-</table>
+                    <form action="/music/playlist/delete" method="post">
+                        <input type="hidden" name="name" value="{{ playlist['name'] }}">
+                        <input type="hidden" name="url" value="{{ playlist['url'] }}">
+                        <button class="danger-button" type="submit">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</section>
 
 {% endblock %}

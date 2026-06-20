@@ -1,5 +1,9 @@
 {% extends "layout.html" %}
 
+{% block head %}
+<link href="/static/css/lick.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 
 <div class="lick-workbench">
@@ -170,15 +174,15 @@
                             placeholder="1"></textarea>
                 </div>
 
-                <button onclick="renderSequencer()">Render</button>
-                <button onclick="renderScore()">Render Score</button>
-                <button onclick="saveLick()">
+                <button class="primary-button" onclick="renderSequencer()">Render</button>
+                <button class="secondary-button" onclick="renderScore()">Render Score</button>
+                <button class="primary-button" id="saveLickButton" onclick="saveLick()">
                     Save
                 </button>
-                <button onclick="exportMusicXml()">
+                <button class="secondary-button" onclick="exportMusicXml()">
                     Export MusicXML
                 </button>
-                <button onclick="export12KeysMusicXml()">
+                <button class="secondary-button" onclick="export12KeysMusicXml()">
                     Export 12 Keys
                 </button>
 
@@ -202,13 +206,28 @@
     <div id="savedLicks"></div>
 
 </div>
-<script>
-    document.addEventListener(
-        "DOMContentLoaded", () =>
-        loadSavedLicks()
-    );
-</script>
-<script src="/static/js/lick/licks.js"></script>
-<link href="/static/css/style.css" rel="stylesheet">
 
+<div id="lickModal" class="lick-modal hidden">
+    <div class="lick-modal-backdrop" onclick="closeLickModal()"></div>
+    <div class="lick-modal-panel">
+        <button class="modal-close-button" type="button" onclick="closeLickModal()">×</button>
+        <h3 id="lickModalTitle">Saved Lick</h3>
+        <div id="lickModalBody" class="lick-modal-body"></div>
+        <div class="lick-modal-actions">
+            <button class="secondary-button" type="button" onclick="closeLickModal()">닫기</button>
+            <button class="secondary-button" type="button" onclick="loadSelectedSavedLick()">불러오기</button>
+            <button class="primary-button" type="button" onclick="editSelectedSavedLick()">수정</button>
+            <button class="danger-button" type="button" onclick="deleteSelectedSavedLick()">삭제</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/lick/audio.js"></script>
+<script src="/static/js/lick/rhythm.js"></script>
+<script src="/static/js/lick/score.js"></script>
+<script src="/static/js/lick/storage.js"></script>
+<script src="/static/js/lick/export.js"></script>
+<script src="/static/js/lick/licks.js"></script>
 {% endblock %}

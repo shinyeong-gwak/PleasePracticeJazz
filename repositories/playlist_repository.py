@@ -36,3 +36,19 @@ def add(name, url):
     })
 
     save_all(playlists)
+
+
+def delete(name, url):
+
+    playlists = get_all()
+
+    filtered = [
+        playlist
+        for playlist in playlists
+        if not (
+            playlist.get("name") == name
+            and playlist.get("url") == url
+        )
+    ]
+
+    save_all(filtered)

@@ -1,4 +1,7 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Request
+from fastapi.responses import FileResponse
 
 from repositories import lick_repository
 from core.render import render_page
@@ -33,6 +36,12 @@ async def save_lick(request: Request):
 def get_lick_metadata():
 
     return lick_repository.get_metadata()
+
+
+@router.delete("/music/licks/{file_name}/{lick_id}")
+def delete_lick(file_name: str, lick_id: str):
+
+    return lick_repository.delete(file_name, lick_id)
 
 @router.post("/music/licks/export")
 async def export_lick_musicxml(
@@ -163,3 +172,16 @@ async def export_12_keys_musicxml(
         "success": True,
         "path": output_path
     }
+
+
+@router.get("/music/licks/export-file")
+def download_export_file(path: str):
+
+    file_name = Path(path).name
+    file_path = Path("downloads/scores") / file_name
+
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.recordare.musicxml+xml",
+        filename=file_name
+    )

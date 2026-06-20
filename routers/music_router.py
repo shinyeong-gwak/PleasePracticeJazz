@@ -27,9 +27,14 @@ def sync_playlist(playlist_name: str = Form(...), url: str = Form(...)):
     return RedirectResponse("/music/playlist", status_code=303)
 
 
+@router.post("/playlist/delete")
+def delete_playlist(name: str = Form(...), url: str = Form(...)):
+    playlist_repository.delete(name, url)
+    return RedirectResponse("/music/playlist", status_code=303)
+
+
 @router.get("/licks")
 def licks_page(request: Request):
     licks = lick_repository.get_all()
     return render_page(request, "music/licks.html",
                        "음악",{"licks": licks})
-

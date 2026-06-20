@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from uuid import uuid4
 
 METADATA_FILE = Path(
     "data/music/lick_metadata.json"
@@ -37,8 +38,24 @@ def save(data):
         return {"success": False}
 
     metadata.setdefault(mp3, [])
+    lick_id = data.get("id")
 
-    metadata[mp3].append(data)
+    payload = dict(data)
+
+    if not lick_id:
+        payload["id"] = uuid4().hex
+        metadata[mp3].append(payload)
+    else:
+        updated = False
+
+        for index, item in enumerate(metadata[mp3]):
+            if item.get("id") == lick_id:
+                metadata[mp3][index] = payload
+                updated = True
+                break
+
+        if not updated:
+            metadata[mp3].append(payload)
 
     METADATA_FILE.write_text(
         json.dumps(
@@ -50,7 +67,8 @@ def save(data):
     )
 
     return {
-        "success": True
+        "success": True,
+        "id": payload["id"]
     }
 
 def get_metadata():
@@ -63,3 +81,34 @@ def get_metadata():
             encoding="utf-8"
         )
     )
+
+
+def delete(mp3, lick_id):
+
+    if not METADATA_FILE.exists():
+        return {"success": False}
+
+    metadata = get_metadata()
+
+    if mp3 not in metadata:
+        return {"success": False}
+
+    metadata[mp3] = [
+        item
+        for item in metadata[mp3]
+        if item.get("id") != lick_id
+    ]
+
+    if not metadata[mp3]:
+        metadata.pop(mp3)
+
+    METADATA_FILE.write_text(
+        json.dumps(
+            metadata,
+            indent=2,
+            ensure_ascii=False
+        ),
+        encoding="utf-8"
+    )
+
+    return {"success": True}

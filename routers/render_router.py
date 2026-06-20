@@ -11,7 +11,7 @@ class XMLRequest(BaseModel):
     xml: str
 
 
-from fastapi.responses import Response
+from fastapi.responses import Response, FileResponse
 
 router = APIRouter()
 class RenderRequest(BaseModel):
@@ -45,3 +45,15 @@ SCORE_DIR = Path("downloads/scores")
 async def score_list():
     files = sorted(SCORE_DIR.glob("*.musicxml"))
     return [f.name for f in files]
+
+
+@router.get("/score-download/{filename}")
+async def score_download(filename: str):
+    safe_name = Path(filename).name
+    file_path = SCORE_DIR / safe_name
+
+    return FileResponse(
+        file_path,
+        media_type="application/vnd.recordare.musicxml+xml",
+        filename=safe_name
+    )

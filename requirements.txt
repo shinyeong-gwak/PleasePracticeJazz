@@ -8,3 +8,4 @@ pydantic
 pydub
 numpy
 music21
+verovio
