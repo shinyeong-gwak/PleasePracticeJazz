@@ -6,7 +6,10 @@ from fastapi.responses import FileResponse
 from repositories import lick_repository
 from core.render import render_page
 
-from utils.xml.musicxml_exporter import export_musicxml
+from utils.xml.musicxml_exporter import (
+    export_musicxml,
+    export_circle_of_fifths_musicxml,
+)
 from data.model.models import LeadSheet
 from utils.xml.parser import parse_lead_sheet
 from utils.xml.transpose import generate_circle_of_fifths
@@ -163,7 +166,7 @@ async def export_12_keys_musicxml(
         f"[{safe_file_name}].musicxml"
     )
 
-    export_musicxml(
+    export_circle_of_fifths_musicxml(
         scores,
         output_path
     )

@@ -2,34 +2,11 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from services import musicxml_service
 from core.render import *
 from fastapi import Request, APIRouter
-from fastapi.responses import JSONResponse
-
-class XMLRequest(BaseModel):
-    xml: str
-
-
 from fastapi.responses import Response, FileResponse
 
 router = APIRouter()
-class RenderRequest(BaseModel):
-    filename: str
-
-
-@router.post("/render")
-async def render(req: RenderRequest):
-    filename = Path(req.filename).name   # ../ 방지
-
-    xml = (SCORE_DIR / filename).read_text(encoding="utf-8")
-
-    svg = musicxml_service.render_musicxml_to_svg(xml)
-
-    return Response(
-        content=svg,
-        media_type="image/svg+xml"
-    )
 
 @router.get("/music/render")
 def licks_page(request: Request):
@@ -45,6 +22,17 @@ SCORE_DIR = Path("downloads/scores")
 async def score_list():
     files = sorted(SCORE_DIR.glob("*.musicxml"))
     return [f.name for f in files]
+
+
+@router.get("/score-source/{filename}")
+async def score_source(filename: str):
+    safe_name = Path(filename).name
+    file_path = SCORE_DIR / safe_name
+
+    return Response(
+        content=file_path.read_text(encoding="utf-8"),
+        media_type="application/vnd.recordare.musicxml+xml"
+    )
 
 
 @router.get("/score-download/{filename}")

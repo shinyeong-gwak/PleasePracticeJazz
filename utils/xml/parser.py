@@ -227,7 +227,13 @@ def parse_lead_sheet(
     lh = split_measures(lh)
     lh_r = split_measures(lh_r)
 
-    mcount = max(len(chords), len(rh), len(lh))
+    mcount = max(
+        len(chords),
+        len(rh),
+        len(rh_r),
+        len(lh),
+        len(lh_r)
+    )
 
     measures = []
 

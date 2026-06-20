@@ -1,5 +1,6 @@
 let selected = null;
 let selectedFilename = null;
+let osmd = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     const downloadButton = document.getElementById("downloadScoreButton");
@@ -35,7 +36,7 @@ async function loadScores() {
 
         item.onclick = async () => {
             setActive(item, file);
-            await render(file);
+            await renderScore(file);
         };
 
         list.appendChild(item);
@@ -55,14 +56,45 @@ function setActive(item, filename) {
     downloadButton.disabled = false;
 }
 
-async function render(filename) {
-    const res = await fetch("/render", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({filename})
-    });
+function ensureOsmd(output) {
+    if (!window.opensheetmusicdisplay) {
+        throw new Error("OpenSheetMusicDisplay를 불러오지 못했습니다.");
+    }
 
-    document.getElementById("output").innerHTML = await res.text();
+    if (!osmd) {
+        osmd = new window.opensheetmusicdisplay.OpenSheetMusicDisplay(output, {
+            autoResize: true,
+            drawTitle: true,
+            drawPartNames: false,
+            backend: "svg"
+        });
+    } else {
+        osmd.container = output;
+    }
+
+    return osmd;
+}
+
+async function renderScore(filename) {
+    const output = document.getElementById("output");
+
+    try {
+        output.innerHTML = "악보를 렌더링하는 중입니다.";
+
+        const res = await fetch(`/score-source/${encodeURIComponent(filename)}`);
+
+        if (!res.ok) {
+            throw new Error("MusicXML 파일을 불러오지 못했습니다.");
+        }
+
+        const xmlText = await res.text();
+        output.innerHTML = "";
+
+        const display = ensureOsmd(output);
+        await display.load(xmlText);
+        display.render();
+    } catch (error) {
+        console.error(error);
+        output.innerHTML = `<div class="render-empty">${error.message}</div>`;
+    }
 }

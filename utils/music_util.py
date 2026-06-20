@@ -1,69 +1,126 @@
 import os
-import ssl
-import yt_dlp
 import platform
+import ssl
 import subprocess
-
-
-# ---- HTTPS 인증 문제 우회 ----
-ssl._create_default_https_context = ssl._create_unverified_context
 from pathlib import Path
-# ---- 저장 경로 ----
+
+import yt_dlp
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-FILE_PATH = BASE_DIR / "downloads" / "mp3"
-os.makedirs(str(FILE_PATH), exist_ok=True)
-
-ffmpeg_loc=""
-if platform.system() == "Darwin":  # macOS
-    # brew prefix 가져오기 (Intel / Apple Silicon 모두 대응)
-    brew_prefix = subprocess.check_output(["brew", "--prefix"], text=True).strip()
-    ffmpeg_loc = str(Path(brew_prefix) / "bin")
-
-elif platform.system() == "Windows":
-    ffmpeg_loc = str(Path(".") / "lib" / "ffmpeg" / "bin")
-
-elif platform.system() == "Linux":
-    ffmpeg_loc = "/usr/bin/ffmpeg"
-
-else:
-    print(platform.system())
-    raise RuntimeError(f"Unsupported OS: {platform.system()}")
+MP3_DIR = BASE_DIR / "downloads" / "mp3"
+MP3_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def youtube_to_mp3(url):
-    try:
-        ydl_opts = {
-            "format": "bestaudio/best",
-            "ffmpeg_location": ffmpeg_loc,
-            "postprocessors": [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": "mp3",
-                    "preferredquality": "192",
-                }
-            ],
-            "outtmpl": os.path.join(FILE_PATH, "%(title)s.%(ext)s"),
-            "nocheckcertificate": True,
-            "quiet": False,
-            "no_warnings": True,
+def get_ffmpeg_location():
 
-            # ---- 차단 우회용 User-Agent 세팅 ----
-            "http_headers": {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-                              ' AppleWebKit/537.36 (KHTML, like Gecko)'
-                              ' Chrome/120.0 Safari/537.36'
-            },
-        }
+    system = platform.system()
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+    if system == "Darwin":
+        brew_prefix = subprocess.check_output(
+            ["brew", "--prefix"],
+            text=True
+        ).strip()
+        return str(Path(brew_prefix) / "bin")
 
-        print("변환 완료!")
-    except Exception as e:
-        print("에러 발생:", e)
+    if system == "Windows":
+        return str(Path(".") / "lib" / "ffmpeg" / "bin")
+
+    if system == "Linux":
+        return "/usr/bin/ffmpeg"
+
+    raise RuntimeError(f"Unsupported OS: {system}")
+
+
+FFMPEG_LOCATION = get_ffmpeg_location()
+
+
+def build_headers():
+
+    return {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0 Safari/537.36"
+        )
+    }
+
+
+def extract_playlist_entries(url):
+
+    ydl_opts = {
+        "extract_flat": "in_playlist",
+        "skip_download": True,
+        "quiet": True,
+        "no_warnings": True,
+        "nocheckcertificate": True,
+        "http_headers": build_headers(),
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+
+    entries = []
+
+    for entry in info.get("entries", []):
+        if not entry:
+            continue
+
+        video_id = entry.get("id")
+
+        if not video_id:
+            continue
+
+        entries.append({
+            "id": video_id,
+            "title": entry.get("title") or video_id,
+            "url": f"https://www.youtube.com/watch?v={video_id}"
+        })
+
+    return entries
+
+
+def expected_mp3_filename(info):
+
+    source_path = Path(info["requested_downloads"][0]["filepath"])
+    return source_path.with_suffix(".mp3").name
+
+
+def download_youtube_entry(video_url):
+
+    ydl_opts = {
+        "format": "bestaudio/best",
+        "ffmpeg_location": FFMPEG_LOCATION,
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+        "outtmpl": os.path.join(MP3_DIR, "%(title)s.%(ext)s"),
+        "nocheckcertificate": True,
+        "quiet": False,
+        "no_warnings": True,
+        "http_headers": build_headers(),
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(video_url, download=True)
+
+    return {
+        "id": info["id"],
+        "title": info.get("title") or info["id"],
+        "url": video_url,
+        "filename": expected_mp3_filename(info)
+    }
 
 
 if __name__ == "__main__":
     test_url = input("다운받을 유튜브 링크: ")
-    youtube_to_mp3(test_url)
+
+    if "playlist" in test_url:
+        print(extract_playlist_entries(test_url))
+    else:
+        print(download_youtube_entry(test_url))
