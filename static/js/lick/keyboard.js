@@ -229,63 +229,16 @@ function registerKeyboardButtons() {
         return;
     }
 
-    keyboard.querySelectorAll("button").forEach(button => {
-        const rawHandler =
-            button.getAttribute("onclick");
-
-        if (!rawHandler) {
-            return;
-        }
-
-        const insertTextMatch =
-            rawHandler.match(
-                /^insertText\('([\s\S]*)'\)$/
-            );
-
-        if (insertTextMatch) {
-            button.dataset.keyboardAction =
-                "insertText";
-            button.dataset.keyboardValue =
-                insertTextMatch[1];
-        }
-
-        const insertTokenMatch =
-            rawHandler.match(
-                /^insertToken\('([\s\S]*)'\)$/
-            );
-
-        if (insertTokenMatch) {
-            button.dataset.keyboardAction =
-                "insertToken";
-            button.dataset.keyboardValue =
-                insertTokenMatch[1];
-        }
-
-        if (rawHandler === "backspaceKey()") {
-            button.dataset.keyboardAction =
-                "backspaceKey";
-        }
-
-        if (rawHandler === "enterKey()") {
-            button.dataset.keyboardAction =
-                "enterKey";
-        }
-
-        if (rawHandler === "spaceKey()") {
-            button.dataset.keyboardAction =
-                "spaceKey";
-        }
-
-        button.removeAttribute("onclick");
-    });
-
     keyboard.addEventListener(
         "pointerdown",
         event => {
             const button =
                 event.target.closest("button");
 
-            if (!button) {
+            if (
+                !button ||
+                !button.dataset.keyboardAction
+            ) {
                 return;
             }
 
