@@ -14,6 +14,13 @@ LickPage.actions.selectLick = function selectLick(file) {
     LickPage.actions.closeLickModal();
     LickPage.actions.renderSavedLicks();
 
+    document.querySelectorAll(".lick-item").forEach(item => {
+        item.classList.toggle(
+            "active",
+            item.dataset.file === file
+        );
+    });
+
     audio.src = `/audio/lick/${file}`;
     audio.load();
 };
@@ -22,6 +29,7 @@ LickPage.actions.init = function init() {
     LickPage.actions.initAudio();
     LickPage.helpers.updateSaveButton();
     LickPage.actions.loadSavedLicks();
+
 };
 
 window.selectLick = LickPage.actions.selectLick;

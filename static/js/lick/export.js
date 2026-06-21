@@ -38,7 +38,6 @@ LickExport.helpers.exportMusicXmlByUrl = async function exportMusicXmlByUrl(url,
         }
 
         alert(`${successMessage}\n${result.path}`);
-        window.location.href = `/music/licks/export-file?path=${encodeURIComponent(result.path)}`;
     } catch (error) {
         console.error(error);
         LickExport.helpers.showMessage(error.message);
