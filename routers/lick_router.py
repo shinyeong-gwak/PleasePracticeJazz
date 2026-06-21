@@ -66,6 +66,7 @@ async def export_lick_musicxml(
     sheet : LeadSheet = parse_lead_sheet(
         key=key,
         time=time,
+        grid=data.get("grid"),
 
         chords=chords,
 
@@ -123,6 +124,7 @@ async def export_12_keys_musicxml(
     sheet : LeadSheet = parse_lead_sheet(
         key=data["key"],
         time=data["time"],
+        grid=data.get("grid"),
 
         chords=data["chords"],
 

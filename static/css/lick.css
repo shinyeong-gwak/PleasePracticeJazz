@@ -306,48 +306,76 @@ audio {
     }
 
     .music-keyboard {
-
+        display: none;
         position: fixed;
 
-        bottom: 0;
         left: 0;
-
         width: 100%;
+        bottom: 0;
 
-        background: #222;
+        background: #d1d5db;
 
         padding: 6px;
 
         z-index: 99999;
 
-        border-top: 1px solid #555;
+        border-top: 1px solid #b8bcc2;
+
+        user-select: none;
+    }
+
+    .music-keyboard.show {
+        display: block;
     }
 
     .kb-row {
 
         display: flex;
 
-        gap: 4px;
+        gap: 5px;
 
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
 
     .kb-row button {
 
         flex: 1;
 
-        height: 42px;
+        height: 30px;
 
-        font-size: 14px;
+        border: none;
+
+        border-radius: 6px;
+
+        background: white;
+
+        box-shadow:
+                0 1px 0 rgba(0,0,0,.25);
+
+        font-size: 12px !important;
+        color: black !important;
+
+        font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                sans-serif;
+    }
+
+    .kb-row button:active {
+
+        transform: translateY(1px);
+
+        background: #f0f0f0;
     }
 
     .kb-row .wide {
 
-        flex: 2;
+        flex: 2.5 !important;
     }
 
-    .notation-area {
+    input,
+    textarea {
 
-        padding-bottom: 320px;
+        font-size: 16px;
     }
 }

@@ -1,3 +1,5 @@
+
+
 const LickPage = window.LickApp || (window.LickApp = {
     state: {},
     helpers: {},
@@ -25,19 +27,3 @@ LickPage.actions.init = function init() {
 window.selectLick = LickPage.actions.selectLick;
 
 window.addEventListener("DOMContentLoaded", LickPage.actions.init);
-
-let activeInput = null;
-
-document.addEventListener(
-    "focusin",
-    (e) => {
-
-        if (
-            e.target.tagName === "INPUT" ||
-            e.target.tagName === "TEXTAREA"
-        ) {
-            activeInput = e.target;
-        }
-    }
-);
-

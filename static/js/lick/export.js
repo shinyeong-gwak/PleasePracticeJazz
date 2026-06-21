@@ -10,6 +10,7 @@ LickExport.helpers.createPayload = function createPayload() {
         name: LickExport.helpers.getElement("lickName").value,
         key: LickExport.helpers.getElement("keyInput").value,
         time: LickExport.helpers.getElement("timeInput").value,
+        grid: parseInt(LickExport.helpers.getElement("gridSelect").value, 10),
         chords: LickExport.helpers.getElement("chordsInput").value,
         rh: LickExport.helpers.getElement("melodyInput").value,
         rh_r: LickExport.helpers.buildExportRhythm("melodyInput", "melodyRhythmInput"),

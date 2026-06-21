@@ -128,6 +128,36 @@ def parse_rhythm_token(token: str):
 
     return int(token), is_rest
 
+
+def build_default_rhythm_tokens(note_count, measure_length, grid):
+
+    if not grid:
+        return []
+
+    if note_count > grid:
+        raise ValueError(
+            f"음표 개수({note_count})가 Grid({grid})보다 많습니다."
+        )
+
+    result = [str(grid)] * note_count
+
+    remain = measure_length - (RHYTHM[grid] * note_count)
+
+    while remain > 1e-6:
+
+        if RHYTHM[grid] <= remain + 1e-6:
+            result.append(f"!{grid}")
+            remain -= RHYTHM[grid]
+            continue
+
+        for rhythm in (1, 2, 4, 8, 12, 16, 20, 24):
+            if RHYTHM[rhythm] <= remain + 1e-6:
+                result.append(f"!{rhythm}")
+                remain -= RHYTHM[rhythm]
+                break
+
+    return result
+
 def build(events, rhythms, measure_length):
 
     out = []
@@ -220,6 +250,7 @@ def parse_lead_sheet(
         rh_r,
         lh,
         lh_r,
+        grid=None,
 ):
     chords = split_measures(chords)
     rh = split_measures(rh)
@@ -248,24 +279,31 @@ def parse_lead_sheet(
         ct = c.split() if c else []
         rt = r.split() if r else []
         lt = l.split() if l else []
-        rrt = expand_rhythm(
-            rr.split()
-        ) if rr else []
-
-        lrt = expand_rhythm(
-            lr.split()
-        ) if lr else []
-
-        validate(rrt)
-        validate(lrt)
+        measure_length = get_measure_length(time)
 
         ch = compress(ct)
 
         rn = normalize_melody_tokens(rt, key)
         ln = normalize_left_hand_tokens(lt, key)
 
-        measure_length = get_measure_length(time)
+        rrt = expand_rhythm(
+            rr.split()
+        ) if rr else build_default_rhythm_tokens(
+            len(rn),
+            measure_length,
+            grid
+        )
 
+        lrt = expand_rhythm(
+            lr.split()
+        ) if lr else build_default_rhythm_tokens(
+            len(ln),
+            measure_length,
+            grid
+        )
+
+        validate(rrt)
+        validate(lrt)
 
         rh_events = build(
             rn,

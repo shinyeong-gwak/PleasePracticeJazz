@@ -8,6 +8,20 @@ LickRhythm.helpers.parseBarsKeepEmpty = function parseBarsKeepEmpty(input) {
     return input.split("|").map((bar) => bar.trim());
 };
 
+LickRhythm.helpers.splitMeasureBodies = function splitMeasureBodies(input) {
+    const bars = LickRhythm.helpers.parseBarsKeepEmpty(input.trim());
+
+    if (input.trim().startsWith("|")) {
+        bars.shift();
+    }
+
+    if (input.trim().endsWith("|")) {
+        bars.pop();
+    }
+
+    return bars;
+};
+
 LickRhythm.helpers.parseBars = function parseBars(input) {
     return LickRhythm.helpers.parseBarsKeepEmpty(input).filter((bar) => bar.length > 0);
 };
@@ -103,7 +117,7 @@ LickRhythm.helpers.buildExportRhythm = function buildExportRhythm(notesInputId, 
     }
 
     const grid = LickRhythm.helpers.getGrid();
-    const bars = LickRhythm.helpers.parseBarsKeepEmpty(
+    const bars = LickRhythm.helpers.splitMeasureBodies(
         LickRhythm.helpers.getElement(notesInputId).value
     );
 
