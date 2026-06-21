@@ -304,4 +304,50 @@ audio {
         margin-top: 5vh;
         padding: 20px;
     }
+
+    .music-keyboard {
+
+        position: fixed;
+
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+
+        background: #222;
+
+        padding: 6px;
+
+        z-index: 99999;
+
+        border-top: 1px solid #555;
+    }
+
+    .kb-row {
+
+        display: flex;
+
+        gap: 4px;
+
+        margin-bottom: 4px;
+    }
+
+    .kb-row button {
+
+        flex: 1;
+
+        height: 42px;
+
+        font-size: 14px;
+    }
+
+    .kb-row .wide {
+
+        flex: 2;
+    }
+
+    .notation-area {
+
+        padding-bottom: 320px;
+    }
 }

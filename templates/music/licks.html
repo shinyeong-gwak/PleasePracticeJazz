@@ -221,6 +221,77 @@
         </div>
     </div>
 </div>
+<div id="musicKeyboard" class="music-keyboard">
+
+    <div class="kb-row">
+        <button onclick="insertText('C')">C</button>
+        <button onclick="insertText('D')">D</button>
+        <button onclick="insertText('E')">E</button>
+        <button onclick="insertText('F')">F</button>
+        <button onclick="insertText('G')">G</button>
+        <button onclick="insertText('A')">A</button>
+        <button onclick="insertText('B')">B</button>
+    </div>
+
+    <div class="kb-row">
+        <button onclick="insertText('Db')">Db</button>
+        <button onclick="insertText('Eb')">Eb</button>
+        <button onclick="insertText('Gb')">Gb</button>
+        <button onclick="insertText('Ab')">Ab</button>
+        <button onclick="insertText('Bb')">Bb</button>
+    </div>
+
+    <div class="kb-row">
+        <button onclick="insertText('C#')">C#</button>
+        <button onclick="insertText('D#')">D#</button>
+        <button onclick="insertText('F#')">F#</button>
+        <button onclick="insertText('G#')">G#</button>
+        <button onclick="insertText('A#')">A#</button>
+    </div>
+
+    <div class="kb-row">
+        <button onclick="insertToken('1')">1</button>
+        <button onclick="insertToken('2')">2</button>
+        <button onclick="insertToken('3')">3</button>
+        <button onclick="insertToken('4')">4</button>
+        <button onclick="insertToken('5')">5</button>
+        <button onclick="insertToken('6')">6</button>
+        <button onclick="insertToken('7')">7</button>
+        <button onclick="insertToken('8')">8</button>
+    </div>
+
+    <div class="kb-row">
+        <button onclick="insertToken('12')">12</button>
+        <button onclick="insertToken('16')">16</button>
+        <button onclick="insertToken('20')">20</button>
+        <button onclick="insertToken('24')">24</button>
+    </div>
+
+    <div class="kb-row">
+        <button onclick="insertText('-')">-</button>
+        <button onclick="insertToken('!')">!</button>
+        <button onclick="insertText('~')">~</button>
+        <button onclick="insertText('|')">|</button>
+        <button onclick="insertText('/')">/</button>
+    </div>
+
+    <div class="kb-row">
+        <button class="wide"
+                onclick="insertText(' ')">
+            Space
+        </button>
+
+        <button onclick="backspaceKey()">
+            ⌫
+        </button>
+
+        <button class="wide"
+                onclick="insertText('\n')">
+            Enter
+        </button>
+    </div>
+
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -230,4 +301,5 @@
 <script src="/static/js/lick/storage.js"></script>
 <script src="/static/js/lick/export.js"></script>
 <script src="/static/js/lick/licks.js"></script>
+<script src="/static/js/lick/keyboard.js"></script>
 {% endblock %}
