@@ -1,0 +1,37 @@
+{
+  "basic": {
+    "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+    "items": [
+      {
+        "id": "nJ-i3i2B9O0",
+        "title": "This I Dig Of You (Remastered 1999/Rudy Van Gelder Edition)",
+        "url": "https://www.youtube.com/watch?v=nJ-i3i2B9O0",
+        "filename": "This I Dig Of You (Remastered 1999⧸Rudy Van Gelder Edition).mp3"
+      },
+      {
+        "id": "Mgw5ISmAJmM",
+        "title": "Ugetsu",
+        "url": "https://www.youtube.com/watch?v=Mgw5ISmAJmM",
+        "filename": "Ugetsu.mp3"
+      },
+      {
+        "id": "fIicQNL8U7Q",
+        "title": "In Walked Bud (Live)",
+        "url": "https://www.youtube.com/watch?v=fIicQNL8U7Q",
+        "filename": "In Walked Bud (Live).mp3"
+      },
+      {
+        "id": "afffxdVMPdQ",
+        "title": "Cook's Bay",
+        "url": "https://www.youtube.com/watch?v=afffxdVMPdQ",
+        "filename": "Cook's Bay.mp3"
+      },
+      {
+        "id": "NlVPDaYu5EQ",
+        "title": "I'll Close My Eyes",
+        "url": "https://www.youtube.com/watch?v=NlVPDaYu5EQ",
+        "filename": "I'll Close My Eyes.mp3"
+      }
+    ]
+  }
+}

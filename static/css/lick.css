@@ -328,6 +328,10 @@ audio {
         display: block;
     }
 
+    .music-keyboard .hidden {
+        display: none !important;
+    }
+
     .kb-row {
 
         display: flex;
@@ -335,6 +339,12 @@ audio {
         gap: 5px;
 
         margin-bottom: 6px;
+    }
+
+    .kb-chord-row button {
+
+        flex: 1 1 0;
+        min-width: 0;
     }
 
     .kb-row button {
@@ -370,6 +380,65 @@ audio {
     .kb-row .wide {
 
         flex: 2.5 !important;
+    }
+
+    .kb-row .mini {
+
+        flex: .9 !important;
+        min-width: 44px;
+    }
+
+    .kb-bottom-row {
+
+        align-items: stretch;
+    }
+
+    .kb-piano {
+
+        margin-bottom: 8px;
+        padding: 8px 6px 2px;
+        border-radius: 10px;
+        background: #bcc3cd;
+    }
+
+    .kb-piano-black-row,
+    .kb-piano-white-row {
+
+        display: grid;
+        gap: 4px;
+    }
+
+    .kb-piano-black-row {
+
+        grid-template-columns:
+            .7fr 1fr 1fr .7fr 1fr 1fr 1fr .7fr;
+        margin-bottom: 4px;
+    }
+
+    .kb-piano-white-row {
+
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    .kb-piano-black-spacer,
+    .kb-piano-black-gap {
+
+        display: block;
+    }
+
+    .kb-piano-key.white {
+
+        height: 58px;
+        background: #fff;
+        color: #111 !important;
+    }
+
+    .kb-piano-key.black {
+
+        height: 42px;
+        background: #1f2937 !important;
+        color: #fff !important;
+        font-size: 10px !important;
     }
 
     input,

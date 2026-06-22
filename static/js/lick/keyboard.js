@@ -6,6 +6,11 @@ const isMobile =
 let activeInput = null;
 let keyboard = null;
 let activeCaret = 0;
+let repeatTimer = null;
+let repeatInterval = null;
+let pianoMode = false;
+let audioContext = null;
+let keyboardMode = "general";
 
 const MUSIC_INPUT_IDS = [
     "chordsInput",
@@ -26,6 +31,50 @@ function getMusicInput(target) {
     );
 }
 
+function isAudioControlTarget(target) {
+    return !!target?.closest?.(
+        "#audioPlayer, #seekBar, #lockPlayerBtn, .time-display"
+    );
+}
+
+function updateKeyboardLayout() {
+    if (!keyboard) {
+        return;
+    }
+
+    keyboardMode =
+        activeInput?.id === "chordsInput"
+            ? "chord"
+            : "general";
+
+    keyboard
+        .querySelectorAll(".kb-general-row")
+        .forEach(row => {
+            row.classList.toggle(
+                "hidden",
+                keyboardMode !== "general"
+            );
+        });
+
+    keyboard
+        .querySelectorAll(".kb-note-row")
+        .forEach(row => {
+            row.classList.toggle(
+                "hidden",
+                keyboardMode !== "general" || pianoMode
+            );
+        });
+
+    keyboard
+        .querySelectorAll(".kb-chord-row")
+        .forEach(row => {
+            row.classList.toggle(
+                "hidden",
+                keyboardMode !== "chord"
+            );
+        });
+}
+
 function showKeyboardFor(target) {
     if (!isMobile || !isMusicInput(target)) {
         return;
@@ -37,6 +86,8 @@ function showKeyboardFor(target) {
     if (keyboard) {
         keyboard.classList.add("show");
     }
+
+    updateKeyboardLayout();
 
     target.readOnly = true;
     target.focus({preventScroll: true});
@@ -80,6 +131,7 @@ function hideKeyboard() {
     }
 
     activeInput = null;
+    keyboardMode = "general";
 }
 
 function applyMobileInputMode(target) {
@@ -119,13 +171,28 @@ function insertText(text) {
     const value =
         activeInput.value;
 
+    let normalizedText = text;
+
+    if (
+        text === "-" &&
+        start > 0 &&
+        value[start - 1] === " "
+    ) {
+        activeInput.value =
+            value.substring(0, start - 1)
+            + value.substring(start);
+
+        activeCaret = start - 1;
+        return insertText("-");
+    }
+
     activeInput.value =
         value.substring(0, start)
-        + text
+        + normalizedText
         + value.substring(end);
 
     const next =
-        start + text.length;
+        start + normalizedText.length;
 
     activeCaret = next;
 
@@ -143,6 +210,11 @@ function insertText(text) {
 }
 
 function insertToken(token) {
+    if (token === "!") {
+        insertText(token);
+        return;
+    }
+
     insertText(token + " ");
 }
 
@@ -195,6 +267,159 @@ function spaceKey() {
     insertText(" ");
 }
 
+function moveCaret(delta) {
+    if (!activeInput) {
+        return;
+    }
+
+    activeCaret = Math.max(
+        0,
+        Math.min(
+            activeInput.value.length,
+            activeCaret + delta
+        )
+    );
+
+    try {
+        activeInput.focus({preventScroll: true});
+        activeInput.setSelectionRange(
+            activeCaret,
+            activeCaret
+        );
+    } catch {
+        // iOS readonly input/textarea can refuse caret updates.
+    }
+}
+
+function moveCaretLeft() {
+    moveCaret(-1);
+}
+
+function moveCaretRight() {
+    moveCaret(1);
+}
+
+function getAudioContext() {
+    if (!audioContext) {
+        const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+            return null;
+        }
+
+        audioContext = new AudioContextClass();
+    }
+
+    return audioContext;
+}
+
+function playPianoFrequency(frequency) {
+    const context = getAudioContext();
+
+    if (!context) {
+        return;
+    }
+
+    if (context.state === "suspended") {
+        context.resume();
+    }
+
+    const oscillator =
+        context.createOscillator();
+    const gainNode =
+        context.createGain();
+
+    oscillator.type = "triangle";
+    oscillator.frequency.value =
+        frequency;
+
+    gainNode.gain.setValueAtTime(
+        0.001,
+        context.currentTime
+    );
+    gainNode.gain.exponentialRampToValueAtTime(
+        0.18,
+        context.currentTime + 0.01
+    );
+    gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        context.currentTime + 0.35
+    );
+
+    oscillator.connect(gainNode);
+    gainNode.connect(context.destination);
+
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.36);
+}
+
+function playPianoNote(button) {
+    const noteName =
+        button.dataset.keyboardValue;
+    const frequency =
+        Number(button.dataset.pianoFrequency);
+
+    insertText(noteName);
+    playPianoFrequency(frequency);
+}
+
+function updatePianoMode() {
+    if (!keyboard) {
+        return;
+    }
+
+    keyboard.classList.toggle(
+        "piano-mode",
+        pianoMode
+    );
+
+    const piano =
+        keyboard.querySelector("#pianoKeyboard");
+
+    if (piano) {
+        piano.classList.toggle(
+            "hidden",
+            !pianoMode
+        );
+    }
+
+    updateKeyboardLayout();
+}
+
+function togglePianoMode() {
+    pianoMode = !pianoMode;
+    updatePianoMode();
+}
+
+function clearRepeatAction() {
+    if (repeatTimer) {
+        window.clearTimeout(repeatTimer);
+        repeatTimer = null;
+    }
+
+    if (repeatInterval) {
+        window.clearInterval(repeatInterval);
+        repeatInterval = null;
+    }
+}
+
+function startRepeatAction(button) {
+    clearRepeatAction();
+
+    if (button.dataset.repeatable !== "true") {
+        return;
+    }
+
+    repeatTimer = window.setTimeout(() => {
+        repeatInterval = window.setInterval(
+            () => runButtonAction(button),
+            70
+        );
+    }, 320);
+}
+
 function runButtonAction(button) {
     const action = button.dataset.keyboardAction;
     const value = button.dataset.keyboardValue ?? "";
@@ -209,18 +434,33 @@ function runButtonAction(button) {
         return;
     }
 
+    if (action === "playPianoNote") {
+        playPianoNote(button);
+        return;
+    }
+
     if (action === "backspaceKey") {
         backspaceKey();
         return;
     }
 
-    if (action === "enterKey") {
-        enterKey();
+    if (action === "moveCaretLeft") {
+        moveCaretLeft();
+        return;
+    }
+
+    if (action === "moveCaretRight") {
+        moveCaretRight();
         return;
     }
 
     if (action === "spaceKey") {
         spaceKey();
+        return;
+    }
+
+    if (action === "togglePianoMode") {
+        togglePianoMode();
     }
 }
 
@@ -244,7 +484,23 @@ function registerKeyboardButtons() {
 
             event.preventDefault();
             runButtonAction(button);
+            startRepeatAction(button);
         }
+    );
+
+    keyboard.addEventListener(
+        "pointerup",
+        clearRepeatAction
+    );
+
+    keyboard.addEventListener(
+        "pointerleave",
+        clearRepeatAction
+    );
+
+    keyboard.addEventListener(
+        "pointercancel",
+        clearRepeatAction
     );
 }
 
@@ -257,6 +513,7 @@ document.addEventListener(
             );
 
         registerKeyboardButtons();
+        updatePianoMode();
 
         if (!isMobile) {
             return;
@@ -296,6 +553,10 @@ document.addEventListener(
                 "#musicKeyboard"
             );
 
+        if (isAudioControlTarget(event.target)) {
+            return;
+        }
+
         if (!inKeyboard) {
             hideKeyboard();
         }
@@ -319,6 +580,10 @@ document.addEventListener(
                 "#musicKeyboard"
             );
 
+        if (isAudioControlTarget(event.target)) {
+            return;
+        }
+
         if (!inKeyboard) {
             hideKeyboard();
         }
@@ -328,5 +593,4 @@ document.addEventListener(
 window.insertText = insertText;
 window.insertToken = insertToken;
 window.backspaceKey = backspaceKey;
-window.enterKey = enterKey;
 window.spaceKey = spaceKey;
