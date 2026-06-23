@@ -50,6 +50,16 @@ def split_measures(text):
     return measures
 
 
+def get_first_measure_number(chords_text):
+
+    text = (chords_text or "").strip()
+
+    if text and not text.startswith("|"):
+        return 0
+
+    return 1
+
+
 def validate(rh):
 
     total = 0
@@ -118,6 +128,11 @@ def expand_rhythm(tokens):
 def parse_rhythm_token(token: str):
 
     is_rest = False
+
+    if token.startswith("~"):
+        raise ValueError(
+            f"잘못된 붙임줄 문법입니다: '{token}' (예: 4~ 처럼 리듬 뒤에 ~를 붙여야 합니다.)"
+        )
 
     if token.startswith("!"):
         is_rest = True
@@ -252,6 +267,8 @@ def parse_lead_sheet(
         lh_r,
         grid=None,
 ):
+    first_measure_number = get_first_measure_number(chords)
+
     chords = split_measures(chords)
     rh = split_measures(rh)
     rh_r = split_measures(rh_r)
@@ -269,6 +286,7 @@ def parse_lead_sheet(
     measures = []
 
     for i in range(mcount):
+        measure_number = first_measure_number + i
 
         c = chords[i] if i < len(chords) else ""
         r = rh[i] if i < len(rh) else ""
@@ -283,39 +301,44 @@ def parse_lead_sheet(
 
         ch = compress(ct)
 
-        rn = normalize_melody_tokens(rt, key)
-        ln = normalize_left_hand_tokens(lt, key)
+        try:
+            rn = normalize_melody_tokens(rt, key)
+            ln = normalize_left_hand_tokens(lt, key)
 
-        rrt = expand_rhythm(
-            rr.split()
-        ) if rr else build_default_rhythm_tokens(
-            len(rn),
-            measure_length,
-            grid
-        )
+            rrt = expand_rhythm(
+                rr.split()
+            ) if rr else build_default_rhythm_tokens(
+                len(rn),
+                measure_length,
+                grid
+            )
 
-        lrt = expand_rhythm(
-            lr.split()
-        ) if lr else build_default_rhythm_tokens(
-            len(ln),
-            measure_length,
-            grid
-        )
+            lrt = expand_rhythm(
+                lr.split()
+            ) if lr else build_default_rhythm_tokens(
+                len(ln),
+                measure_length,
+                grid
+            )
 
-        validate(rrt)
-        validate(lrt)
+            validate(rrt)
+            validate(lrt)
 
-        rh_events = build(
-            rn,
-            rrt,
-            measure_length,
-        )
+            rh_events = build(
+                rn,
+                rrt,
+                measure_length,
+            )
 
-        lh_events = build(
-            ln,
-            lrt,
-            measure_length,
-        )
+            lh_events = build(
+                ln,
+                lrt,
+                measure_length,
+            )
+        except ValueError as error:
+            raise ValueError(
+                f"{measure_number}마디 오류: {error}"
+            ) from error
 
         measures.append(
             Measure(

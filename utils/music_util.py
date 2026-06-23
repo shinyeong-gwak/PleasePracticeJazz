@@ -75,6 +75,12 @@ def extract_playlist_entries(url):
         entries.append({
             "id": video_id,
             "title": entry.get("title") or video_id,
+            "artist": (
+                entry.get("artist")
+                or entry.get("uploader")
+                or entry.get("channel")
+                or ""
+            ),
             "url": f"https://www.youtube.com/watch?v={video_id}"
         })
 
@@ -112,6 +118,12 @@ def download_youtube_entry(video_url):
     return {
         "id": info["id"],
         "title": info.get("title") or info["id"],
+        "artist": (
+            info.get("artist")
+            or info.get("uploader")
+            or info.get("channel")
+            or ""
+        ),
         "url": video_url,
         "filename": expected_mp3_filename(info)
     }

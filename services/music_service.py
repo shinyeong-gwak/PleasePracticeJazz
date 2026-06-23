@@ -59,6 +59,7 @@ def sync(
                     synced_items.append({
                         "id": entry["id"],
                         "title": entry["title"],
+                        "artist": entry.get("artist") or previous_item.get("artist") or "",
                         "url": entry["url"],
                         "filename": previous_item["filename"]
                     })
@@ -79,6 +80,7 @@ def sync(
             playlist_name,
             {
                 "url": url,
+                "source": "youtube",
                 "items": synced_items
             }
         )

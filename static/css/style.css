@@ -252,6 +252,84 @@ button:disabled {
     margin: 0;
 }
 
+.hidden {
+    display: none;
+}
+
+tr.hidden,
+.playlist-items-row.hidden {
+    display: none !important;
+}
+
+.playlist-cell {
+    cursor: pointer;
+}
+
+.playlist-toggle-button {
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+    color: inherit;
+}
+
+.playlist-toggle-button:hover {
+    transform: none;
+}
+
+.playlist-url-button {
+    color: var(--muted);
+    word-break: break-all;
+}
+
+.playlist-cell-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.playlist-expand-indicator {
+    color: var(--accent-strong);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.playlist-items-row td {
+    padding-top: 0;
+    background: #fbfefd;
+}
+
+.playlist-items-wrap {
+    padding: 14px 16px 8px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel-soft);
+}
+
+.playlist-items-list {
+    display: grid;
+    gap: 8px;
+}
+
+.playlist-items-header {
+    margin-bottom: 10px;
+    color: var(--accent-strong);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.playlist-item-line {
+    color: var(--text);
+    word-break: break-word;
+}
+
+.playlist-items-empty {
+    color: var(--muted);
+}
+
 .score-list {
     display: flex;
     flex-wrap: wrap;

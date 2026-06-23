@@ -9,6 +9,49 @@ METADATA_FILE = Path(
 LICKS_DIR = Path("downloads/licks")
 
 
+def normalize_metadata(metadata):
+
+    changed = False
+
+    for mp3, items in metadata.items():
+        for item in items:
+            if not item.get("id"):
+                item["id"] = uuid4().hex
+                changed = True
+
+            if not item.get("file"):
+                item["file"] = mp3
+                changed = True
+
+    return metadata, changed
+
+
+def load_metadata():
+
+    if METADATA_FILE.exists():
+        metadata = json.loads(
+            METADATA_FILE.read_text(
+                encoding="utf-8"
+            )
+        )
+    else:
+        metadata = {}
+
+    metadata, changed = normalize_metadata(metadata)
+
+    if changed:
+        METADATA_FILE.write_text(
+            json.dumps(
+                metadata,
+                indent=2,
+                ensure_ascii=False
+            ),
+            encoding="utf-8"
+        )
+
+    return metadata
+
+
 def get_all():
 
     if not LICKS_DIR.exists():
@@ -20,17 +63,7 @@ def get_all():
     ])
 
 def save(data):
-
-    if METADATA_FILE.exists():
-
-        metadata = json.loads(
-            METADATA_FILE.read_text(
-                encoding="utf-8"
-            )
-        )
-
-    else:
-        metadata = {}
+    metadata = load_metadata()
 
     mp3 = data["file"]
 
@@ -72,15 +105,7 @@ def save(data):
     }
 
 def get_metadata():
-
-    if not METADATA_FILE.exists():
-        return {}
-
-    return json.loads(
-        METADATA_FILE.read_text(
-            encoding="utf-8"
-        )
-    )
+    return load_metadata()
 
 
 def delete(mp3, lick_id):
@@ -88,7 +113,7 @@ def delete(mp3, lick_id):
     if not METADATA_FILE.exists():
         return {"success": False}
 
-    metadata = get_metadata()
+    metadata = load_metadata()
 
     if mp3 not in metadata:
         return {"success": False}

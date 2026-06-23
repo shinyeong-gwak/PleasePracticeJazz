@@ -33,9 +33,25 @@
             </tr>
 
             {% for playlist in playlists %}
+            {% set state = sync_states.get(playlist["name"], {}) %}
+            {% set items = state.get("items", []) %}
+            {% set source = state.get("source", "youtube") %}
             <tr>
-                <td>{{ playlist["name"] }}</td>
-                <td class="table-url">{{ playlist["url"] }}</td>
+                <td class="playlist-cell">
+                    <button class="playlist-toggle-button" type="button" onclick="togglePlaylistPanel('{{ loop.index }}')">
+                        <span class="playlist-cell-main">
+                        <span>{{ playlist["name"] }}</span>
+                        <span class="playlist-expand-indicator">
+                            {{ source }} · {{ items | length }}곡
+                        </span>
+                        </span>
+                    </button>
+                </td>
+                <td class="table-url playlist-cell">
+                    <button class="playlist-toggle-button playlist-url-button" type="button" onclick="togglePlaylistPanel('{{ loop.index }}')">
+                        {{ playlist["url"] }}
+                    </button>
+                </td>
                 <td class="table-actions">
                     <form action="/music/playlist/sync" method="post">
                         <input type="hidden" name="url" value="{{ playlist['url'] }}">
@@ -50,9 +66,45 @@
                     </form>
                 </td>
             </tr>
+            <tr class="playlist-items-row hidden" id="playlist-panel-{{ loop.index }}">
+                <td colspan="3">
+                    <div class="playlist-items-wrap">
+                        <div class="playlist-items-header">해당 링크에 속하는 곡</div>
+                        {% if items %}
+                        <div class="playlist-items-list">
+                            {% for item in items %}
+                            <div class="playlist-item-line">
+                                {% if item.get("artist") %}
+                                {{ item.get("title", "Untitled") }} - {{ item.get("artist") }}
+                                {% else %}
+                                {{ item.get("title", "Untitled") }}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="playlist-items-empty">아직 동기화된 곡이 없습니다.</div>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
         </table>
     </div>
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function togglePlaylistPanel(index) {
+        const panel = document.getElementById(`playlist-panel-${index}`);
+
+        if (!panel) {
+            return;
+        }
+
+        panel.classList.toggle("hidden");
+    }
+</script>
 {% endblock %}

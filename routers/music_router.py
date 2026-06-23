@@ -1,7 +1,11 @@
 from fastapi import APIRouter, Request, Form
 from starlette.responses import RedirectResponse
 
-from repositories import playlist_repository, lick_repository
+from repositories import (
+    playlist_repository,
+    lick_repository,
+    playlist_sync_repository,
+)
 from services import music_service
 from core.render import render_page
 
@@ -11,8 +15,16 @@ router = APIRouter(prefix="/music")
 @router.get("/playlist")
 def playlist_page(request: Request):
     playlists = playlist_repository.get_all()
-    return render_page(request, "music/playlist.html",
-                       "음악",{"playlists": playlists})
+    sync_states = playlist_sync_repository.get_all()
+    return render_page(
+        request,
+        "music/playlist.html",
+        "음악",
+        {
+            "playlists": playlists,
+            "sync_states": sync_states
+        }
+    )
 
 
 @router.post("/playlist/add")

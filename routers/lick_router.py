@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Request
+from fastapi import HTTPException
 from fastapi.responses import FileResponse
 
 from repositories import lick_repository
@@ -63,19 +64,25 @@ async def export_lick_musicxml(
     lh = data["lh"]
     lh_r = data["lh_r"]
 
-    sheet : LeadSheet = parse_lead_sheet(
-        key=key,
-        time=time,
-        grid=data.get("grid"),
+    try:
+        sheet : LeadSheet = parse_lead_sheet(
+            key=key,
+            time=time,
+            grid=data.get("grid"),
 
-        chords=chords,
+            chords=chords,
 
-        rh=rh,
-        rh_r=rh_r,
+            rh=rh,
+            rh_r=rh_r,
 
-        lh=lh,
-        lh_r=lh_r
-    )
+            lh=lh,
+            lh_r=lh_r
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        ) from error
 
     name = (
             data.get("name")
@@ -121,19 +128,25 @@ async def export_12_keys_musicxml(
 
     data = await request.json()
 
-    sheet : LeadSheet = parse_lead_sheet(
-        key=data["key"],
-        time=data["time"],
-        grid=data.get("grid"),
+    try:
+        sheet : LeadSheet = parse_lead_sheet(
+            key=data["key"],
+            time=data["time"],
+            grid=data.get("grid"),
 
-        chords=data["chords"],
+            chords=data["chords"],
 
-        rh=data["rh"],
-        rh_r=data["rh_r"],
+            rh=data["rh"],
+            rh_r=data["rh_r"],
 
-        lh=data["lh"],
-        lh_r=data["lh_r"]
-    )
+            lh=data["lh"],
+            lh_r=data["lh_r"]
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=400,
+            detail=str(error)
+        ) from error
 
     scores = generate_circle_of_fifths(
         sheet
