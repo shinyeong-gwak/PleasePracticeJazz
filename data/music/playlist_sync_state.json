@@ -1,36 +1,56 @@
 {
   "basic": {
     "url": "https://youtube.com/playlist?list=PLF2fzdLeITsjtjpoT4-fRAsETtUYEjcp3&si=C_c0xu_KZFlGLAKR",
+    "source": "youtube",
     "items": [
       {
         "id": "nJ-i3i2B9O0",
         "title": "This I Dig Of You (Remastered 1999/Rudy Van Gelder Edition)",
+        "artist": "",
         "url": "https://www.youtube.com/watch?v=nJ-i3i2B9O0",
         "filename": "This I Dig Of You (Remastered 1999⧸Rudy Van Gelder Edition).mp3"
       },
       {
         "id": "Mgw5ISmAJmM",
         "title": "Ugetsu",
+        "artist": "",
         "url": "https://www.youtube.com/watch?v=Mgw5ISmAJmM",
         "filename": "Ugetsu.mp3"
       },
       {
         "id": "fIicQNL8U7Q",
         "title": "In Walked Bud (Live)",
+        "artist": "",
         "url": "https://www.youtube.com/watch?v=fIicQNL8U7Q",
         "filename": "In Walked Bud (Live).mp3"
       },
       {
         "id": "afffxdVMPdQ",
         "title": "Cook's Bay",
+        "artist": "Kenny Barron Trio",
         "url": "https://www.youtube.com/watch?v=afffxdVMPdQ",
         "filename": "Cook's Bay.mp3"
       },
       {
         "id": "NlVPDaYu5EQ",
         "title": "I'll Close My Eyes",
+        "artist": "Blue Mitchell",
         "url": "https://www.youtube.com/watch?v=NlVPDaYu5EQ",
         "filename": "I'll Close My Eyes.mp3"
+      },
+      {
+        "id": "CKcZq9dB46M",
+        "title": "John Coltrane - On Green Dolphin Street - LIVE (1960)",
+        "artist": "New Orlean Jazz-Pub",
+        "url": "https://www.youtube.com/watch?v=CKcZq9dB46M",
+        "filename": "John Coltrane - On Green Dolphin Street - LIVE (1960).mp3"
+      },
+      {
+        "id": "9NuCYOrSf9k",
+        "title": "Cherokee",
+        "artist": "Christian McBride Trio",
+        "url": "https://www.youtube.com/watch?v=9NuCYOrSf9k",
+        "filename": "Cherokee.mp3"
       }
     ]
   }
