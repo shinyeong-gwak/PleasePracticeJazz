@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Request, Form
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, JSONResponse
 
 from repositories import (
     playlist_repository,
     lick_repository,
     playlist_sync_repository,
+    daily_repository,
 )
 from services import music_service
 from core.render import render_page
@@ -50,3 +51,44 @@ def licks_page(request: Request):
     licks = lick_repository.get_all()
     return render_page(request, "music/licks.html",
                        "음악",{"licks": licks})
+
+
+@router.get("/daily")
+@router.get("/daliy")
+def daily_page(request: Request):
+    return render_page(
+        request,
+        "music/daily.html",
+        "연습일지",
+        {
+            "daily_report": daily_repository.get_current_report()
+        }
+    )
+
+
+@router.post("/daily/homework")
+async def add_daily_homework(request: Request):
+    payload = await request.json()
+    item = daily_repository.add_homework(payload)
+    return JSONResponse(item)
+
+
+@router.delete("/daily/homework/{homework_id}")
+def delete_daily_homework(homework_id: str):
+    return JSONResponse(
+        daily_repository.delete_homework(homework_id)
+    )
+
+
+@router.post("/daily/practice")
+async def add_daily_practice(request: Request):
+    payload = await request.json()
+    item = daily_repository.add_practice(payload)
+    return JSONResponse(item)
+
+
+@router.delete("/daily/practice/{practice_id}")
+def delete_daily_practice(practice_id: str):
+    return JSONResponse(
+        daily_repository.delete_practice(practice_id)
+    )

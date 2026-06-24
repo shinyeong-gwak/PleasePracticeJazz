@@ -1,0 +1,256 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<section class="page-shell practice-daily-page">
+    <div class="page-header practice-daily-header">
+        <div>
+            <p class="eyebrow">Practice Log</p>
+            <h1>연습일지</h1>
+            <p class="page-copy">
+                카드 단위로 오늘의 연습을 쌓아두고, 주제와 템포, 곡/악보집 정보를 한 번에 정리할 수 있습니다.
+            </p>
+        </div>
+    </div>
+
+    <div class="card practice-daily-intro">
+        <div class="practice-daily-intro-grid">
+            <div>
+                <div class="practice-daily-label">오늘 날짜</div>
+                <div class="practice-daily-date" id="practiceDailyDate"></div>
+            </div>
+            <div>
+                <div class="practice-daily-label">키워드</div>
+                <div class="practice-daily-keywords-preview">
+                    #박자 #테크닉 #톤 #보이싱 #스케일 #카피
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="practice-homework-section">
+        <div class="section-title-row">
+            <h2>이번주 숙제</h2>
+            <span class="section-count">위에 붙여두는 스티키 메모</span>
+        </div>
+
+        <div class="practice-homework-layout">
+            <article class="card practice-homework-editor" id="practiceHomeworkEditor">
+                <div class="practice-card-top">
+                    <div>
+                        <div class="practice-card-title">숙제 등록</div>
+                        <div class="practice-card-subtitle">이번주에 꼭 챙길 항목만 따로 붙여두세요.</div>
+                    </div>
+                    <button
+                        type="button"
+                        class="secondary-button practice-homework-add-button"
+                        id="addHomeworkButton">
+                        + 숙제 추가
+                    </button>
+                </div>
+
+                <div class="practice-homework-form">
+                    <label class="practice-field">
+                        <span class="practice-field-label">숙제 제목</span>
+                        <input
+                            type="text"
+                            id="practiceHomeworkTitleInput"
+                            placeholder="예: Oleo 헤드 암보">
+                    </label>
+
+                    <label class="practice-field">
+                        <span class="practice-field-label">메모</span>
+                        <textarea
+                            id="practiceHomeworkMemoInput"
+                            placeholder="예: 220bpm까지, 멜로디 리듬 깨지지 않게"></textarea>
+                    </label>
+                </div>
+            </article>
+
+            <div class="practice-homework-board" id="practiceHomeworkBoard"></div>
+        </div>
+    </section>
+
+    <article class="card practice-card practice-editor-card" id="practiceEditorCard">
+        <div class="practice-card-top">
+            <div>
+                <div class="practice-card-title">연습 카드 작성</div>
+                <div class="practice-card-subtitle">아래 내용을 적고 추가하면 요약 카드가 오른쪽으로 쌓입니다.</div>
+            </div>
+        </div>
+
+        <div class="practice-section">
+            <div class="practice-field-label">연습 주제</div>
+            <div class="practice-topic-chips" id="practiceTopicChips">
+                {% for topic in ["박자", "테크닉", "톤", "보이싱", "스케일", "카피"] %}
+                <button
+                    type="button"
+                    class="practice-topic-chip"
+                    data-topic="{{ topic }}">
+                    #{{ topic }}
+                </button>
+                {% endfor %}
+            </div>
+            <input
+                type="hidden"
+                class="practice-topic-value"
+                id="practiceTopicValue"
+                name="topics"
+                value="">
+        </div>
+
+        <div class="practice-form-grid">
+            <label class="practice-field">
+                <span class="practice-field-label">BPM</span>
+                <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="예: 120"
+                    id="practiceBpmInput"
+                    name="bpm">
+            </label>
+
+            <label class="practice-field practice-field-wide">
+                <span class="practice-field-label">연습곡</span>
+                <input
+                    type="text"
+                    placeholder="예: There Will Never Be Another You"
+                    id="practiceTuneInput"
+                    name="tune">
+            </label>
+
+            <label class="practice-field">
+                <span class="practice-field-label">악보집</span>
+                <select id="practiceBookInput" name="book">
+                    <option value="">선택</option>
+                    <option value="Real Book 1">Real Book 1</option>
+                    <option value="Real Book 2">Real Book 2</option>
+                    <option value="Real Book 3">Real Book 3</option>
+                    <option value="New Real Book 1">New Real Book 1</option>
+                    <option value="New Real Book 2">New Real Book 2</option>
+                    <option value="New Real Book 3">New Real Book 3</option>
+                    <option value="ETC">ETC</option>
+                </select>
+            </label>
+
+            <label class="practice-field">
+                <span class="practice-field-label">페이지</span>
+                <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="예: 132"
+                    id="practicePageInput"
+                    name="page">
+            </label>
+        </div>
+
+        <div class="practice-section">
+            <div class="practice-field-label">연습 상태</div>
+            <div class="practice-status-chips" id="practiceStatusChips">
+                <button type="button" class="practice-status-chip is-selected" data-status="normal">
+                    무난했음
+                </button>
+                <button type="button" class="practice-status-chip" data-status="good">
+                    잘 됐음
+                </button>
+                <button type="button" class="practice-status-chip practice-status-chip-bad" data-status="bad">
+                    쓰레기같았음
+                </button>
+            </div>
+            <input type="hidden" id="practiceStatusInput" value="normal">
+        </div>
+
+        <label class="practice-field practice-field-full">
+            <span class="practice-field-label">한줄 평</span>
+            <textarea
+                placeholder="오늘 잘 됐던 점, 잘 안 풀린 점, 다음에 다시 볼 포인트를 짧게 남겨보세요."
+                id="practiceMemoInput"
+                name="memo"></textarea>
+        </label>
+
+        <div class="practice-editor-actions">
+            <button
+                type="button"
+                class="primary-button practice-add-button"
+                id="addPracticeCardButton">
+                + 카드 추가
+            </button>
+        </div>
+    </article>
+
+    <section class="practice-summary-section">
+        <div class="section-title-row">
+            <h2>추가된 카드</h2>
+            <span class="section-count">가로로 넘기면서 확인</span>
+        </div>
+
+        <div class="practice-cards" id="practiceCards"></div>
+    </section>
+
+    <section class="practice-report-section">
+        <div class="section-title-row">
+            <h2>이번주 Report</h2>
+            <span class="section-count" id="practiceReportWeekLabel"></span>
+        </div>
+
+        <article class="card practice-report-card">
+            <div class="practice-report-grid">
+                <div class="practice-report-column">
+                    <div class="practice-report-heading">받은 숙제</div>
+                    <div class="practice-report-list" id="practiceReportHomeworkList">
+                        <div class="practice-report-empty">아직 등록된 숙제가 없습니다.</div>
+                    </div>
+                </div>
+
+                <div class="practice-report-column">
+                    <div class="practice-report-heading">이번주 연습</div>
+                    <div class="practice-report-list" id="practiceReportPracticeList">
+                        <div class="practice-report-empty">아직 추가된 연습 카드가 없습니다.</div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <template id="practiceCardTemplate">
+        <article class="card practice-card practice-summary-card">
+            <div class="practice-card-top">
+                <div>
+                    <div class="practice-card-title practice-summary-title">연습 카드</div>
+                    <div class="practice-card-subtitle practice-summary-topline"></div>
+                </div>
+                <button type="button" class="practice-remove-button" aria-label="연습 카드 삭제">×</button>
+            </div>
+
+            <div class="practice-summary-meta">
+                <span class="practice-summary-status"></span>
+                <span class="practice-summary-bpm"></span>
+                <span class="practice-summary-book"></span>
+            </div>
+
+            <div class="practice-summary-topics"></div>
+            <div class="practice-summary-memo"></div>
+        </article>
+    </template>
+
+    <template id="practiceHomeworkTemplate">
+        <article class="practice-homework-note">
+            <div class="practice-homework-note-top">
+                <div class="practice-homework-note-title"></div>
+                <button type="button" class="practice-homework-remove-button">×</button>
+            </div>
+            <div class="practice-homework-note-body"></div>
+        </article>
+    </template>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script id="daily-report-data" type="application/json">
+    {{ daily_report | tojson | safe }}
+</script>
+<script src="/static/js/daily.js"></script>
+{% endblock %}
