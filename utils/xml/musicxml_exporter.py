@@ -1,8 +1,9 @@
 import re
 
-from music21 import stream, note, chord, harmony, meter, key, tie, clef, layout, metadata
+from music21 import stream, note, chord, harmony, meter, key, tie, clef, layout, metadata, pitch as m21pitch
 
 from data.model.models import LeadSheet
+from utils.xml.music_theory import midi_to_note
 
 RHYTHM_TO_Q = {
     1: 4.0,
@@ -13,6 +14,22 @@ RHYTHM_TO_Q = {
     16: 0.25,
     20: 0.2,
     24: 1 / 6,
+}
+
+SHARP_KEYS = {"C", "G", "D", "A", "E", "B", "F#", "C#"}
+FLAT_KEYS = {"F", "Bb", "Eb", "Ab", "Db", "Gb"}
+
+SPECIAL_KEY_SPELLINGS = {
+    "C#": {
+        0: "B#",
+        5: "E#",
+    },
+    "F#": {
+        5: "E#",
+    },
+    "Db": {
+        11: "Cb",
+    },
 }
 
 
@@ -31,6 +48,8 @@ def to_music21_chord(chord_name: str):
     bass = match.group(3)
 
     mapping = {
+        "M6": "6",
+        "M69": "69",
         "M": "maj",
         "M7": "maj7",
         "M9": "maj9",
@@ -86,7 +105,61 @@ def build_full_measure_rest(measure_length):
     return rest
 
 
-def build_measure(events, measure_length):
+def get_accidental_mode_for_key(key_signature: str):
+
+    if key_signature in SHARP_KEYS:
+        return "sharp"
+
+    if key_signature in FLAT_KEYS:
+        return "flat"
+
+    return "sharp"
+
+
+def midi_to_spelled_pitch(midi_value, key_signature):
+
+    accidental_mode = get_accidental_mode_for_key(
+        key_signature
+    )
+    note_name = midi_to_note(
+        midi_value,
+        accidental_mode=accidental_mode
+    )
+    match = re.match(
+        r"^([A-G][b#]?)(-?\d+)$",
+        note_name
+    )
+
+    if not match:
+        pitch = m21pitch.Pitch()
+        pitch.midi = midi_value
+        return pitch
+
+    base_name = match.group(1)
+    octave = int(match.group(2))
+    special_map = SPECIAL_KEY_SPELLINGS.get(
+        key_signature,
+        {}
+    )
+    base_name = special_map.get(
+        midi_value % 12,
+        base_name
+    )
+
+    pitch = m21pitch.Pitch()
+    pitch.name = base_name
+    pitch.octave = octave
+
+    while pitch.midi < midi_value:
+        pitch.octave += 1
+
+    while pitch.midi > midi_value:
+        pitch.octave -= 1
+
+    return pitch
+
+
+def build_measure(events, measure_length, key_signature):
 
     measure = stream.Measure()
 
@@ -103,7 +176,12 @@ def build_measure(events, measure_length):
             continue
 
         if len(event.notes) == 1:
-            current_note = note.Note(event.notes[0])
+            current_note = note.Note(
+                midi_to_spelled_pitch(
+                    event.notes[0],
+                    key_signature
+                )
+            )
             current_note.quarterLength = RHYTHM_TO_Q[event.rhythm]
 
             if event.tie_start:
@@ -115,7 +193,13 @@ def build_measure(events, measure_length):
             measure.append(current_note)
             continue
 
-        current_chord = chord.Chord(event.notes)
+        current_chord = chord.Chord([
+            midi_to_spelled_pitch(
+                midi_value,
+                key_signature
+            )
+            for midi_value in event.notes
+        ])
         current_chord.quarterLength = RHYTHM_TO_Q[event.rhythm]
         measure.append(current_chord)
 
@@ -143,26 +227,51 @@ def configure_part(part, part_name):
     part.partAbbreviation = ""
 
 
-def export_musicxml(sheet: LeadSheet, out_path: str):
+def build_piano_parts(score):
+
+    rh_part = stream.PartStaff()
+    lh_part = stream.PartStaff()
+
+    configure_part(rh_part, "Piano")
+    configure_part(lh_part, "Piano")
+
+    staff_group = layout.StaffGroup(
+        [rh_part, lh_part]
+    )
+    staff_group.symbol = "brace"
+    staff_group.barTogether = True
+    staff_group.name = "Piano"
+    staff_group.abbreviation = "Pno."
+
+    score.insert(0, staff_group)
+
+    return rh_part, lh_part
+
+
+def export_musicxml(sheet: LeadSheet, out_path: str, title: str = ""):
 
     score = stream.Score()
     score.metadata = metadata.Metadata()
-    score.metadata.title = ""
+    score.metadata.title = (title or "").strip()
 
     key_signature = key.Key(sheet.key_signature)
     time_signature = meter.TimeSignature(sheet.time_signature)
     measure_length = get_measure_length(sheet.time_signature)
 
-    rh_part = stream.Part()
-    lh_part = stream.Part()
-
-    configure_part(rh_part, "Right Hand")
-    configure_part(lh_part, "Left Hand")
+    rh_part, lh_part = build_piano_parts(score)
 
     for index, current_measure in enumerate(sheet.measures, start=1):
 
-        rh_measure = build_measure(current_measure.right_hand, measure_length)
-        lh_measure = build_measure(current_measure.left_hand, measure_length)
+        rh_measure = build_measure(
+            current_measure.right_hand,
+            measure_length,
+            sheet.key_signature
+        )
+        lh_measure = build_measure(
+            current_measure.left_hand,
+            measure_length,
+            sheet.key_signature
+        )
 
         rh_measure.number = index
         lh_measure.number = index
@@ -188,17 +297,13 @@ def export_musicxml(sheet: LeadSheet, out_path: str):
     return out_path
 
 
-def export_circle_of_fifths_musicxml(scores, out_path):
+def export_circle_of_fifths_musicxml(scores, out_path, title: str = ""):
 
     score = stream.Score()
     score.metadata = metadata.Metadata()
-    score.metadata.title = ""
+    score.metadata.title = (title or "").strip()
 
-    rh_part = stream.Part()
-    lh_part = stream.Part()
-
-    configure_part(rh_part, "Right Hand")
-    configure_part(lh_part, "Left Hand")
+    rh_part, lh_part = build_piano_parts(score)
 
     measure_number = 1
     first = True
@@ -211,8 +316,16 @@ def export_circle_of_fifths_musicxml(scores, out_path):
 
         for index, current_measure in enumerate(sheet.measures):
 
-            rh_measure = build_measure(current_measure.right_hand, measure_length)
-            lh_measure = build_measure(current_measure.left_hand, measure_length)
+            rh_measure = build_measure(
+                current_measure.right_hand,
+                measure_length,
+                sheet.key_signature
+            )
+            lh_measure = build_measure(
+                current_measure.left_hand,
+                measure_length,
+                sheet.key_signature
+            )
 
             rh_measure.number = measure_number
             lh_measure.number = measure_number

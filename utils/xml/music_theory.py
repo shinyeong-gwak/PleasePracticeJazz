@@ -52,6 +52,7 @@ SEMITONE_TO_FLAT = {
 
 KEY_SIGNATURES = {
     "C": [],
+    "C#": ["F#", "C#", "G#", "D#", "A#", "E#", "B#"],
     "G": ["F#"],
     "D": ["F#", "C#"],
     "A": ["F#", "C#", "G#"],

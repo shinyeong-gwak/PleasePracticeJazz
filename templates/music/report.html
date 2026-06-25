@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="page-shell">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Weekly Report</p>
+            <h1>주간 리포트</h1>
+            <p class="page-copy">연습이 비거나 메트로놈 없이 진행된 날은 빨간색, 연습 카드가 많을수록 더 진한 초록색으로 보입니다.</p>
+        </div>
+    </div>
+
+    <article class="card report-card">
+        <div class="report-legend">
+            <span class="report-legend-item"><span class="report-dot report-dot-bad"></span> 비었거나 메트로놈 없음</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l1"></span> 1개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l2"></span> 2개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l3"></span> 3-4개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l4"></span> 5개+</span>
+        </div>
+        <div id="reportCalendar" class="report-calendar"></div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="report-calendar-data" type="application/json">
+    {{ calendar_summary | tojson | safe }}
+</script>
+<script src="/static/js/report.js"></script>
+{% endblock %}

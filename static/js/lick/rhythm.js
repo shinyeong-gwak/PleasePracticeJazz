@@ -34,14 +34,19 @@ LickRhythm.helpers.parseMelody = function parseMelody(input) {
     return LickRhythm.helpers.parseBarsKeepEmpty(input).map(LickRhythm.helpers.parseMelodyBar);
 };
 
-LickRhythm.helpers.parseVoicing = function parseVoicing(input) {
-    return LickRhythm.helpers.parseBarsKeepEmpty(input).map((bar) => {
-        if (!bar) {
-            return [];
-        }
+LickRhythm.helpers.parseVoicingBar = function parseVoicingBar(bar) {
+    if (!bar.trim()) {
+        return [];
+    }
 
-        return bar.split("-").map((note) => note.trim()).filter(Boolean);
-    });
+    return bar
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((token) => token.split("-").map((note) => note.trim()).filter(Boolean));
+};
+
+LickRhythm.helpers.parseVoicing = function parseVoicing(input) {
+    return LickRhythm.helpers.parseBarsKeepEmpty(input).map(LickRhythm.helpers.parseVoicingBar);
 };
 
 LickRhythm.helpers.expandRhythmTokens = function expandRhythmTokens(tokens) {
@@ -101,6 +106,28 @@ LickRhythm.helpers.getRhythmBars = function getRhythmBars() {
 
         if (!rhythmBar.trim()) {
             return LickRhythm.helpers.buildDefaultRhythm(melodyBar.length, grid);
+        }
+
+        return LickRhythm.helpers.expandRhythmTokens(
+            rhythmBar.split(/\s+/).filter(Boolean)
+        );
+    });
+};
+
+LickRhythm.helpers.getVoicingRhythmBars = function getVoicingRhythmBars() {
+    const grid = LickRhythm.helpers.getGrid();
+    const voicingBars = LickRhythm.helpers.parseVoicing(
+        LickRhythm.helpers.getElement("voicingInput").value
+    );
+    const rhythmBars = LickRhythm.helpers.parseBarsKeepEmpty(
+        LickRhythm.helpers.getElement("voicingRhythmInput").value
+    );
+
+    return voicingBars.map((voicingBar, index) => {
+        const rhythmBar = rhythmBars[index] || "";
+
+        if (!rhythmBar.trim()) {
+            return LickRhythm.helpers.buildDefaultRhythm(voicingBar.length, grid);
         }
 
         return LickRhythm.helpers.expandRhythmTokens(

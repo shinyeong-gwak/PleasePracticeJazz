@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import re
 from uuid import uuid4
 
 METADATA_FILE = Path(
@@ -7,6 +8,67 @@ METADATA_FILE = Path(
 )
 
 LICKS_DIR = Path("downloads/licks")
+
+NOTE_TOKEN_PATTERN = re.compile(r"[A-Ga-g][#bn]?\d")
+RHYTHM_TOKEN_PATTERN = re.compile(r"(^|[\s|])!?(\d+)(~)?(?=[\s|]|$)")
+
+
+def looks_like_rhythm(value):
+
+    text = (value or "").strip()
+
+    if not text:
+        return False
+
+    cleaned = text.replace("|", " ").strip()
+
+    if not cleaned:
+        return True
+
+    tokens = cleaned.split()
+
+    return all(
+        token.startswith("*")
+        or bool(RHYTHM_TOKEN_PATTERN.fullmatch(f" {token}"))
+        for token in tokens
+    )
+
+
+def has_note_tokens(value):
+
+    return bool(
+        NOTE_TOKEN_PATTERN.search(
+            (value or "").strip()
+        )
+    )
+
+
+def normalize_lick_item(item):
+
+    changed = False
+
+    voicing = item.get("voicing", "") or ""
+    voicing_rhythm = item.get("voicingRhythm", "") or ""
+
+    if (
+        not voicing_rhythm.strip()
+        and looks_like_rhythm(voicing)
+        and not has_note_tokens(voicing)
+    ):
+        item["voicingRhythm"] = voicing
+        item["voicing"] = ""
+        changed = True
+
+    elif (
+        has_note_tokens(voicing_rhythm)
+        and looks_like_rhythm(voicing)
+        and not has_note_tokens(voicing)
+    ):
+        item["voicing"] = voicing_rhythm
+        item["voicingRhythm"] = voicing
+        changed = True
+
+    return item, changed
 
 
 def normalize_metadata(metadata):
@@ -22,6 +84,9 @@ def normalize_metadata(metadata):
             if not item.get("file"):
                 item["file"] = mp3
                 changed = True
+
+            _, item_changed = normalize_lick_item(item)
+            changed = changed or item_changed
 
     return metadata, changed
 
@@ -74,6 +139,7 @@ def save(data):
     lick_id = data.get("id")
 
     payload = dict(data)
+    payload, _ = normalize_lick_item(payload)
 
     if not lick_id:
         payload["id"] = uuid4().hex

@@ -114,7 +114,8 @@ async def export_lick_musicxml(
 
     export_musicxml(
         sheet,
-        output_path
+        output_path,
+        title=name
     )
 
     return {
@@ -183,7 +184,8 @@ async def export_12_keys_musicxml(
 
     export_circle_of_fifths_musicxml(
         scores,
-        output_path
+        output_path,
+        title=name
     )
 
     return {

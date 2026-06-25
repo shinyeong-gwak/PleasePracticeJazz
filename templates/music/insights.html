@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="page-shell">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Insights</p>
+            <h1>인사이트</h1>
+            <p class="page-copy">리듬, 솔로, 합주, 보이싱 관점에서 계속 꺼내볼 꿀팁 노트를 쌓아두는 창입니다.</p>
+        </div>
+    </div>
+
+    <article class="card insight-editor-card">
+        <div class="stack-form">
+            <label class="practice-field">
+                <span class="practice-field-label">카테고리</span>
+                <select id="insightCategoryInput">
+                    <option value="rhythm">리듬</option>
+                    <option value="solo">솔로</option>
+                    <option value="ensemble">합주</option>
+                    <option value="voicing">보이싱</option>
+                </select>
+            </label>
+            <label class="practice-field">
+                <span class="practice-field-label">제목</span>
+                <input type="text" id="insightTitleInput" placeholder="예: 셔플에서 뒤를 더 늦게 느끼기">
+            </label>
+            <label class="practice-field">
+                <span class="practice-field-label">메모</span>
+                <textarea id="insightMemoInput" placeholder="나중에 다시 읽어도 바로 감이 오는 식으로 적기"></textarea>
+            </label>
+            <div class="practice-editor-actions">
+                <button type="button" class="primary-button" id="addInsightButton">+ 인사이트 추가</button>
+            </div>
+        </div>
+    </article>
+
+    <section class="insight-columns" id="insightColumns"></section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="insight-data" type="application/json">
+    {{ insights | tojson | safe }}
+</script>
+<script src="/static/js/insights.js"></script>
+{% endblock %}
