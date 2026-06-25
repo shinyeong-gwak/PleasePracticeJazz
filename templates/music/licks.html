@@ -34,8 +34,11 @@
             <button onclick="stopAudio()">⏹</button>
             <button onclick="skip(15)">15s ⏩</button>
         </audio>
-        <button id="lockPlayerBtn" onclick="togglePlayerLock()">
+        <button type="button" id="lockPlayerBtn" onclick="togglePlayerLock()">
             🔓
+        </button>
+        <button type="button" id="loopPlayerBtn" aria-pressed="false" title="반복 꺼짐">
+            🔁
         </button>
         <div class="time-display">
             <span id="currentTime">0:00</span>
@@ -367,6 +370,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script id="selected-lick-file-data" type="application/json">
+    {{ selected_lick_file | tojson | safe }}
+</script>
 <script src="/static/js/lick/audio.js"></script>
 <script src="/static/js/lick/rhythm.js"></script>
 <script src="/static/js/lick/score.js"></script>

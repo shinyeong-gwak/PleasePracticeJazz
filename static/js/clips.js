@@ -116,6 +116,11 @@ async function createClip()
             ).value
         );
 
+    const clipName =
+        document.getElementById(
+            "clipName"
+        ).value.trim();
+
     const response =
         await fetch(
             "/music/clips/create",
@@ -128,7 +133,8 @@ async function createClip()
                 body: JSON.stringify({
                     fileName,
                     startTime,
-                    endTime
+                    endTime,
+                    clipName
                 })
             }
         );

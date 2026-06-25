@@ -49,6 +49,46 @@
         </div>
     </article>
 </section>
+
+<div class="practice-mobile-tools" id="reportMobileTools">
+    <div class="practice-mobile-tools-header">
+        <div class="practice-mobile-tools-meta">
+            <div class="practice-mobile-tools-title" id="mobileToolTitle">선택된 노트 없음</div>
+            <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">리포트 카드에서 곡을 선택하면 바로가기와 메트로놈을 쓸 수 있어요.</div>
+        </div>
+        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="true" aria-controls="mobileToolsBody">
+            접기
+        </button>
+    </div>
+    <div class="practice-mobile-tools-body" id="mobileToolsBody">
+        <div class="practice-mobile-tools-row">
+            <button type="button" class="practice-mobile-tool-button" id="mobileIrealButton">
+                <img src="/static/img/realb_logo.png" alt="iReal Pro">
+                <span class="practice-mobile-tool-value" id="mobileIrealValue">제목</span>
+            </button>
+            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro2Button">
+                <span class="practice-mobile-tool-emoji">2️⃣</span>
+                <span class="practice-mobile-tool-value" id="mobileMetro2Value">BPM</span>
+            </button>
+            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro4Button">
+                <span class="practice-mobile-tool-emoji">4️⃣</span>
+                <span class="practice-mobile-tool-value" id="mobileMetro4Value">BPM</span>
+            </button>
+            <button type="button" class="practice-mobile-tool-button" id="mobileGoodnotesButton">
+                <img src="/static/img/goodnote.jpeg" alt="Goodnotes">
+                <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">악보</span>
+            </button>
+            <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton">
+                <img src="/static/img/spotify_logo.png" alt="Spotify">
+                <span class="practice-mobile-tool-value" id="mobileSpotifyValue">링크</span>
+            </button>
+            <button type="button" class="practice-mobile-tool-button" id="mobileLickButton">
+                <span class="practice-mobile-tool-emoji">🎵</span>
+                <span class="practice-mobile-tool-value" id="mobileLickValue">Lick</span>
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

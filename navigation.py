@@ -24,14 +24,6 @@ NAVIGATION = [
                 "name": "연습일지",
                 "icon": "📈",
                 "url": "/music/daily"
-            }, {
-                "name": "주간 리포트",
-                "icon": "🗓️",
-                "url": "/music/report"
-            }, {
-                "name": "인사이트",
-                "icon": "💡",
-                "url": "/music/insights"
             }
         ]
     },

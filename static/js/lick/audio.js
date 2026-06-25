@@ -3,6 +3,7 @@ const LickApp = window.LickApp || (window.LickApp = {
         currentFile: null,
         savedLicks: {},
         playerLocked: false,
+        playerLooped: false,
         grid: 8,
         activeLickId: null,
         selectedSavedLick: null
@@ -47,8 +48,29 @@ LickApp.helpers.getAudioElements = function getAudioElements() {
         tempo: LickApp.helpers.getElement("tempo"),
         tempoVal: LickApp.helpers.getElement("tempoVal"),
         pitch: LickApp.helpers.getElement("pitchVal"),
-        lockButton: LickApp.helpers.getElement("lockPlayerBtn")
+        lockButton: LickApp.helpers.getElement("lockPlayerBtn"),
+        loopButton: LickApp.helpers.getElement("loopPlayerBtn")
     };
+};
+
+LickApp.helpers.updateLoopButton = function updateLoopButton() {
+    const {audio, loopButton} = LickApp.helpers.getAudioElements();
+
+    if (!audio || !loopButton) {
+        return;
+    }
+
+    audio.loop = !!LickApp.state.playerLooped;
+    loopButton.innerText = LickApp.state.playerLooped ? "🔂" : "🔁";
+    loopButton.setAttribute(
+        "aria-pressed",
+        LickApp.state.playerLooped ? "true" : "false"
+    );
+    loopButton.setAttribute(
+        "title",
+        LickApp.state.playerLooped ? "반복 켜짐" : "반복 꺼짐"
+    );
+    loopButton.classList.toggle("is-active", LickApp.state.playerLooped);
 };
 
 LickApp.helpers.updateTempoLabel = function updateTempoLabel() {
@@ -109,6 +131,17 @@ LickApp.actions.togglePlayerLock = function togglePlayerLock() {
     lockButton.innerText = LickApp.state.playerLocked ? "🔒" : "🔓";
 };
 
+LickApp.actions.togglePlayerLoop = function togglePlayerLoop() {
+    const {audio} = LickApp.helpers.getAudioElements();
+
+    if (!audio) {
+        return;
+    }
+
+    LickApp.state.playerLooped = !LickApp.state.playerLooped;
+    LickApp.helpers.updateLoopButton();
+};
+
 LickApp.actions.applyEffects = async function applyEffects() {
     if (!LickApp.state.currentFile) {
         return;
@@ -148,7 +181,14 @@ LickApp.actions.resetEffects = function resetEffects() {
 };
 
 LickApp.actions.initAudio = function initAudio() {
-    const {audio, seekBar, currentTime, duration, tempo} = LickApp.helpers.getAudioElements();
+    const {
+        audio,
+        seekBar,
+        currentTime,
+        duration,
+        tempo,
+        loopButton
+    } = LickApp.helpers.getAudioElements();
 
     if (!audio || !seekBar || audio.dataset.initialized === "true") {
         return;
@@ -167,12 +207,26 @@ LickApp.actions.initAudio = function initAudio() {
         duration.innerText = LickApp.helpers.formatTime(audio.duration);
     });
 
+    audio.addEventListener("ended", () => {
+        if (!LickApp.state.playerLooped) {
+            return;
+        }
+
+        audio.currentTime = 0;
+        audio.play();
+    });
+
     seekBar.addEventListener("input", () => {
         audio.currentTime = Number(seekBar.value);
     });
 
     tempo.addEventListener("input", LickApp.helpers.updateTempoLabel);
+    loopButton?.addEventListener("click", event => {
+        event.preventDefault();
+        LickApp.actions.togglePlayerLoop();
+    });
     LickApp.helpers.updateTempoLabel();
+    LickApp.helpers.updateLoopButton();
 };
 
 window.playAudio = LickApp.actions.playAudio;
@@ -182,3 +236,4 @@ window.skip = LickApp.actions.skip;
 window.applyEffects = LickApp.actions.applyEffects;
 window.resetEffects = LickApp.actions.resetEffects;
 window.togglePlayerLock = LickApp.actions.togglePlayerLock;
+window.togglePlayerLoop = LickApp.actions.togglePlayerLoop;

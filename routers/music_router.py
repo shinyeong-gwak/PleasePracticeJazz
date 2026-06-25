@@ -4,6 +4,7 @@ from starlette.responses import RedirectResponse, JSONResponse
 from repositories import (
     playlist_repository,
     lick_repository,
+    score_repository,
     playlist_sync_repository,
     daily_repository,
 )
@@ -47,10 +48,10 @@ def delete_playlist(name: str = Form(...), url: str = Form(...)):
 
 
 @router.get("/licks")
-def licks_page(request: Request):
+def licks_page(request: Request, file: str = ""):
     licks = lick_repository.get_all()
     return render_page(request, "music/licks.html",
-                       "음악",{"licks": licks})
+                       "음악",{"licks": licks, "selected_lick_file": file})
 
 
 @router.get("/daily")
@@ -65,6 +66,8 @@ def daily_page(request: Request):
             "daily_report": current_report,
             "current_archive": daily_repository.build_week_archive(current_report),
             "tune_suggestions": daily_repository.get_tune_suggestions(),
+            "recent_lick_files": lick_repository.get_recent_files(),
+            "recent_score_files": score_repository.get_recent_files(),
         }
     )
 

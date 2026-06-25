@@ -11,6 +11,7 @@ class ClipRequest(BaseModel):
     fileName: str
     startTime: float
     endTime: float
+    clipName: str = ""
 
 
 @router.get("/clips")
@@ -26,7 +27,12 @@ def clips_page(request: Request):
 
 @router.post("/clips/create")
 def create_clip(req: ClipRequest):
-    out = clip_service.create_clip(req.fileName, req.startTime, req.endTime)
+    out = clip_service.create_clip(
+        req.fileName,
+        req.startTime,
+        req.endTime,
+        req.clipName
+    )
     return {"fileName": out.name}
 
 

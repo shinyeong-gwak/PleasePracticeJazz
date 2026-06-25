@@ -34,7 +34,7 @@ function getMusicInput(target) {
 
 function isAudioControlTarget(target) {
     return !!target?.closest?.(
-        "#audioPlayer, #seekBar, #lockPlayerBtn, .time-display"
+        "#audioPlayer, #seekBar, #lockPlayerBtn, #loopPlayerBtn, .time-display"
     );
 }
 

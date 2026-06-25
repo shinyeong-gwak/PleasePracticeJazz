@@ -172,6 +172,8 @@ def normalize_practice_item(item):
     item["book"] = str(item.get("book") or "").strip()
     item["page"] = str(item.get("page") or "").strip()
     item["spotifyUrl"] = str(item.get("spotifyUrl") or "").strip()
+    item["lickFile"] = str(item.get("lickFile") or "").strip()
+    item["rendererFile"] = str(item.get("rendererFile") or "").strip()
     item["status"] = str(
         item.get("status") or "normal"
     ).strip() or "normal"
@@ -524,6 +526,8 @@ def add_practice(payload):
             "book": payload.get("book"),
             "page": payload.get("page"),
             "spotifyUrl": payload.get("spotifyUrl"),
+            "lickFile": payload.get("lickFile"),
+            "rendererFile": payload.get("rendererFile"),
             "status": payload.get("status"),
             "topics": payload.get("topics"),
             "memo": payload.get("memo"),
@@ -554,6 +558,8 @@ def update_practice(practice_id, payload):
                     "book": payload.get("book", item.get("book")),
                     "page": payload.get("page", item.get("page")),
                     "spotifyUrl": payload.get("spotifyUrl", item.get("spotifyUrl")),
+                    "lickFile": payload.get("lickFile", item.get("lickFile")),
+                    "rendererFile": payload.get("rendererFile", item.get("rendererFile")),
                     "status": payload.get("status", item.get("status")),
                     "topics": payload.get("topics", item.get("topics")),
                     "memo": payload.get("memo", item.get("memo")),
@@ -592,6 +598,8 @@ def add_ensemble(payload):
             "book": payload.get("book"),
             "page": payload.get("page"),
             "spotifyUrl": payload.get("spotifyUrl"),
+            "lickFile": payload.get("lickFile"),
+            "rendererFile": payload.get("rendererFile"),
             "status": payload.get("status"),
             "topics": payload.get("topics"),
             "memo": payload.get("memo"),
@@ -622,6 +630,8 @@ def update_ensemble(ensemble_id, payload):
                     "book": payload.get("book", item.get("book")),
                     "page": payload.get("page", item.get("page")),
                     "spotifyUrl": payload.get("spotifyUrl", item.get("spotifyUrl")),
+                    "lickFile": payload.get("lickFile", item.get("lickFile")),
+                    "rendererFile": payload.get("rendererFile", item.get("rendererFile")),
                     "status": payload.get("status", item.get("status")),
                     "topics": payload.get("topics", item.get("topics")),
                     "memo": payload.get("memo", item.get("memo")),

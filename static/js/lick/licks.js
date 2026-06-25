@@ -30,6 +30,22 @@ LickPage.actions.init = function init() {
     LickPage.helpers.updateSaveButton();
     LickPage.actions.loadSavedLicks();
 
+    const selectedNode = document.getElementById("selected-lick-file-data");
+
+    if (!selectedNode) {
+        return;
+    }
+
+    try {
+        const selectedFile = JSON.parse(selectedNode.textContent);
+
+        if (selectedFile) {
+            LickPage.actions.selectLick(selectedFile);
+        }
+    } catch (error) {
+        console.error("selected lick parse error", error);
+    }
+
 };
 
 window.selectLick = LickPage.actions.selectLick;

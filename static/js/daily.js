@@ -79,6 +79,13 @@ function formatArchiveDayLabel(dateValue) {
     return `${dateValue.getMonth() + 1}.${dateValue.getDate()}`;
 }
 
+function formatLocalDateKey(dateValue) {
+    const year = dateValue.getFullYear();
+    const month = `${dateValue.getMonth() + 1}`.padStart(2, "0");
+    const day = `${dateValue.getDate()}`.padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
 function getArchiveWeekdays() {
     const weekStart = getArchiveWeekStart();
     const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
@@ -93,7 +100,7 @@ function getArchiveWeekdays() {
 
         return {
             weekday,
-            date: dateValue.toISOString().slice(0, 10),
+            date: formatLocalDateKey(dateValue),
             label: formatArchiveDayLabel(dateValue),
             practice: [],
             ensemble: [],
@@ -200,12 +207,39 @@ function buildArchiveItemMarkup(item, kind) {
     }
 
     return `
-        <article class="practice-report-item ${item.status === "bad" || !item.metronome ? "practice-report-item-bad" : item.status === "good" ? "practice-report-item-good" : ""}">
+        <article
+            class="practice-report-item practice-mobile-target-card ${item.status === "bad" || !item.metronome ? "practice-report-item-bad" : item.status === "good" ? "practice-report-item-good" : ""}"
+            data-target-kind="${kind}"
+            data-target-title="${item.title || ""}"
+            data-target-bpm="${item.bpm || ""}"
+            data-target-book="${item.book || ""}"
+            data-target-page="${item.page || ""}"
+            data-target-spotify="${item.spotifyUrl || ""}"
+            data-target-lick="${item.lickFile || ""}"
+            data-target-renderer="${item.rendererFile || ""}"
+        >
             <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "이름 없는 합주 노트" : "이름 없는 연습")}</div>
             <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
             <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
         </article>
     `;
+}
+
+function buildTargetFromDataset(node) {
+    if (!node) {
+        return null;
+    }
+
+    return {
+        kind: node.dataset.targetKind || "practice",
+        title: node.dataset.targetTitle || "",
+        bpm: node.dataset.targetBpm || "",
+        book: node.dataset.targetBook || "",
+        page: node.dataset.targetPage || "",
+        spotifyUrl: node.dataset.targetSpotify || "",
+        lickFile: node.dataset.targetLick || "",
+        rendererFile: node.dataset.targetRenderer || "",
+    };
 }
 
 function renderCurrentArchive() {
@@ -252,6 +286,16 @@ function renderCurrentArchive() {
             }
         </section>
     `).join("");
+
+    daysContainer.querySelectorAll(".practice-mobile-target-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            const target = buildTargetFromDataset(card);
+
+            if (target) {
+                setActiveMobileTarget(target);
+            }
+        });
+    });
 }
 
 function confirmDelete(message) {
@@ -374,6 +418,7 @@ function updateMobileToolState() {
     const metro4Value = document.getElementById("mobileMetro4Value");
     const goodnotesValue = document.getElementById("mobileGoodnotesValue");
     const spotifyValue = document.getElementById("mobileSpotifyValue");
+    const lickValue = document.getElementById("mobileLickValue");
     const target = DAILY_STATE.activeMobileTarget;
     const bpm = getMobileTargetBpm(target);
     const title = getMobileTargetTitle(target);
@@ -384,6 +429,7 @@ function updateMobileToolState() {
             ? `p.${target.page}`
             : "";
     const spotifyLabel = target?.spotifyUrl ? "연결됨" : "링크";
+    const lickLabel = target?.lickFile ? "선택됨" : "Lick";
 
     if (!titleNode) {
         return;
@@ -398,6 +444,9 @@ function updateMobileToolState() {
     metro2Value.textContent = bpm ? `${bpm} → 2필` : "BPM";
     metro4Value.textContent = bpm ? `${bpm} → 4필` : "BPM";
     spotifyValue.textContent = spotifyLabel;
+    if (lickValue) {
+        lickValue.textContent = lickLabel;
+    }
     syncMetronomeButtons();
 }
 
@@ -414,6 +463,8 @@ function getPracticeFormTarget() {
         book: document.getElementById("practiceBookInput").value.trim(),
         page: document.getElementById("practicePageInput").value.trim(),
         spotifyUrl: document.getElementById("practiceSpotifyInput").value.trim(),
+        lickFile: document.getElementById("practiceLickFileInput").value.trim(),
+        rendererFile: document.getElementById("practiceRendererFileInput").value.trim(),
     };
 }
 
@@ -425,6 +476,8 @@ function getEnsembleFormTarget() {
         book: document.getElementById("ensembleBookInput").value.trim(),
         page: document.getElementById("ensemblePageInput").value.trim(),
         spotifyUrl: document.getElementById("ensembleSpotifyInput").value.trim(),
+        lickFile: document.getElementById("ensembleLickFileInput").value.trim(),
+        rendererFile: document.getElementById("ensembleRendererFileInput").value.trim(),
     };
 }
 
@@ -435,11 +488,15 @@ function bindMobileTargetInputs() {
         "practiceBookInput",
         "practicePageInput",
         "practiceSpotifyInput",
+        "practiceLickFileInput",
+        "practiceRendererFileInput",
         "ensembleTitleInput",
         "ensembleBpmInput",
         "ensembleBookInput",
         "ensemblePageInput",
         "ensembleSpotifyInput",
+        "ensembleLickFileInput",
+        "ensembleRendererFileInput",
     ].forEach((id) => {
         const element = document.getElementById(id);
 
@@ -589,6 +646,7 @@ function bindMobileToolButtons() {
     const metro4Button = document.getElementById("mobileMetro4Button");
     const goodnotesButton = document.getElementById("mobileGoodnotesButton");
     const spotifyButton = document.getElementById("mobileSpotifyButton");
+    const lickButton = document.getElementById("mobileLickButton");
     const toggleButton = document.getElementById("mobileToolsToggleButton");
 
     if (!irealButton) {
@@ -631,6 +689,19 @@ function bindMobileToolButtons() {
 
         window.location.href = url;
     });
+
+    if (lickButton) {
+        lickButton.addEventListener("click", () => {
+            const file = DAILY_STATE.activeMobileTarget?.lickFile;
+
+            if (!file) {
+                alert("현재 선택된 노트에 Lick MP3가 없습니다.");
+                return;
+            }
+
+            window.location.href = `/music/licks?file=${encodeURIComponent(file)}`;
+        });
+    }
 }
 
 function getSelectedPracticeTopics() {
@@ -664,6 +735,8 @@ function resetPracticeForm() {
     document.getElementById("practicePageInput").value = "";
     document.getElementById("practiceMemoInput").value = "";
     document.getElementById("practiceSpotifyInput").value = "";
+    document.getElementById("practiceLickFileInput").value = "";
+    document.getElementById("practiceRendererFileInput").value = "";
     setSelectedPracticeTopics([]);
     setPracticeStatus("normal");
     document.getElementById("addPracticeCardButton").textContent = "+ 카드 추가";
@@ -679,6 +752,8 @@ function fillPracticeForm(item) {
     document.getElementById("practicePageInput").value = item.page || "";
     document.getElementById("practiceMemoInput").value = item.memo || "";
     document.getElementById("practiceSpotifyInput").value = item.spotifyUrl || "";
+    document.getElementById("practiceLickFileInput").value = item.lickFile || "";
+    document.getElementById("practiceRendererFileInput").value = item.rendererFile || "";
     setSelectedPracticeTopics(item.topics || []);
     setPracticeStatus(item.status || "normal");
     document.getElementById("addPracticeCardButton").textContent = "수정 저장";
@@ -694,6 +769,8 @@ function fillPracticeForm(item) {
         book: item.book || "",
         page: item.page || "",
         spotifyUrl: item.spotifyUrl || "",
+        lickFile: item.lickFile || "",
+        rendererFile: item.rendererFile || "",
     });
 }
 
@@ -704,6 +781,8 @@ function collectPracticePayload() {
         book: document.getElementById("practiceBookInput").value.trim(),
         page: document.getElementById("practicePageInput").value.trim(),
         spotifyUrl: document.getElementById("practiceSpotifyInput").value.trim(),
+        lickFile: document.getElementById("practiceLickFileInput").value.trim(),
+        rendererFile: document.getElementById("practiceRendererFileInput").value.trim(),
         topics: getSelectedPracticeTopics(),
         status: document.getElementById("practiceStatusInput").value.trim() || "normal",
         memo: document.getElementById("practiceMemoInput").value.trim(),
@@ -729,6 +808,8 @@ function collectEnsemblePayload() {
         book: document.getElementById("ensembleBookInput").value.trim(),
         page: document.getElementById("ensemblePageInput").value.trim(),
         spotifyUrl: document.getElementById("ensembleSpotifyInput").value.trim(),
+        lickFile: document.getElementById("ensembleLickFileInput").value.trim(),
+        rendererFile: document.getElementById("ensembleRendererFileInput").value.trim(),
         topics: document.getElementById("ensembleTopicsInput").value.trim(),
         status: document.getElementById("ensembleStatusInput").value.trim() || "normal",
         memo: document.getElementById("ensembleMemoInput").value.trim(),
@@ -741,6 +822,8 @@ function resetEnsembleEditor() {
     document.getElementById("ensembleBookInput").value = "";
     document.getElementById("ensemblePageInput").value = "";
     document.getElementById("ensembleSpotifyInput").value = "";
+    document.getElementById("ensembleLickFileInput").value = "";
+    document.getElementById("ensembleRendererFileInput").value = "";
     document.getElementById("ensembleTopicsInput").value = "";
     document.getElementById("ensembleStatusInput").value = "normal";
     document.getElementById("ensembleMemoInput").value = "";
@@ -896,6 +979,8 @@ function createEnsembleCardNode(item, template) {
     const bookInput = fragment.querySelector(".practice-inline-book");
     const pageInput = fragment.querySelector(".practice-inline-page");
     const statusInput = fragment.querySelector(".practice-inline-status");
+    const lickFileInput = fragment.querySelector(".practice-inline-lick-file");
+    const rendererFileInput = fragment.querySelector(".practice-inline-renderer-file");
     const spotifyInput = fragment.querySelector(".practice-inline-spotify");
     const topicsInput = fragment.querySelector(".practice-inline-topics");
     const memoInput = fragment.querySelector(".practice-inline-memo");
@@ -909,6 +994,8 @@ function createEnsembleCardNode(item, template) {
     bookInput.value = item.book || "";
     pageInput.value = item.page || "";
     statusInput.value = item.status || "normal";
+    lickFileInput.value = item.lickFile || "";
+    rendererFileInput.value = item.rendererFile || "";
     spotifyInput.value = item.spotifyUrl || "";
     topicsInput.value = (item.topics || []).join(", ");
     memoInput.value = item.memo || "";
@@ -921,6 +1008,8 @@ function createEnsembleCardNode(item, template) {
                 bpm: bpmInput.value.trim(),
                 book: bookInput.value.trim(),
                 page: pageInput.value.trim(),
+                lickFile: lickFileInput.value.trim(),
+                rendererFile: rendererFileInput.value.trim(),
                 spotifyUrl: spotifyInput.value.trim(),
                 status: statusInput.value.trim(),
                 topics: topicsInput.value.trim(),
@@ -931,7 +1020,7 @@ function createEnsembleCardNode(item, template) {
         renderAll();
     }
 
-    [titleInput, bpmInput, bookInput, pageInput, statusInput, spotifyInput, topicsInput, memoInput]
+    [titleInput, bpmInput, bookInput, pageInput, statusInput, lickFileInput, rendererFileInput, spotifyInput, topicsInput, memoInput]
         .forEach((field) => {
             const eventName = field.tagName === "SELECT" ? "change" : "blur";
             field.addEventListener(eventName, saveInline);
@@ -942,6 +1031,8 @@ function createEnsembleCardNode(item, template) {
                     bpm: bpmInput.value.trim(),
                     book: bookInput.value.trim(),
                     page: pageInput.value.trim(),
+                    lickFile: lickFileInput.value.trim(),
+                    rendererFile: rendererFileInput.value.trim(),
                     spotifyUrl: spotifyInput.value.trim(),
                 });
             });
@@ -952,6 +1043,8 @@ function createEnsembleCardNode(item, template) {
                     bpm: bpmInput.value.trim(),
                     book: bookInput.value.trim(),
                     page: pageInput.value.trim(),
+                    lickFile: lickFileInput.value.trim(),
+                    rendererFile: rendererFileInput.value.trim(),
                     spotifyUrl: spotifyInput.value.trim(),
                 });
             });
@@ -1024,6 +1117,8 @@ function renderPracticeCards() {
                 book: item.book || "",
                 page: item.page || "",
                 spotifyUrl: item.spotifyUrl || "",
+                lickFile: item.lickFile || "",
+                rendererFile: item.rendererFile || "",
             });
             fillPracticeForm(item);
         });

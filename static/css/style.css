@@ -716,6 +716,10 @@ tr.hidden,
     gap: 8px;
 }
 
+.practice-asset-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .practice-editor-actions {
     display: flex;
     justify-content: flex-end;
@@ -834,6 +838,8 @@ tr.hidden,
 .practice-inline-book,
 .practice-inline-page,
 .practice-inline-status,
+.practice-inline-lick-file,
+.practice-inline-renderer-file,
 .practice-inline-spotify,
 .practice-inline-topics,
 .practice-inline-memo {
@@ -909,6 +915,10 @@ tr.hidden,
     border: 1px solid var(--line);
     border-radius: 16px;
     background: #fff;
+}
+
+.practice-mobile-target-card {
+    cursor: pointer;
 }
 
 .practice-report-item-bad {
@@ -1198,6 +1208,10 @@ tr.hidden,
         grid-template-columns: 1fr;
     }
 
+    .practice-asset-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .practice-inline-grid,
     .insight-columns {
         grid-template-columns: 1fr;
@@ -1315,7 +1329,7 @@ tr.hidden,
 
     .practice-mobile-tools-row {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 8px;
     }
 

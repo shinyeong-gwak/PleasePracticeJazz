@@ -2,6 +2,15 @@ const REPORT_STATE = {
     days: [],
     weeks: [],
     selectedWeekKey: "",
+    activeMobileTarget: null,
+    metronome: {
+        audioContext: null,
+        masterGain: null,
+        timerId: null,
+        feel: null,
+        unlocked: false,
+    },
+    mobileToolsCollapsed: false,
 };
 
 function loadReportData() {
@@ -49,12 +58,237 @@ function buildArchiveItemMarkup(item, kind) {
             : "";
 
     return `
-        <article class="practice-report-item ${toneClass}">
+        <article
+            class="practice-report-item practice-mobile-target-card ${toneClass}"
+            data-target-kind="${kind}"
+            data-target-title="${item.title || ""}"
+            data-target-bpm="${item.bpm || ""}"
+            data-target-book="${item.book || ""}"
+            data-target-page="${item.page || ""}"
+            data-target-spotify="${item.spotifyUrl || ""}"
+            data-target-lick="${item.lickFile || ""}"
+        >
             <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "이름 없는 합주 노트" : "이름 없는 연습")}</div>
             <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
             <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
         </article>
     `;
+}
+
+function getMobileTargetTitle(target) {
+    return target?.title?.trim() || "선택된 노트 없음";
+}
+
+function getMobileTargetBpm(target) {
+    return target?.bpm?.trim() || "";
+}
+
+function buildTargetFromDataset(node) {
+    return {
+        kind: node.dataset.targetKind || "practice",
+        title: node.dataset.targetTitle || "",
+        bpm: node.dataset.targetBpm || "",
+        book: node.dataset.targetBook || "",
+        page: node.dataset.targetPage || "",
+        spotifyUrl: node.dataset.targetSpotify || "",
+        lickFile: node.dataset.targetLick || "",
+    };
+}
+
+function syncMetronomeButtons() {
+    const metro2Button = document.getElementById("mobileMetro2Button");
+    const metro4Button = document.getElementById("mobileMetro4Button");
+
+    if (!metro2Button || !metro4Button) {
+        return;
+    }
+
+    metro2Button.classList.toggle("is-active", REPORT_STATE.metronome.feel === 2);
+    metro4Button.classList.toggle("is-active", REPORT_STATE.metronome.feel === 1);
+}
+
+function updateMobileToolState() {
+    const titleNode = document.getElementById("mobileToolTitle");
+    const subtitleNode = document.getElementById("mobileToolSubtitle");
+    const lickValue = document.getElementById("mobileLickValue");
+    const target = REPORT_STATE.activeMobileTarget;
+    const title = getMobileTargetTitle(target);
+    const bpm = getMobileTargetBpm(target);
+    const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
+    const pageLabel = target?.book
+        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
+        : target?.page
+            ? `p.${target.page}`
+            : "";
+
+    if (!titleNode || !subtitleNode) {
+        return;
+    }
+
+    titleNode.textContent = title;
+    subtitleNode.textContent = bpm
+        ? `${bpm} BPM · ${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`
+        : `${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`;
+    if (lickValue) {
+        lickValue.textContent = target?.lickFile ? "선택됨" : "Lick";
+    }
+    syncMetronomeButtons();
+}
+
+function setActiveMobileTarget(target) {
+    REPORT_STATE.activeMobileTarget = target;
+    updateMobileToolState();
+}
+
+function ensureAudioContext() {
+    if (!REPORT_STATE.metronome.audioContext) {
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const masterGain = context.createGain();
+
+        masterGain.gain.value = 1;
+        masterGain.connect(context.destination);
+
+        REPORT_STATE.metronome.audioContext = context;
+        REPORT_STATE.metronome.masterGain = masterGain;
+    }
+
+    return REPORT_STATE.metronome.audioContext;
+}
+
+async function ensureMetronomeAudioReady() {
+    const context = ensureAudioContext();
+
+    if (context.state === "suspended") {
+        await context.resume();
+    }
+
+    if (!REPORT_STATE.metronome.unlocked) {
+        const buffer = context.createBuffer(1, 1, 22050);
+        const source = context.createBufferSource();
+
+        source.buffer = buffer;
+        source.connect(REPORT_STATE.metronome.masterGain || context.destination);
+        source.start(0);
+        source.stop(context.currentTime + 0.01);
+        REPORT_STATE.metronome.unlocked = true;
+    }
+}
+
+function playClick() {
+    const context = REPORT_STATE.metronome.audioContext || ensureAudioContext();
+    const masterGain = REPORT_STATE.metronome.masterGain;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const now = context.currentTime;
+
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(1850, now);
+    oscillator.frequency.exponentialRampToValueAtTime(1450, now + 0.012);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.0035);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
+
+    oscillator.connect(gain);
+    gain.connect(masterGain || context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.03);
+}
+
+function stopMetronome() {
+    if (REPORT_STATE.metronome.timerId) {
+        clearInterval(REPORT_STATE.metronome.timerId);
+    }
+
+    REPORT_STATE.metronome.timerId = null;
+    REPORT_STATE.metronome.feel = null;
+    syncMetronomeButtons();
+}
+
+async function startMetronome(feelDivider) {
+    const bpm = parseInt(getMobileTargetBpm(REPORT_STATE.activeMobileTarget), 10);
+
+    if (!bpm) {
+        alert("선택된 카드에 BPM이 없습니다.");
+        return;
+    }
+
+    if (REPORT_STATE.metronome.feel === feelDivider) {
+        stopMetronome();
+        return;
+    }
+
+    stopMetronome();
+    await ensureMetronomeAudioReady();
+
+    const intervalMs = Math.max(120, (60000 / bpm) * feelDivider);
+
+    REPORT_STATE.metronome.feel = feelDivider;
+    playClick();
+    REPORT_STATE.metronome.timerId = window.setInterval(playClick, intervalMs);
+    syncMetronomeButtons();
+}
+
+function bindMobileToolButtons() {
+    const tools = document.getElementById("reportMobileTools");
+    const toggleButton = document.getElementById("mobileToolsToggleButton");
+    const irealButton = document.getElementById("mobileIrealButton");
+    const metro2Button = document.getElementById("mobileMetro2Button");
+    const metro4Button = document.getElementById("mobileMetro4Button");
+    const goodnotesButton = document.getElementById("mobileGoodnotesButton");
+    const spotifyButton = document.getElementById("mobileSpotifyButton");
+    const lickButton = document.getElementById("mobileLickButton");
+
+    if (!tools || !toggleButton) {
+        return;
+    }
+
+    toggleButton.addEventListener("click", () => {
+        REPORT_STATE.mobileToolsCollapsed = !REPORT_STATE.mobileToolsCollapsed;
+        tools.classList.toggle("is-collapsed", REPORT_STATE.mobileToolsCollapsed);
+        toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "펼치기" : "접기";
+        toggleButton.setAttribute("aria-expanded", REPORT_STATE.mobileToolsCollapsed ? "false" : "true");
+    });
+
+    irealButton.addEventListener("click", () => {
+        const title = encodeURIComponent(getMobileTargetTitle(REPORT_STATE.activeMobileTarget));
+
+        if (!title || title === encodeURIComponent("선택된 노트 없음")) {
+            return;
+        }
+
+        window.location.href = `irealb://search?${title}`;
+    });
+
+    metro2Button.addEventListener("click", () => startMetronome(2));
+    metro4Button.addEventListener("click", () => startMetronome(1));
+
+    goodnotesButton.addEventListener("click", () => {
+        alert("Goodnotes 버튼은 준비만 해두었어요.");
+    });
+
+    spotifyButton.addEventListener("click", () => {
+        const url = REPORT_STATE.activeMobileTarget?.spotifyUrl;
+
+        if (!url) {
+            alert("선택된 카드에 Spotify 링크가 없습니다.");
+            return;
+        }
+
+        window.location.href = url;
+    });
+
+    if (lickButton) {
+        lickButton.addEventListener("click", () => {
+            const file = REPORT_STATE.activeMobileTarget?.lickFile;
+
+            if (!file) {
+                alert("선택된 카드에 Lick MP3가 없습니다.");
+                return;
+            }
+
+            window.location.href = `/music/licks?file=${encodeURIComponent(file)}`;
+        });
+    }
 }
 
 function renderWeekdays() {
@@ -181,6 +415,12 @@ function renderSelectedWeek() {
             }
         </section>
     `).join("");
+
+    daysNode.querySelectorAll(".practice-mobile-target-card").forEach((card) => {
+        card.addEventListener("click", () => {
+            setActiveMobileTarget(buildTargetFromDataset(card));
+        });
+    });
 }
 
 function initReportPage() {
@@ -194,6 +434,14 @@ function initReportPage() {
     renderReportCalendar();
     renderWeekList();
     renderSelectedWeek();
+    bindMobileToolButtons();
+    updateMobileToolState();
 }
 
 document.addEventListener("DOMContentLoaded", initReportPage);
+window.addEventListener("pagehide", stopMetronome);
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        stopMetronome();
+    }
+});

@@ -67,6 +67,12 @@ audio {
     cursor: pointer;
 }
 
+#loopPlayerBtn.is-active {
+    background: #e8f7ef;
+    color: #1f7a52;
+    border-color: #bfe0cf;
+}
+
 .time-display {
     margin: 8px 0;
     font-size: 14px;

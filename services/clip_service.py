@@ -23,7 +23,8 @@ MP3_DIR = ROOT_DIR / "downloads" / "mp3"
 def create_clip(
         file_name: str,
         start_sec: float,
-        end_sec: float):
+        end_sec: float,
+        clip_name: str = ""):
 
     source_file = MP3_DIR / file_name
 
@@ -40,7 +41,8 @@ def create_clip(
            ]
 
     output_file = next_lick_name(
-        file_name
+        file_name,
+        clip_name
     )
 
     clip.export(
@@ -52,7 +54,8 @@ def create_clip(
 
 
 def next_lick_name(
-        original_file_name: str):
+        original_file_name: str,
+        clip_name: str = ""):
 
     LICKS_DIR.mkdir(
         parents=True,
@@ -62,6 +65,29 @@ def next_lick_name(
     stem = Path(
         original_file_name
     ).stem
+    custom_name = (clip_name or "").strip()
+
+    if custom_name:
+        safe_name = (
+            custom_name
+            .replace(" ", "-")
+            .replace("/", "_")
+            .replace("\\", "_")
+        )
+        candidate = LICKS_DIR / f"{stem}-{safe_name}.mp3"
+
+        if not candidate.exists():
+            return candidate
+
+        index = 2
+
+        while True:
+            candidate = LICKS_DIR / f"{stem}-{safe_name}-{index}.mp3"
+
+            if not candidate.exists():
+                return candidate
+
+            index += 1
 
     index = 1
 

@@ -124,6 +124,27 @@
             <input type="text" id="practiceSpotifyInput" placeholder="Spotify URL">
         </label>
 
+        <div class="practice-form-grid practice-asset-grid">
+            <label class="practice-field">
+                <span class="practice-field-label">Lick MP3</span>
+                <select id="practiceLickFileInput">
+                    <option value="">선택 안 함</option>
+                    {% for lick_file in recent_lick_files %}
+                    <option value="{{ lick_file }}">{{ lick_file }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="practice-field">
+                <span class="practice-field-label">Renderer</span>
+                <select id="practiceRendererFileInput">
+                    <option value="">선택 안 함</option>
+                    {% for score_file in recent_score_files %}
+                    <option value="{{ score_file }}">{{ score_file }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </div>
+
         <div class="practice-editor-actions">
             <button type="button" class="secondary-button hidden" id="cancelPracticeEditButton">수정 취소</button>
             <button type="button" class="primary-button practice-add-button" id="addPracticeCardButton">+ 카드 추가</button>
@@ -198,6 +219,26 @@
                         <span class="practice-field-label">Spotify 링크</span>
                         <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
                     </label>
+                    <div class="practice-form-grid practice-asset-grid">
+                        <label class="practice-field">
+                            <span class="practice-field-label">Lick MP3</span>
+                            <select id="ensembleLickFileInput">
+                                <option value="">선택 안 함</option>
+                                {% for lick_file in recent_lick_files %}
+                                <option value="{{ lick_file }}">{{ lick_file }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">Renderer</span>
+                            <select id="ensembleRendererFileInput">
+                                <option value="">선택 안 함</option>
+                                {% for score_file in recent_score_files %}
+                                <option value="{{ score_file }}">{{ score_file }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                    </div>
                     <label class="practice-field">
                         <span class="practice-field-label">메모</span>
                         <textarea id="ensembleMemoInput" placeholder="합주에서 느낀 점을 짧게 적기"></textarea>
@@ -287,6 +328,18 @@
                     <option value="good">좋음</option>
                     <option value="bad">별로</option>
                 </select>
+                <select class="practice-inline-lick-file">
+                    <option value="">Lick MP3</option>
+                    {% for lick_file in recent_lick_files %}
+                    <option value="{{ lick_file }}">{{ lick_file }}</option>
+                    {% endfor %}
+                </select>
+                <select class="practice-inline-renderer-file">
+                    <option value="">Renderer</option>
+                    {% for score_file in recent_score_files %}
+                    <option value="{{ score_file }}">{{ score_file }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <input class="practice-inline-spotify" type="text" placeholder="Spotify URL">
             <input class="practice-inline-topics" type="text" placeholder="태그를 쉼표로 구분">
@@ -332,6 +385,10 @@
         <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton">
             <img src="/static/img/spotify_logo.png" alt="Spotify">
             <span class="practice-mobile-tool-value" id="mobileSpotifyValue">링크</span>
+        </button>
+        <button type="button" class="practice-mobile-tool-button" id="mobileLickButton">
+            <span class="practice-mobile-tool-emoji">🎵</span>
+            <span class="practice-mobile-tool-value" id="mobileLickValue">Lick</span>
         </button>
         </div>
     </div>

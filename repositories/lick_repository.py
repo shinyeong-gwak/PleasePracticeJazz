@@ -127,6 +127,23 @@ def get_all():
         for file in LICKS_DIR.glob("*.mp3")
     ])
 
+
+def get_recent_files(limit=10):
+
+    if not LICKS_DIR.exists():
+        return []
+
+    files = sorted(
+        LICKS_DIR.glob("*.mp3"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True
+    )
+
+    return [
+        file.name
+        for file in files[:limit]
+    ]
+
 def save(data):
     metadata = load_metadata()
 
