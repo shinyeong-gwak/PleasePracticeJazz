@@ -523,6 +523,13 @@ tr.hidden,
     margin-bottom: 10px;
 }
 
+.practice-homework-note-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
 .practice-homework-note-title {
     font-size: 16px;
     font-weight: 800;
@@ -535,6 +542,23 @@ tr.hidden,
     line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-word;
+}
+
+.practice-homework-note.is-merge-source {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+}
+
+.practice-homework-merge-button {
+    min-height: 30px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--accent-strong);
+    border: 1px solid rgba(61, 153, 115, 0.18);
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: none;
 }
 
 .practice-homework-remove-button {
@@ -926,9 +950,57 @@ tr.hidden,
     color: var(--muted);
 }
 
+.practice-report-grid-archive {
+    grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
+}
+
+.practice-report-days {
+    display: grid;
+    gap: 12px;
+}
+
+.practice-report-day {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: #fff;
+}
+
+.practice-report-day-bad {
+    background: #fff7f7;
+    border-color: #efcaca;
+}
+
+.practice-report-day-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.practice-report-day-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.practice-report-day-meta {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.practice-report-day-list {
+    display: grid;
+    gap: 10px;
+}
+
 .report-card {
     display: grid;
     gap: 18px;
+    max-width: 1080px;
+    width: 100%;
 }
 
 .report-legend {
@@ -977,22 +1049,88 @@ tr.hidden,
     background: #237f4d;
 }
 
+.report-calendar-shell {
+    display: grid;
+    gap: 10px;
+    max-width: 252px;
+}
+
+.report-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 30px);
+    gap: 6px;
+}
+
+.report-weekday {
+    width: 30px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+}
+
 .report-calendar {
     display: grid;
-    grid-template-columns: repeat(20, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(7, 30px);
+    gap: 6px;
+    max-width: 252px;
 }
 
 .report-cell {
-    aspect-ratio: 1 / 1;
-    border-radius: 10px;
-    padding: 6px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    padding: 0;
     color: rgba(255, 255, 255, 0.95);
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
     display: flex;
-    align-items: end;
-    justify-content: end;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+
+.report-cell-empty {
+    background: transparent;
+    border: 1px dashed rgba(125, 146, 138, 0.14);
+}
+
+.report-cell-day {
+    line-height: 1;
+}
+
+.report-week-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.report-week-button {
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: #fff;
+    text-align: left;
+    box-shadow: none;
+}
+
+.report-week-button.is-selected {
+    border-color: #bedfd1;
+    background: #f4fbf7;
+}
+
+.report-week-button-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.report-week-button-meta {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
 .insight-columns {
@@ -1032,7 +1170,7 @@ tr.hidden,
     display: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
     .container {
         display: block;
         min-height: 100vh;
@@ -1065,11 +1203,11 @@ tr.hidden,
         grid-template-columns: 1fr;
     }
 
-    .report-calendar {
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+    .practice-report-grid {
+        grid-template-columns: 1fr;
     }
 
-    .practice-report-grid {
+    .practice-report-grid-archive {
         grid-template-columns: 1fr;
     }
 
@@ -1185,8 +1323,8 @@ tr.hidden,
         min-height: 72px;
         padding: 8px 6px 10px;
         border-radius: 18px;
-        border: 1px solid rgba(120, 148, 138, 0.16);
-        background: linear-gradient(180deg, #ffffff 0%, #f4faf7 100%);
+        border: none;
+        background: rgba(255, 255, 255, 0.82);
         display: grid;
         justify-items: center;
         align-content: center;
@@ -1195,37 +1333,28 @@ tr.hidden,
     }
 
     .practice-mobile-tool-button img {
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
         object-fit: contain;
         border-radius: 6px;
     }
 
     .practice-mobile-tool-button-metro {
-        background: linear-gradient(180deg, #fefefe 0%, #eef8f3 100%);
+        background: rgba(255, 255, 255, 0.82);
     }
 
     .practice-mobile-tool-button.is-active {
-        border-color: rgba(61, 153, 115, 0.4);
         box-shadow: 0 10px 24px rgba(61, 153, 115, 0.18);
-        background: linear-gradient(180deg, #f7fffb 0%, #def5e9 100%);
+        background: rgba(223, 245, 233, 0.95);
     }
 
     .practice-mobile-tool-emoji {
-        font-size: 22px;
+        font-size: 28px;
         line-height: 1;
     }
 
     .practice-mobile-tool-value {
-        width: 100%;
-        font-size: 10px;
-        font-weight: 700;
-        color: var(--muted);
-        text-align: center;
-        line-height: 1.25;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        display: none;
     }
 
     .practice-mobile-tools.is-collapsed {
@@ -1283,5 +1412,56 @@ tr.hidden,
 
     .mobile-item-btn {
         border-left: 1px solid rgba(255, 255, 255, 0.12);
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+    .main {
+        padding: 24px;
+    }
+
+    .practice-homework-note {
+        width: min(520px, 68vw);
+        min-width: min(520px, 68vw);
+    }
+
+    .practice-summary-card {
+        width: min(560px, 72vw);
+        min-width: min(560px, 72vw);
+    }
+
+    .practice-mobile-tools {
+        left: 24px;
+        right: 24px;
+        bottom: 86px;
+        padding: 14px;
+    }
+
+    .practice-mobile-tools-row {
+        gap: 10px;
+    }
+
+    .practice-mobile-tool-button {
+        min-height: 82px;
+        padding: 10px 8px 12px;
+    }
+
+    .practice-mobile-tool-button img {
+        width: 36px;
+        height: 36px;
+    }
+
+    .practice-mobile-tool-emoji {
+        font-size: 30px;
+    }
+
+    .practice-mobile-tool-value {
+        font-size: 11px;
+    }
+
+    .mobile-nav {
+        left: 24px;
+        right: 24px;
+        bottom: 20px;
     }
 }

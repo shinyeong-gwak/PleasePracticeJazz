@@ -19,11 +19,18 @@ NAVIGATION = [
             }, {
                 "name": "악보 파일 렌더",
                 "icon": "🎼",
-                "url": "/music/render"
-            }, {
+                "url": "/music/render"            }, {
                 "name": "연습일지",
                 "icon": "📈",
                 "url": "/music/daily"
+            }, {
+                "name": "주간 리포트",
+                "icon": "🗓️",
+                "url": "/music/report"
+            }, {
+                "name": "인사이트",
+                "icon": "💡",
+                "url": "/music/insights"
             }
         ]
     },

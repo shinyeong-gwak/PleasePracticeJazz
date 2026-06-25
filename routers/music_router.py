@@ -56,12 +56,14 @@ def licks_page(request: Request):
 @router.get("/daily")
 @router.get("/daliy")
 def daily_page(request: Request):
+    current_report = daily_repository.get_current_report()
     return render_page(
         request,
         "music/daily.html",
         "연습일지",
         {
-            "daily_report": daily_repository.get_current_report(),
+            "daily_report": current_report,
+            "current_archive": daily_repository.build_week_archive(current_report),
             "tune_suggestions": daily_repository.get_tune_suggestions(),
         }
     )

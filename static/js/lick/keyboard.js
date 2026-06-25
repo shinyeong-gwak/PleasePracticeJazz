@@ -11,6 +11,7 @@ let repeatInterval = null;
 let pianoMode = false;
 let audioContext = null;
 let keyboardMode = "general";
+let audioUnlocked = false;
 
 const MUSIC_INPUT_IDS = [
     "chordsInput",
@@ -132,6 +133,8 @@ function hideKeyboard() {
 
     activeInput = null;
     keyboardMode = "general";
+    pianoMode = false;
+    updatePianoMode();
 }
 
 function applyMobileInputMode(target) {
@@ -315,15 +318,36 @@ function getAudioContext() {
     return audioContext;
 }
 
-function playPianoFrequency(frequency) {
+async function ensureKeyboardAudioReady() {
     const context = getAudioContext();
 
     if (!context) {
-        return;
+        return null;
     }
 
     if (context.state === "suspended") {
-        context.resume();
+        await context.resume();
+    }
+
+    if (!audioUnlocked) {
+        const buffer = context.createBuffer(1, 1, 22050);
+        const source = context.createBufferSource();
+
+        source.buffer = buffer;
+        source.connect(context.destination);
+        source.start(0);
+        source.stop(context.currentTime + 0.01);
+        audioUnlocked = true;
+    }
+
+    return context;
+}
+
+async function playPianoFrequency(frequency) {
+    const context = await ensureKeyboardAudioReady();
+
+    if (!context) {
+        return;
     }
 
     const oscillator =
@@ -340,12 +364,12 @@ function playPianoFrequency(frequency) {
         context.currentTime
     );
     gainNode.gain.exponentialRampToValueAtTime(
-        0.18,
-        context.currentTime + 0.01
+        0.22,
+        context.currentTime + 0.012
     );
     gainNode.gain.exponentialRampToValueAtTime(
         0.001,
-        context.currentTime + 0.35
+        context.currentTime + 0.42
     );
 
     oscillator.connect(gainNode);
@@ -362,7 +386,7 @@ function playPianoNote(button) {
         Number(button.dataset.pianoFrequency);
 
     insertText(noteName);
-    playPianoFrequency(frequency);
+    void playPianoFrequency(frequency);
 }
 
 function updatePianoMode() {
@@ -420,7 +444,7 @@ function startRepeatAction(button) {
     }, 320);
 }
 
-function runButtonAction(button) {
+async function runButtonAction(button) {
     const action = button.dataset.keyboardAction;
     const value = button.dataset.keyboardValue ?? "";
 
@@ -483,7 +507,7 @@ function registerKeyboardButtons() {
             }
 
             event.preventDefault();
-            runButtonAction(button);
+            void runButtonAction(button);
             startRepeatAction(button);
         }
     );
@@ -502,6 +526,36 @@ function registerKeyboardButtons() {
         "pointercancel",
         clearRepeatAction
     );
+}
+
+function shouldKeepKeyboardVisible(target) {
+    if (!target || !(target instanceof Element)) {
+        return false;
+    }
+
+    if (target.closest("#musicKeyboard")) {
+        return true;
+    }
+
+    if (isAudioControlTarget(target)) {
+        return true;
+    }
+
+    const input = getMusicInput(target);
+    return isMusicInput(input);
+}
+
+function blurMusicInputs(exceptTarget = null) {
+    MUSIC_INPUT_IDS.forEach((id) => {
+        const element = document.getElementById(id);
+
+        if (!element || element === exceptTarget) {
+            return;
+        }
+
+        element.readOnly = true;
+        element.blur();
+    });
 }
 
 document.addEventListener(
@@ -529,6 +583,28 @@ document.addEventListener(
 
             applyMobileInputMode(target);
         });
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener(
+                "resize",
+                () => {
+                    if (!keyboard?.classList.contains("show")) {
+                        return;
+                    }
+
+                    keyboard.style.bottom =
+                        `${Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop)}px`;
+                }
+            );
+        }
+
+        document.addEventListener(
+            "pointerdown",
+            () => {
+                void ensureKeyboardAudioReady();
+            },
+            { passive: true }
+        );
     }
 );
 
@@ -544,6 +620,7 @@ document.addEventListener(
 
         if (isMusicInput(input)) {
             event.preventDefault();
+            blurMusicInputs(input);
             showKeyboardFor(input);
             return;
         }
@@ -571,6 +648,7 @@ document.addEventListener(
         }
 
         if (isMusicInput(event.target)) {
+            blurMusicInputs(event.target);
             showKeyboardFor(event.target);
             return;
         }
@@ -587,6 +665,22 @@ document.addEventListener(
         if (!inKeyboard) {
             hideKeyboard();
         }
+    }
+);
+
+document.addEventListener(
+    "click",
+    event => {
+        if (!isMobile) {
+            return;
+        }
+
+        if (shouldKeepKeyboardVisible(event.target)) {
+            return;
+        }
+
+        blurMusicInputs();
+        hideKeyboard();
     }
 );
 

@@ -1,6 +1,7 @@
 const DAILY_TOPICS = ["박자", "테크닉", "톤", "보이싱", "스케일", "카피"];
 
 const DAILY_STATE = {
+    weekKey: "",
     weekLabel: "",
     homework: [],
     practice: [],
@@ -11,8 +12,11 @@ const DAILY_STATE = {
     activeMobileTarget: null,
     metronome: {
         audioContext: null,
+        masterGain: null,
         timerId: null,
         feel: null,
+        pulseCount: 0,
+        unlocked: false,
     },
     mobileToolsCollapsed: false,
 };
@@ -26,6 +30,7 @@ function formatDailyDate() {
 }
 
 function updateStateFromReport(report) {
+    DAILY_STATE.weekKey = report.weekKey || "";
     DAILY_STATE.weekLabel = report.weekLabel || "";
     DAILY_STATE.homework = report.homework || [];
     DAILY_STATE.practice = report.practice || [];
@@ -59,6 +64,43 @@ function loadInitialTuneSuggestions() {
         console.error("daily tune suggestions parse error", error);
         DAILY_STATE.tuneSuggestions = [];
     }
+}
+
+function getArchiveWeekStart() {
+    if (!DAILY_STATE.weekKey) {
+        return null;
+    }
+
+    const value = new Date(`${DAILY_STATE.weekKey}T00:00:00`);
+    return Number.isNaN(value.getTime()) ? null : value;
+}
+
+function formatArchiveDayLabel(dateValue) {
+    return `${dateValue.getMonth() + 1}.${dateValue.getDate()}`;
+}
+
+function getArchiveWeekdays() {
+    const weekStart = getArchiveWeekStart();
+    const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
+
+    if (!weekStart) {
+        return [];
+    }
+
+    return weekdays.map((weekday, index) => {
+        const dateValue = new Date(weekStart);
+        dateValue.setDate(weekStart.getDate() + index);
+
+        return {
+            weekday,
+            date: dateValue.toISOString().slice(0, 10),
+            label: formatArchiveDayLabel(dateValue),
+            practice: [],
+            ensemble: [],
+            count: 0,
+            missingMetronome: false,
+        };
+    });
 }
 
 async function requestJson(url, options = {}) {
@@ -101,6 +143,162 @@ function renderTuneSuggestions() {
             option.value = title;
             dataList.appendChild(option);
         });
+}
+
+function groupCurrentArchive() {
+    const buckets = getArchiveWeekdays();
+    const bucketMap = new Map(
+        buckets.map((bucket) => [bucket.date, bucket])
+    );
+
+    for (const item of DAILY_STATE.practice) {
+        const dayKey = `${item.createdAt || ""}`.slice(0, 10);
+        const bucket = bucketMap.get(dayKey);
+
+        if (!bucket) {
+            continue;
+        }
+
+        bucket.practice.push(item);
+        bucket.count += 1;
+        bucket.missingMetronome = bucket.missingMetronome || !item.metronome;
+    }
+
+    for (const item of DAILY_STATE.ensemble) {
+        const dayKey = `${item.createdAt || ""}`.slice(0, 10);
+        const bucket = bucketMap.get(dayKey);
+
+        if (!bucket) {
+            continue;
+        }
+
+        bucket.ensemble.push(item);
+        bucket.count += 1;
+        bucket.missingMetronome = bucket.missingMetronome || !item.metronome;
+    }
+
+    return buckets.map((bucket) => ({
+        ...bucket,
+        isEmpty: bucket.count === 0,
+        isBad: bucket.count === 0 || bucket.missingMetronome,
+    }));
+}
+
+function buildArchiveItemMarkup(item, kind) {
+    const meta = [];
+
+    if (item.bpm) {
+        meta.push(`${item.bpm} BPM`);
+    }
+
+    if (item.book) {
+        meta.push(item.book);
+    }
+
+    if (item.page) {
+        meta.push(`p.${item.page}`);
+    }
+
+    return `
+        <article class="practice-report-item ${item.status === "bad" || !item.metronome ? "practice-report-item-bad" : item.status === "good" ? "practice-report-item-good" : ""}">
+            <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "이름 없는 합주 노트" : "이름 없는 연습")}</div>
+            <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
+            <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
+        </article>
+    `;
+}
+
+function renderCurrentArchive() {
+    const homeworkList = document.getElementById("currentArchiveHomeworkList");
+    const daysContainer = document.getElementById("currentArchiveDays");
+    const weekLabelNode = document.getElementById("currentArchiveWeekLabel");
+
+    if (!homeworkList || !daysContainer) {
+        return;
+    }
+
+    if (weekLabelNode) {
+        weekLabelNode.textContent = DAILY_STATE.weekLabel || "";
+    }
+
+    if (DAILY_STATE.homework.length === 0) {
+        homeworkList.innerHTML = "<div class='practice-report-empty'>이번주 숙제가 아직 없습니다.</div>";
+    } else {
+        homeworkList.innerHTML = DAILY_STATE.homework.map((item) => `
+            <article class="practice-report-item">
+                <div class="practice-report-item-title">${item.title}</div>
+                <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
+            </article>
+        `).join("");
+    }
+
+    const days = groupCurrentArchive();
+
+    daysContainer.innerHTML = days.map((day) => `
+        <section class="practice-report-day ${day.isBad ? "practice-report-day-bad" : ""}">
+            <div class="practice-report-day-head">
+                <div class="practice-report-day-title">${day.weekday}</div>
+                <div class="practice-report-day-meta">${day.label}</div>
+            </div>
+            ${
+                day.isEmpty
+                    ? "<div class='practice-report-empty'>기록 없음</div>"
+                    : `
+                        <div class="practice-report-day-list">
+                            ${day.practice.map((item) => buildArchiveItemMarkup(item, "practice")).join("")}
+                            ${day.ensemble.map((item) => buildArchiveItemMarkup(item, "ensemble")).join("")}
+                        </div>
+                    `
+            }
+        </section>
+    `).join("");
+}
+
+function confirmDelete(message) {
+    return window.confirm(message);
+}
+
+function mergeHomework(sourceId, targetId) {
+    return requestJson("/music/daily/homework/merge", {
+        method: "POST",
+        body: JSON.stringify({
+            sourceId,
+            targetId,
+        }),
+    });
+}
+
+function clearHomeworkMergeState() {
+    DAILY_STATE.draggedHomeworkId = null;
+    document.querySelectorAll(".practice-homework-note.is-merge-source").forEach((node) => {
+        node.classList.remove("is-merge-source");
+    });
+}
+
+function bindTapOutsideBlur() {
+    document.addEventListener("pointerdown", (event) => {
+        const activeElement = document.activeElement;
+        const target = event.target;
+
+        if (!activeElement || !(activeElement instanceof HTMLElement)) {
+            return;
+        }
+
+        if (target instanceof HTMLElement) {
+            if (target.closest("input, textarea, select, [contenteditable='true']")) {
+                return;
+            }
+        }
+
+        if (activeElement.matches("input, textarea, select")) {
+            activeElement.blur();
+            return;
+        }
+
+        if (activeElement.isContentEditable) {
+            activeElement.blur();
+        }
+    });
 }
 
 function bindTopicButtons() {
@@ -274,35 +472,72 @@ function stopMetronome() {
 
     DAILY_STATE.metronome.timerId = null;
     DAILY_STATE.metronome.feel = null;
+    DAILY_STATE.metronome.pulseCount = 0;
     syncMetronomeButtons();
 }
 
 function ensureAudioContext() {
     if (!DAILY_STATE.metronome.audioContext) {
-        DAILY_STATE.metronome.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        const masterGain = context.createGain();
+
+        masterGain.gain.value = 1;
+        masterGain.connect(context.destination);
+
+        DAILY_STATE.metronome.audioContext = context;
+        DAILY_STATE.metronome.masterGain = masterGain;
     }
 
     return DAILY_STATE.metronome.audioContext;
 }
 
-function playClick(accent = false) {
+async function ensureMetronomeAudioReady() {
     const context = ensureAudioContext();
+
+    if (context.state === "suspended") {
+        await context.resume();
+    }
+
+    if (!DAILY_STATE.metronome.unlocked) {
+        const buffer = context.createBuffer(1, 1, 22050);
+        const source = context.createBufferSource();
+
+        source.buffer = buffer;
+        source.connect(DAILY_STATE.metronome.masterGain || context.destination);
+        source.start(0);
+        source.stop(context.currentTime + 0.01);
+        DAILY_STATE.metronome.unlocked = true;
+    }
+
+    return context;
+}
+
+function playClick() {
+    const context = DAILY_STATE.metronome.audioContext || ensureAudioContext();
+    const masterGain = DAILY_STATE.metronome.masterGain;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     const now = context.currentTime;
 
     oscillator.type = "square";
-    oscillator.frequency.value = accent ? 1320 : 880;
-    gain.gain.setValueAtTime(accent ? 0.18 : 0.1, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+    oscillator.frequency.setValueAtTime(1850, now);
+    oscillator.frequency.exponentialRampToValueAtTime(1450, now + 0.012);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.0035);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
 
     oscillator.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(masterGain || context.destination);
     oscillator.start(now);
-    oscillator.stop(now + 0.08);
+    oscillator.stop(now + 0.03);
 }
 
-function startMetronome(feelDivider) {
+function tickMetronome() {
+    playClick();
+    DAILY_STATE.metronome.pulseCount += 1;
+}
+
+async function startMetronome(feelDivider) {
     const target = DAILY_STATE.activeMobileTarget;
     const bpm = parseInt(getMobileTargetBpm(target), 10);
 
@@ -317,16 +552,20 @@ function startMetronome(feelDivider) {
     }
 
     stopMetronome();
-    ensureAudioContext().resume();
+    try {
+        await ensureMetronomeAudioReady();
+    } catch (error) {
+        console.error("metronome resume failed", error);
+        return;
+    }
 
     const intervalMs = Math.max(120, (60000 / bpm) * feelDivider);
-    let count = 0;
 
-    playClick(true);
     DAILY_STATE.metronome.feel = feelDivider;
+    DAILY_STATE.metronome.pulseCount = 0;
+    tickMetronome();
     DAILY_STATE.metronome.timerId = window.setInterval(() => {
-        playClick(count % 2 === 0);
-        count += 1;
+        tickMetronome();
     }, intervalMs);
     syncMetronomeButtons();
 }
@@ -544,29 +783,19 @@ function renderHomeworkBoard() {
         const note = fragment.querySelector(".practice-homework-note");
         const title = fragment.querySelector(".practice-homework-note-title");
         const body = fragment.querySelector(".practice-homework-note-body");
+        const mergeButton = fragment.querySelector(".practice-homework-merge-button");
         const remove = fragment.querySelector(".practice-homework-remove-button");
 
         note.dataset.homeworkId = item.id;
         title.textContent = item.title;
         body.textContent = item.memo;
-
-        title.addEventListener("blur", async () => {
-            const report = await requestJson(`/music/daily/homework/${item.id}`, {
-                method: "PUT",
-                body: JSON.stringify({
-                    title: title.textContent.trim(),
-                    memo: body.textContent.trim(),
-                }),
-            });
-            updateStateFromReport(report);
-            renderAll();
-        });
+        note.classList.toggle("is-merge-source", DAILY_STATE.draggedHomeworkId === item.id);
 
         body.addEventListener("blur", async () => {
             const report = await requestJson(`/music/daily/homework/${item.id}`, {
                 method: "PUT",
                 body: JSON.stringify({
-                    title: title.textContent.trim(),
+                    title: item.title,
                     memo: body.textContent.trim(),
                 }),
             });
@@ -574,7 +803,25 @@ function renderHomeworkBoard() {
             renderAll();
         });
 
+        mergeButton.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (DAILY_STATE.draggedHomeworkId === item.id) {
+                clearHomeworkMergeState();
+                renderAll();
+                return;
+            }
+
+            DAILY_STATE.draggedHomeworkId = item.id;
+            renderAll();
+        });
+
         remove.addEventListener("click", async () => {
+            if (!confirmDelete("이 숙제 카드를 삭제할까요?")) {
+                return;
+            }
+
             const report = await requestJson(`/music/daily/homework/${item.id}`, {
                 method: "DELETE",
             });
@@ -584,10 +831,11 @@ function renderHomeworkBoard() {
 
         note.addEventListener("dragstart", () => {
             DAILY_STATE.draggedHomeworkId = item.id;
+            note.classList.add("is-merge-source");
         });
 
         note.addEventListener("dragend", () => {
-            DAILY_STATE.draggedHomeworkId = null;
+            clearHomeworkMergeState();
             note.classList.remove("is-drop-target");
         });
 
@@ -608,15 +856,30 @@ function renderHomeworkBoard() {
                 return;
             }
 
-            const report = await requestJson("/music/daily/homework/merge", {
-                method: "POST",
-                body: JSON.stringify({
-                    sourceId: DAILY_STATE.draggedHomeworkId,
-                    targetId: item.id,
-                }),
-            });
+            const report = await mergeHomework(
+                DAILY_STATE.draggedHomeworkId,
+                item.id
+            );
 
-            DAILY_STATE.draggedHomeworkId = null;
+            clearHomeworkMergeState();
+            updateStateFromReport(report);
+            renderAll();
+        });
+
+        note.addEventListener("click", async (event) => {
+            if (!DAILY_STATE.draggedHomeworkId || DAILY_STATE.draggedHomeworkId === item.id) {
+                return;
+            }
+
+            if (event.target.closest(".practice-homework-note-body")) {
+                return;
+            }
+
+            const report = await mergeHomework(
+                DAILY_STATE.draggedHomeworkId,
+                item.id
+            );
+            clearHomeworkMergeState();
             updateStateFromReport(report);
             renderAll();
         });
@@ -695,6 +958,10 @@ function createEnsembleCardNode(item, template) {
         });
 
     removeButton.addEventListener("click", async () => {
+        if (!confirmDelete("이 합주 노트를 삭제할까요?")) {
+            return;
+        }
+
         const report = await requestJson(`/music/daily/ensemble/${item.id}`, {
             method: "DELETE",
         });
@@ -763,6 +1030,9 @@ function renderPracticeCards() {
 
         removeButton.addEventListener("click", async (event) => {
             event.stopPropagation();
+            if (!confirmDelete("이 연습 카드를 삭제할까요?")) {
+                return;
+            }
             const report = await requestJson(`/music/daily/practice/${item.id}`, {
                 method: "DELETE",
             });
@@ -784,6 +1054,7 @@ function renderAll() {
     renderHomeworkBoard();
     renderEnsembleBoard();
     renderPracticeCards();
+    renderCurrentArchive();
 }
 
 async function addHomework() {
@@ -846,6 +1117,7 @@ function initPracticeDailyPage() {
     bindTopicButtons();
     bindStatusButtons();
     bindHomeworkBoardAutoScroll();
+    bindTapOutsideBlur();
 
     document.getElementById("practiceDailyDate").textContent = formatDailyDate();
     document.getElementById("addHomeworkButton").addEventListener("click", addHomework);

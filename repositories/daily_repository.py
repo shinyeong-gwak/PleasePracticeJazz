@@ -20,6 +20,7 @@ BOOK_OPTIONS = [
     "New Real Book 3",
     "ETC",
 ]
+WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"]
 
 
 def now_iso():
@@ -77,6 +78,19 @@ def get_week_label(target_date=None):
         f"{start.month}.{start.day} - "
         f"{end.month}.{end.day} Report"
     )
+
+
+def parse_item_date(value):
+
+    text = str(value or "").strip()
+
+    if not text:
+        return None
+
+    try:
+        return date.fromisoformat(text[:10])
+    except ValueError:
+        return None
 
 
 def load_all():
@@ -303,6 +317,98 @@ def get_tune_suggestions():
 
     save_all(data)
     return suggestions
+
+
+def get_first_activity_date():
+
+    data = load_all()
+    weeks = data.setdefault("weeks", {})
+    first_date = None
+
+    for week_key in sorted(weeks.keys()):
+        report = ensure_week_report(data, week_key)
+
+        for collection_name in ["homework", "practice", "ensemble"]:
+            for item in report.get(collection_name, []):
+                created_date = parse_item_date(
+                    item.get("createdAt")
+                )
+
+                if created_date is None:
+                    continue
+
+                if first_date is None or created_date < first_date:
+                    first_date = created_date
+
+    save_all(data)
+    return first_date or date.today()
+
+
+def build_week_archive(report):
+
+    week_start = date.fromisoformat(report["weekKey"])
+    daily_buckets = []
+
+    for offset in range(7):
+        current_day = week_start + timedelta(days=offset)
+        daily_buckets.append(
+            {
+                "date": current_day.isoformat(),
+                "weekday": WEEKDAY_LABELS[offset],
+                "label": f"{current_day.month}.{current_day.day}",
+                "practice": [],
+                "ensemble": [],
+                "count": 0,
+                "missingMetronome": False,
+            }
+        )
+
+    bucket_by_date = {
+        bucket["date"]: bucket
+        for bucket in daily_buckets
+    }
+
+    for bucket_name in ["practice", "ensemble"]:
+        for item in report.get(bucket_name, []):
+            item_date = parse_item_date(
+                item.get("createdAt")
+            )
+
+            if item_date is None:
+                continue
+
+            bucket = bucket_by_date.get(
+                item_date.isoformat()
+            )
+
+            if bucket is None:
+                continue
+
+            bucket[bucket_name].append(item)
+            bucket["count"] += 1
+            bucket["missingMetronome"] = (
+                bucket["missingMetronome"]
+                or not normalize_bool(item.get("metronome"))
+            )
+
+    for bucket in daily_buckets:
+        bucket["isEmpty"] = bucket["count"] == 0
+        bucket["isBad"] = (
+            bucket["count"] == 0
+            or bucket["missingMetronome"]
+        )
+
+    return {
+        "weekKey": report["weekKey"],
+        "weekLabel": report["weekLabel"],
+        "homework": report.get("homework", []),
+        "practice": report.get("practice", []),
+        "ensemble": report.get("ensemble", []),
+        "dailyBuckets": daily_buckets,
+        "practiceCount": len(report.get("practice", [])),
+        "ensembleCount": len(report.get("ensemble", [])),
+        "homeworkCount": len(report.get("homework", [])),
+    }
 
 
 def replace_current_report(data, report):
@@ -614,11 +720,12 @@ def delete_insight(category, insight_id):
 def build_calendar_summary(days=140):
 
     today = date.today()
-    start = today - timedelta(days=days - 1)
+    first_activity_date = get_first_activity_date()
+    start = first_activity_date
     all_reports = get_all_reports()
     summary = {}
 
-    for offset in range(days):
+    for offset in range((today - start).days + 1):
         current_day = start + timedelta(days=offset)
         day_key = current_day.isoformat()
         summary[day_key] = {
@@ -628,6 +735,8 @@ def build_calendar_summary(days=140):
             "level": 0,
             "soloCount": 0,
             "ensembleCount": 0,
+            "weekdayIndex": current_day.weekday(),
+            "weekKey": get_week_key(current_day),
         }
 
     for report in all_reports:
@@ -666,6 +775,15 @@ def build_calendar_summary(days=140):
 
     return {
         "days": list(summary.values()),
-        "weeks": all_reports,
+        "startDate": start.isoformat(),
+        "endDate": today.isoformat(),
+        "weeks": [
+            build_week_archive(report)
+            for report in sorted(
+                all_reports,
+                key=lambda item: item["weekKey"],
+                reverse=True
+            )
+        ],
         "bookOptions": BOOK_OPTIONS,
     }

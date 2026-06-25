@@ -58,77 +58,6 @@
         </div>
     </section>
 
-    <section class="practice-homework-section">
-        <div class="section-title-row">
-            <h2>합주 노트</h2>
-            <span class="section-count">sticky 카드에서 바로 수정</span>
-        </div>
-
-        <div class="practice-homework-layout">
-            <article class="card practice-homework-editor" id="ensembleEditorCard">
-                <div class="practice-card-top">
-                    <div>
-                        <div class="practice-card-title">합주 노트 추가</div>
-                        <div class="practice-card-subtitle">합주 상태는 솔로와 분리해서 기록합니다.</div>
-                    </div>
-                    <button type="button" class="secondary-button practice-homework-add-button" id="addEnsembleButton">+ 합주 추가</button>
-                </div>
-
-                <div class="practice-homework-form">
-                    <label class="practice-field">
-                        <span class="practice-field-label">합주곡</span>
-                        <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
-                    </label>
-                    <div class="practice-form-grid">
-                        <label class="practice-field">
-                            <span class="practice-field-label">BPM</span>
-                            <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">악보집</span>
-                            <select id="ensembleBookInput">
-                                <option value="">선택</option>
-                                <option value="Real Book 1">Real Book 1</option>
-                                <option value="Real Book 2">Real Book 2</option>
-                                <option value="Real Book 3">Real Book 3</option>
-                                <option value="New Real Book 1">New Real Book 1</option>
-                                <option value="New Real Book 2">New Real Book 2</option>
-                                <option value="New Real Book 3">New Real Book 3</option>
-                                <option value="ETC">ETC</option>
-                            </select>
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">페이지</span>
-                            <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">상태</span>
-                            <select id="ensembleStatusInput">
-                                <option value="normal">무난했음</option>
-                                <option value="good">잘 됐음</option>
-                                <option value="bad">별로였음</option>
-                            </select>
-                        </label>
-                    </div>
-                    <label class="practice-field">
-                        <span class="practice-field-label">주제 태그</span>
-                        <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">Spotify 링크</span>
-                        <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">메모</span>
-                        <textarea id="ensembleMemoInput" placeholder="합주에서 느낀 점을 짧게 적기"></textarea>
-                    </label>
-                </div>
-            </article>
-
-            <div class="practice-homework-board" id="ensembleBoard"></div>
-        </div>
-    </section>
-
     <article class="card practice-card practice-editor-card" id="practiceEditorCard">
         <div class="practice-card-top">
             <div>
@@ -209,6 +138,98 @@
         <div class="practice-cards" id="practiceCards"></div>
     </section>
 
+    <section class="practice-homework-section">
+        <div class="section-title-row">
+            <h2>합주 노트</h2>
+            <span class="section-count">sticky 카드에서 바로 수정</span>
+        </div>
+
+        <div class="practice-homework-layout">
+            <article class="card practice-homework-editor" id="ensembleEditorCard">
+                <div class="practice-card-top">
+                    <div>
+                        <div class="practice-card-title">합주 노트 추가</div>
+                        <div class="practice-card-subtitle">합주 상태는 솔로와 분리해서 기록합니다.</div>
+                    </div>
+                    <button type="button" class="secondary-button practice-homework-add-button" id="addEnsembleButton">+ 합주 추가</button>
+                </div>
+
+                <div class="practice-homework-form">
+                    <label class="practice-field">
+                        <span class="practice-field-label">합주곡</span>
+                        <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
+                    </label>
+                    <div class="practice-form-grid">
+                        <label class="practice-field">
+                            <span class="practice-field-label">BPM</span>
+                            <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">악보집</span>
+                            <select id="ensembleBookInput">
+                                <option value="">선택</option>
+                                <option value="Real Book 1">Real Book 1</option>
+                                <option value="Real Book 2">Real Book 2</option>
+                                <option value="Real Book 3">Real Book 3</option>
+                                <option value="New Real Book 1">New Real Book 1</option>
+                                <option value="New Real Book 2">New Real Book 2</option>
+                                <option value="New Real Book 3">New Real Book 3</option>
+                                <option value="ETC">ETC</option>
+                            </select>
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">페이지</span>
+                            <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">상태</span>
+                            <select id="ensembleStatusInput">
+                                <option value="normal">무난했음</option>
+                                <option value="good">잘 됐음</option>
+                                <option value="bad">별로였음</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label class="practice-field">
+                        <span class="practice-field-label">주제 태그</span>
+                        <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
+                    </label>
+                    <label class="practice-field">
+                        <span class="practice-field-label">Spotify 링크</span>
+                        <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
+                    </label>
+                    <label class="practice-field">
+                        <span class="practice-field-label">메모</span>
+                        <textarea id="ensembleMemoInput" placeholder="합주에서 느낀 점을 짧게 적기"></textarea>
+                    </label>
+                </div>
+            </article>
+
+            <div class="practice-homework-board" id="ensembleBoard"></div>
+        </div>
+    </section>
+
+    <section class="practice-report-section">
+        <div class="section-title-row">
+            <h2>이번주 아카이브</h2>
+            <span class="section-count" id="currentArchiveWeekLabel">{{ current_archive.weekLabel }}</span>
+        </div>
+
+        <article class="card practice-report-card">
+            <div class="practice-report-grid practice-report-grid-archive">
+                <div class="practice-report-column">
+                    <div class="practice-report-heading">이번주 숙제</div>
+                    <div class="practice-report-list" id="currentArchiveHomeworkList"></div>
+                </div>
+
+                <div class="practice-report-column">
+                    <div class="practice-report-heading">일별 연습 / 합주</div>
+                    <div class="practice-report-days" id="currentArchiveDays"></div>
+                </div>
+            </div>
+        </article>
+    </section>
+
     <template id="practiceCardTemplate">
         <article class="card practice-card practice-summary-card">
             <div class="practice-card-top">
@@ -232,8 +253,11 @@
     <template id="practiceHomeworkTemplate">
         <article class="practice-homework-note" draggable="true">
             <div class="practice-homework-note-top">
-                <div class="practice-homework-note-title" contenteditable="true"></div>
-                <button type="button" class="practice-homework-remove-button">×</button>
+                <div class="practice-homework-note-title"></div>
+                <div class="practice-homework-note-actions">
+                    <button type="button" class="practice-homework-merge-button">병합</button>
+                    <button type="button" class="practice-homework-remove-button">×</button>
+                </div>
             </div>
             <div class="practice-homework-note-body" contenteditable="true"></div>
         </article>
@@ -320,6 +344,9 @@
 </script>
 <script id="daily-tune-suggestions-data" type="application/json">
     {{ tune_suggestions | tojson | safe }}
+</script>
+<script id="current-archive-data" type="application/json">
+    {{ current_archive | tojson | safe }}
 </script>
 <script src="/static/js/daily.js"></script>
 {% endblock %}

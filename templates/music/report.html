@@ -18,7 +18,35 @@
             <span class="report-legend-item"><span class="report-dot report-dot-l3"></span> 3-4개</span>
             <span class="report-legend-item"><span class="report-dot report-dot-l4"></span> 5개+</span>
         </div>
-        <div id="reportCalendar" class="report-calendar"></div>
+        <div class="report-calendar-shell">
+            <div class="report-weekdays" id="reportWeekdays"></div>
+            <div id="reportCalendar" class="report-calendar"></div>
+        </div>
+    </article>
+
+    <article class="card report-card">
+        <div class="section-title-row">
+            <h2>주간 아카이브</h2>
+            <span class="section-count">주를 누르면 아래에 상세 기록이 열립니다.</span>
+        </div>
+        <div class="report-week-list" id="reportWeekList"></div>
+    </article>
+
+    <article class="card report-card">
+        <div class="section-title-row">
+            <h2 id="selectedWeekTitle">선택한 주</h2>
+            <span class="section-count" id="selectedWeekMeta"></span>
+        </div>
+        <div class="practice-report-grid practice-report-grid-archive">
+            <div class="practice-report-column">
+                <div class="practice-report-heading">숙제</div>
+                <div class="practice-report-list" id="reportHomeworkList"></div>
+            </div>
+            <div class="practice-report-column">
+                <div class="practice-report-heading">일별 연습 / 합주</div>
+                <div class="practice-report-days" id="reportArchiveDays"></div>
+            </div>
+        </div>
     </article>
 </section>
 {% endblock %}
