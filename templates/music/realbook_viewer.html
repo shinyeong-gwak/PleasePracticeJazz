@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<section class="page-shell">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Real Book</p>
+            <h1>{{ pdf_title or "악보 보기" }}</h1>
+            <p class="page-copy">{{ pdf_book or "악보집 미지정" }} · p.{{ pdf_page }}</p>
+        </div>
+    </div>
+
+    <article class="card realbook-viewer-card">
+        <div class="realbook-viewer-toolbar">
+            <a class="secondary-button" href="/music/daily">연습일지로</a>
+            <a class="secondary-button" href="/music/report">리포트로</a>
+            <a class="primary-button" href="{{ pdf_file_url }}" target="_blank" rel="noreferrer">PDF 열기</a>
+        </div>
+
+        <div class="realbook-viewer-shell">
+            <canvas id="realbookCanvas"></canvas>
+        </div>
+    </article>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script id="realbook-viewer-data" type="application/json">
+    {{ {
+        "fileUrl": pdf_file_url,
+        "page": pdf_page,
+        "title": pdf_title,
+        "book": pdf_book
+    } | tojson | safe }}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.js"></script>
+<script src="/static/js/realbook_viewer.js"></script>
+{% endblock %}
