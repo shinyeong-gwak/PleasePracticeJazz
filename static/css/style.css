@@ -1356,20 +1356,21 @@ tr.hidden,
 
     .practice-mobile-tools-row {
         display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 8px;
     }
 
     .practice-mobile-tool-button {
-        min-height: 72px;
-        padding: 8px 6px 10px;
+        min-height: 58px;
+        padding: 10px 14px;
         border-radius: 18px;
         border: none;
         background: rgba(255, 255, 255, 0.82);
         display: grid;
-        justify-items: center;
-        align-content: center;
-        gap: 6px;
+        grid-template-columns: 36px 1fr;
+        align-items: center;
+        justify-items: start;
+        gap: 10px;
         box-shadow: none;
     }
 
@@ -1392,10 +1393,14 @@ tr.hidden,
     .practice-mobile-tool-emoji {
         font-size: 28px;
         line-height: 1;
+        justify-self: center;
     }
 
     .practice-mobile-tool-value {
-        display: none;
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
     }
 
     .practice-mobile-tools.is-collapsed {
@@ -1483,8 +1488,8 @@ tr.hidden,
     }
 
     .practice-mobile-tool-button {
-        min-height: 82px;
-        padding: 10px 8px 12px;
+        min-height: 62px;
+        padding: 12px 16px;
     }
 
     .practice-mobile-tool-button img {
@@ -1497,7 +1502,7 @@ tr.hidden,
     }
 
     .practice-mobile-tool-value {
-        font-size: 11px;
+        font-size: 13px;
     }
 
     .mobile-nav {

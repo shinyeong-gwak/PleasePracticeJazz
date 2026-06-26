@@ -217,6 +217,9 @@ function buildArchiveItemMarkup(item, kind) {
             data-target-spotify="${item.spotifyUrl || ""}"
             data-target-lick="${item.lickFile || ""}"
             data-target-renderer="${item.rendererFile || ""}"
+            data-target-status="${item.status || "normal"}"
+            data-target-memo="${item.memo || ""}"
+            data-target-topics="${(item.topics || []).join(", ")}"
         >
             <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "이름 없는 합주 노트" : "이름 없는 연습")}</div>
             <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
@@ -239,7 +242,40 @@ function buildTargetFromDataset(node) {
         spotifyUrl: node.dataset.targetSpotify || "",
         lickFile: node.dataset.targetLick || "",
         rendererFile: node.dataset.targetRenderer || "",
+        status: node.dataset.targetStatus || "normal",
+        memo: node.dataset.targetMemo || "",
+        topics: node.dataset.targetTopics || "",
     };
+}
+
+async function duplicateArchiveTarget(target) {
+    if (!target?.kind) {
+        return;
+    }
+
+    const payload = {
+        title: target.title || "",
+        bpm: target.bpm || "",
+        book: target.book || "",
+        page: target.page || "",
+        spotifyUrl: target.spotifyUrl || "",
+        lickFile: target.lickFile || "",
+        rendererFile: target.rendererFile || "",
+        status: target.status || "normal",
+        topics: target.topics || "",
+        memo: target.memo || "",
+    };
+    const endpoint = target.kind === "ensemble"
+        ? "/music/daily/ensemble"
+        : "/music/daily/practice";
+    const report = await requestJson(endpoint, {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+
+    updateStateFromReport(report);
+    setActiveMobileTarget(target);
+    renderAll();
 }
 
 function renderCurrentArchive() {
@@ -288,11 +324,14 @@ function renderCurrentArchive() {
     `).join("");
 
     daysContainer.querySelectorAll(".practice-mobile-target-card").forEach((card) => {
-        card.addEventListener("click", () => {
+        card.addEventListener("click", async () => {
             const target = buildTargetFromDataset(card);
 
             if (target) {
-                setActiveMobileTarget(target);
+                if (!confirmDelete("이 카드를 오늘 노트로 복제할까요?")) {
+                    return;
+                }
+                await duplicateArchiveTarget(target);
             }
         });
     });
