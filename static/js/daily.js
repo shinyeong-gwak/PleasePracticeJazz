@@ -417,6 +417,7 @@ function updateMobileToolState() {
     const metro2Value = document.getElementById("mobileMetro2Value");
     const metro4Value = document.getElementById("mobileMetro4Value");
     const goodnotesValue = document.getElementById("mobileGoodnotesValue");
+    const realbookValue = document.getElementById("mobileRealbookValue");
     const spotifyValue = document.getElementById("mobileSpotifyValue");
     const lickValue = document.getElementById("mobileLickValue");
     const target = DAILY_STATE.activeMobileTarget;
@@ -441,6 +442,9 @@ function updateMobileToolState() {
         : `${noteKind} 노트 기준${pageLabel ? ` · ${pageLabel}` : ""}`;
     irealValue.textContent = title === "선택된 노트 없음" ? "제목" : title;
     goodnotesValue.textContent = pageLabel || "악보";
+    if (realbookValue) {
+        realbookValue.textContent = target?.book ? "열기" : "악보";
+    }
     metro2Value.textContent = bpm ? `${bpm} → 2필` : "BPM";
     metro4Value.textContent = bpm ? `${bpm} → 4필` : "BPM";
     spotifyValue.textContent = spotifyLabel;
@@ -639,12 +643,31 @@ function syncMetronomeButtons() {
     metro4Button.classList.toggle("is-active", DAILY_STATE.metronome.feel === 1);
 }
 
+async function openRealbookView(target) {
+    const params = new URLSearchParams({
+        book: target?.book || "",
+        title: target?.title || "",
+        page: target?.page || "",
+    });
+
+    const response = await fetch(`/music/realbook/resolve?${params.toString()}`);
+    const result = await response.json();
+
+    if (!response.ok || !result.success || !result.viewUrl) {
+        alert(result.message || "악보를 찾지 못했습니다.");
+        return;
+    }
+
+    window.location.href = result.viewUrl;
+}
+
 function bindMobileToolButtons() {
     const tools = document.getElementById("practiceMobileTools");
     const irealButton = document.getElementById("mobileIrealButton");
     const metro2Button = document.getElementById("mobileMetro2Button");
     const metro4Button = document.getElementById("mobileMetro4Button");
     const goodnotesButton = document.getElementById("mobileGoodnotesButton");
+    const realbookButton = document.getElementById("mobileRealbookButton");
     const spotifyButton = document.getElementById("mobileSpotifyButton");
     const lickButton = document.getElementById("mobileLickButton");
     const toggleButton = document.getElementById("mobileToolsToggleButton");
@@ -678,6 +701,12 @@ function bindMobileToolButtons() {
     goodnotesButton.addEventListener("click", () => {
         alert("Goodnotes 버튼은 준비만 해두었어요. 연결 스키마를 정하면 바로 이어붙일 수 있습니다.");
     });
+
+    if (realbookButton) {
+        realbookButton.addEventListener("click", async () => {
+            await openRealbookView(DAILY_STATE.activeMobileTarget);
+        });
+    }
 
     spotifyButton.addEventListener("click", () => {
         const url = DAILY_STATE.activeMobileTarget?.spotifyUrl;

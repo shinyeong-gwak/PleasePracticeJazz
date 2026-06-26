@@ -111,6 +111,7 @@ function updateMobileToolState() {
     const titleNode = document.getElementById("mobileToolTitle");
     const subtitleNode = document.getElementById("mobileToolSubtitle");
     const lickValue = document.getElementById("mobileLickValue");
+    const realbookValue = document.getElementById("mobileRealbookValue");
     const target = REPORT_STATE.activeMobileTarget;
     const title = getMobileTargetTitle(target);
     const bpm = getMobileTargetBpm(target);
@@ -129,6 +130,9 @@ function updateMobileToolState() {
     subtitleNode.textContent = bpm
         ? `${bpm} BPM · ${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`
         : `${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`;
+    if (realbookValue) {
+        realbookValue.textContent = target?.book ? "열기" : "악보";
+    }
     if (lickValue) {
         lickValue.textContent = target?.lickFile ? "선택됨" : "Lick";
     }
@@ -228,6 +232,24 @@ async function startMetronome(feelDivider) {
     syncMetronomeButtons();
 }
 
+async function openRealbookView(target) {
+    const params = new URLSearchParams({
+        book: target?.book || "",
+        title: target?.title || "",
+        page: target?.page || "",
+    });
+
+    const response = await fetch(`/music/realbook/resolve?${params.toString()}`);
+    const result = await response.json();
+
+    if (!response.ok || !result.success || !result.viewUrl) {
+        alert(result.message || "악보를 찾지 못했습니다.");
+        return;
+    }
+
+    window.location.href = result.viewUrl;
+}
+
 function bindMobileToolButtons() {
     const tools = document.getElementById("reportMobileTools");
     const toggleButton = document.getElementById("mobileToolsToggleButton");
@@ -235,6 +257,7 @@ function bindMobileToolButtons() {
     const metro2Button = document.getElementById("mobileMetro2Button");
     const metro4Button = document.getElementById("mobileMetro4Button");
     const goodnotesButton = document.getElementById("mobileGoodnotesButton");
+    const realbookButton = document.getElementById("mobileRealbookButton");
     const spotifyButton = document.getElementById("mobileSpotifyButton");
     const lickButton = document.getElementById("mobileLickButton");
 
@@ -265,6 +288,12 @@ function bindMobileToolButtons() {
     goodnotesButton.addEventListener("click", () => {
         alert("Goodnotes 버튼은 준비만 해두었어요.");
     });
+
+    if (realbookButton) {
+        realbookButton.addEventListener("click", async () => {
+            await openRealbookView(REPORT_STATE.activeMobileTarget);
+        });
+    }
 
     spotifyButton.addEventListener("click", () => {
         const url = REPORT_STATE.activeMobileTarget?.spotifyUrl;
