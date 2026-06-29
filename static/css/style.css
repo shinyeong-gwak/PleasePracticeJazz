@@ -14,6 +14,28 @@
     --shadow: 0 18px 42px rgba(32, 88, 69, 0.08);
 }
 
+@keyframes page-rise {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes gentle-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
 * {
     box-sizing: border-box;
 }
@@ -110,6 +132,7 @@ button:disabled {
 .main {
     flex: 1;
     padding: 28px;
+    overflow: hidden;
 }
 
 .menu-title {
@@ -123,6 +146,7 @@ button:disabled {
     user-select: none;
     font-weight: 700;
     box-shadow: 0 8px 18px rgba(47, 108, 89, 0.06);
+    animation: page-rise 0.35s ease both;
 }
 
 .menu-title:hover {
@@ -143,6 +167,7 @@ button:disabled {
     border-radius: 12px;
     color: var(--muted);
     text-decoration: none;
+    animation: page-rise 0.35s ease both;
 }
 
 .submenu a:hover {
@@ -153,6 +178,7 @@ button:disabled {
 .page-shell {
     display: grid;
     gap: 18px;
+    animation: page-rise 0.45s ease both;
 }
 
 .page-header {
@@ -187,6 +213,36 @@ button:disabled {
     border-radius: 20px;
     background: var(--panel);
     box-shadow: var(--shadow);
+    animation: page-rise 0.5s ease both;
+}
+
+.page-shell > *:nth-child(2) {
+    animation-delay: 0.04s;
+}
+
+.page-shell > *:nth-child(3) {
+    animation-delay: 0.08s;
+}
+
+.page-shell > *:nth-child(4) {
+    animation-delay: 0.12s;
+}
+
+.page-shell > *:nth-child(5) {
+    animation-delay: 0.16s;
+}
+
+.home-hero {
+    display: grid;
+    gap: 16px;
+}
+
+.home-hero-image {
+    display: block;
+    width: 100%;
+    max-width: 1080px;
+    margin: 0 auto;
+    animation: gentle-float 6s ease-in-out 0.8s infinite;
 }
 
 .form-card {
@@ -1450,6 +1506,7 @@ tr.hidden,
         text-decoration: none;
         background: transparent;
         border: none;
+        animation: page-rise 0.35s ease both;
     }
 
     .mobile-root-btn {
