@@ -12,6 +12,7 @@ let pianoMode = false;
 let audioContext = null;
 let keyboardMode = "general";
 let audioUnlocked = false;
+let restLatchActive = false;
 
 const MUSIC_INPUT_IDS = [
     "chordsInput",
@@ -21,6 +22,17 @@ const MUSIC_INPUT_IDS = [
     "voicingInput",
     "voicingRhythmInput"
 ];
+
+const RHYTHM_TOKENS = new Set([
+    "1",
+    "2",
+    "4",
+    "8",
+    "12",
+    "16",
+    "20",
+    "24"
+]);
 
 function isMusicInput(target) {
     return !!target && MUSIC_INPUT_IDS.includes(target.id);
@@ -74,6 +86,30 @@ function updateKeyboardLayout() {
                 keyboardMode !== "chord"
             );
         });
+}
+
+function updateRestLatchButton() {
+    if (!keyboard) {
+        return;
+    }
+
+    keyboard
+        .querySelectorAll('[data-keyboard-action="insertToken"][data-keyboard-value="!"]')
+        .forEach(button => {
+            button.classList.toggle(
+                "is-latched",
+                restLatchActive
+            );
+            button.setAttribute(
+                "aria-pressed",
+                restLatchActive ? "true" : "false"
+            );
+        });
+}
+
+function setRestLatchActive(active) {
+    restLatchActive = active;
+    updateRestLatchButton();
 }
 
 function showKeyboardFor(target) {
@@ -134,6 +170,7 @@ function hideKeyboard() {
     activeInput = null;
     keyboardMode = "general";
     pianoMode = false;
+    setRestLatchActive(false);
     updatePianoMode();
 }
 
@@ -215,10 +252,15 @@ function insertText(text) {
 function insertToken(token) {
     if (token === "!") {
         insertText(token);
+        setRestLatchActive(true);
         return;
     }
 
     insertText(token + " ");
+
+    if (restLatchActive && RHYTHM_TOKENS.has(token)) {
+        setRestLatchActive(false);
+    }
 }
 
 function backspaceKey() {
@@ -568,6 +610,7 @@ document.addEventListener(
 
         registerKeyboardButtons();
         updatePianoMode();
+        updateRestLatchButton();
 
         if (!isMobile) {
             return;

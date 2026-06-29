@@ -372,6 +372,13 @@ audio {
         background: #f0f0f0;
     }
 
+    .kb-row button.is-latched {
+        transform: translateY(1px);
+        background: #dbeafe;
+        box-shadow: inset 0 1px 3px rgba(37, 99, 235, 0.28);
+        color: #1d4ed8 !important;
+    }
+
     .kb-row .wide {
 
         flex: 2.5 !important;
