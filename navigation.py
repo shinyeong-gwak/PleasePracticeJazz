@@ -1,31 +1,31 @@
 NAVIGATION = [
     {
-        "title": "음악",
-        "icon": "♫",
+        "title": "\uc74c\uc545",
+        "icon": "\u266b",
         "items": [
             {
                 "name": "MP3 File",
-                "icon": "♫",
+                "icon": "\u266b",
                 "url": "/music/playlist",
             },
             {
-                "name": "Clip 생성",
-                "icon": "✂",
+                "name": "Clip \uc0dd\uc131",
+                "icon": "\u2702",
                 "url": "/music/clips",
             },
             {
-                "name": "Lick 연습",
-                "icon": "♪",
+                "name": "Lick \uc5f0\uc2b5",
+                "icon": "\u266a",
                 "url": "/music/licks",
             },
             {
-                "name": "악보 파일 폴더",
-                "icon": "◫",
+                "name": "\uc545\ubcf4 \ud30c\uc77c \ud3f4\ub354",
+                "icon": "\u25eb",
                 "url": "/music/render",
             },
             {
-                "name": "연습일지",
-                "icon": "◷",
+                "name": "\uc5f0\uc2b5\uc77c\uc9c0",
+                "icon": "\u25f7",
                 "url": "/music/daily",
             },
         ],
