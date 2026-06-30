@@ -1,4 +1,4 @@
-const REPORT_STATE = {
+﻿const REPORT_STATE = {
     days: [],
     weeks: [],
     selectedWeekKey: "",
@@ -72,15 +72,15 @@ function buildArchiveItemMarkup(item, kind) {
             data-target-memo="${item.memo || ""}"
             data-target-topics="${(item.topics || []).join(", ")}"
         >
-            <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "이름 없는 합주 노트" : "이름 없는 연습")}</div>
-            <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
-            <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
+            <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "?대쫫 ?녿뒗 ?⑹＜ ?명듃" : "?대쫫 ?녿뒗 ?곗뒿")}</div>
+            <div class="practice-report-item-meta">${kind === "ensemble" ? "?⑹＜" : "?곗뒿"}${meta.length ? ` 쨌 ${meta.join(" 쨌 ")}` : ""}</div>
+            <div class="practice-report-item-copy">${item.memo || "硫붾え ?놁쓬"}</div>
         </article>
     `;
 }
 
 function getMobileTargetTitle(target) {
-    return target?.title?.trim() || "선택된 노트 없음";
+    return target?.title?.trim() || "?좏깮???명듃 ?놁쓬";
 }
 
 function getMobileTargetBpm(target) {
@@ -141,9 +141,9 @@ function updateMobileToolState() {
     const target = REPORT_STATE.activeMobileTarget;
     const title = getMobileTargetTitle(target);
     const bpm = getMobileTargetBpm(target);
-    const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
+    const noteKind = target?.kind === "ensemble" ? "?⑹＜" : "?곗뒿";
     const pageLabel = target?.book
-        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
+        ? `${target.book}${target?.page ? ` 쨌 p.${target.page}` : ""}`
         : target?.page
             ? `p.${target.page}`
             : "";
@@ -154,13 +154,13 @@ function updateMobileToolState() {
 
     titleNode.textContent = title;
     subtitleNode.textContent = bpm
-        ? `${bpm} BPM · ${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`
-        : `${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`;
+        ? `${bpm} BPM 쨌 ${noteKind} 移대뱶 湲곗?${pageLabel ? ` 쨌 ${pageLabel}` : ""}`
+        : `${noteKind} 移대뱶 湲곗?${pageLabel ? ` 쨌 ${pageLabel}` : ""}`;
     if (realbookValue) {
-        realbookValue.textContent = target?.book ? "열기" : "악보";
+        realbookValue.textContent = target?.book ? "?닿린" : "?낅낫";
     }
     if (lickValue) {
-        lickValue.textContent = target?.lickFile ? "선택됨" : "Lick";
+        lickValue.textContent = target?.lickFile ? "Selected" : "Lick";
     }
     syncMetronomeButtons();
 }
@@ -238,7 +238,7 @@ async function startMetronome(feelDivider) {
     const bpm = parseInt(getMobileTargetBpm(REPORT_STATE.activeMobileTarget), 10);
 
     if (!bpm) {
-        alert("선택된 카드에 BPM이 없습니다.");
+        alert("?좏깮??移대뱶??BPM???놁뒿?덈떎.");
         return;
     }
 
@@ -269,7 +269,7 @@ async function openRealbookView(target) {
     const result = await response.json();
 
     if (!response.ok || !result.success || !result.viewUrl) {
-        alert(result.message || "악보를 찾지 못했습니다.");
+        alert(result.message || "?낅낫瑜?李얠? 紐삵뻽?듬땲??");
         return;
     }
 
@@ -304,7 +304,7 @@ async function duplicateArchiveTarget(target) {
 
     REPORT_STATE.activeMobileTarget = target;
     updateMobileToolState();
-    alert("오늘 카드로 복제했습니다.");
+    alert("?ㅻ뒛 移대뱶濡?蹂듭젣?덉뒿?덈떎.");
 }
 
 function bindMobileToolButtons() {
@@ -325,14 +325,14 @@ function bindMobileToolButtons() {
     toggleButton.addEventListener("click", () => {
         REPORT_STATE.mobileToolsCollapsed = !REPORT_STATE.mobileToolsCollapsed;
         tools.classList.toggle("is-collapsed", REPORT_STATE.mobileToolsCollapsed);
-        toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "펼치기" : "접기";
+        toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "Hide" : "Open";
         toggleButton.setAttribute("aria-expanded", REPORT_STATE.mobileToolsCollapsed ? "false" : "true");
     });
 
     irealButton.addEventListener("click", () => {
         const title = encodeURIComponent(getMobileTargetTitle(REPORT_STATE.activeMobileTarget));
 
-        if (!title || title === encodeURIComponent("선택된 노트 없음")) {
+        if (!title || title === encodeURIComponent("?좏깮???명듃 ?놁쓬")) {
             return;
         }
 
@@ -343,7 +343,7 @@ function bindMobileToolButtons() {
     metro4Button.addEventListener("click", () => startMetronome(1));
 
     goodnotesButton.addEventListener("click", () => {
-        alert("Goodnotes 버튼은 준비만 해두었어요.");
+        alert("Goodnotes 踰꾪듉? 以鍮꾨쭔 ?대몢?덉뼱??");
     });
 
     if (realbookButton) {
@@ -356,7 +356,7 @@ function bindMobileToolButtons() {
         const url = REPORT_STATE.activeMobileTarget?.spotifyUrl;
 
         if (!url) {
-            alert("선택된 카드에 Spotify 링크가 없습니다.");
+            alert("?좏깮??移대뱶??Spotify 留곹겕媛 ?놁뒿?덈떎.");
             return;
         }
 
@@ -368,7 +368,7 @@ function bindMobileToolButtons() {
             const file = REPORT_STATE.activeMobileTarget?.lickFile;
 
             if (!file) {
-                alert("선택된 카드에 Lick MP3가 없습니다.");
+                alert("?좏깮??移대뱶??Lick MP3媛 ?놁뒿?덈떎.");
                 return;
             }
 
@@ -384,7 +384,7 @@ function renderWeekdays() {
         return;
     }
 
-    node.innerHTML = ["월", "화", "수", "목", "금", "토", "일"]
+    node.innerHTML = LickSettings.getWeekdayLabels()
         .map((weekday) => `<div class="report-weekday">${weekday}</div>`)
         .join("");
 }
@@ -406,9 +406,9 @@ function renderReportCalendar() {
             type="button"
             class="report-cell ${getLevelClass(day.level)}"
             data-week-key="${day.weekKey || ""}"
-            title="${day.date} / solo ${day.soloCount} / ensemble ${day.ensembleCount}"
+            title="${LickSettings.formatDateLabel(day.date) || day.date} / solo ${day.soloCount} / ensemble ${day.ensembleCount}"
         >
-            <span class="report-cell-day">${day.date.slice(8)}</span>
+            <span class="report-cell-day">${(LickSettings.formatDateLabel(day.date) || day.date).slice(-2)}</span>
         </button>
     `);
 
@@ -443,7 +443,7 @@ function renderWeekList() {
             data-week-key="${week.weekKey}"
         >
             <span class="report-week-button-title">${week.weekLabel}</span>
-            <span class="report-week-button-meta">숙제 ${week.homeworkCount} · 합주 ${week.ensembleCount} · 연습 ${week.practiceCount}</span>
+            <span class="report-week-button-meta">?숈젣 ${week.homeworkCount} 쨌 ?⑹＜ ${week.ensembleCount} 쨌 ?곗뒿 ${week.practiceCount}</span>
         </button>
     `).join("");
 
@@ -470,15 +470,15 @@ function renderSelectedWeek() {
     }
 
     titleNode.textContent = selectedWeek.weekLabel;
-    metaNode.textContent = `숙제 ${selectedWeek.homeworkCount} · 합주 ${selectedWeek.ensembleCount} · 연습 ${selectedWeek.practiceCount}`;
+    metaNode.textContent = `?숈젣 ${selectedWeek.homeworkCount} 쨌 ?⑹＜ ${selectedWeek.ensembleCount} 쨌 ?곗뒿 ${selectedWeek.practiceCount}`;
 
     if (selectedWeek.homework.length === 0) {
-        homeworkNode.innerHTML = "<div class='practice-report-empty'>이 주에는 숙제가 없습니다.</div>";
+        homeworkNode.innerHTML = "<div class='practice-report-empty'>??二쇱뿉???숈젣媛 ?놁뒿?덈떎.</div>";
     } else {
         homeworkNode.innerHTML = selectedWeek.homework.map((item) => `
             <article class="practice-report-item">
                 <div class="practice-report-item-title">${item.title}</div>
-                <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
+                <div class="practice-report-item-copy">${item.memo || "硫붾え ?놁쓬"}</div>
             </article>
         `).join("");
     }
@@ -491,7 +491,7 @@ function renderSelectedWeek() {
             </div>
             ${
                 day.isEmpty
-                    ? "<div class='practice-report-empty'>기록 없음</div>"
+                    ? "<div class='practice-report-empty'>湲곕줉 ?놁쓬</div>"
                     : `
                         <div class="practice-report-day-list">
                             ${day.practice.map((item) => buildArchiveItemMarkup(item, "practice")).join("")}
@@ -504,7 +504,7 @@ function renderSelectedWeek() {
 
     daysNode.querySelectorAll(".practice-mobile-target-card").forEach((card) => {
         card.addEventListener("click", async () => {
-            if (!window.confirm("이 카드를 오늘 노트로 복제할까요?")) {
+            if (!window.confirm("??移대뱶瑜??ㅻ뒛 ?명듃濡?蹂듭젣?좉퉴??")) {
                 return;
             }
 
@@ -529,9 +529,18 @@ function initReportPage() {
 }
 
 document.addEventListener("DOMContentLoaded", initReportPage);
+window.addEventListener("lick-settings-change", () => {
+    renderWeekdays();
+    renderReportCalendar();
+    renderWeekList();
+    renderSelectedWeek();
+});
 window.addEventListener("pagehide", stopMetronome);
 document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
         stopMetronome();
     }
 });
+
+
+

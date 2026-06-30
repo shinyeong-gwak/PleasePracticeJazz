@@ -1,6 +1,7 @@
 # core/render.py
 from fastapi.templating import Jinja2Templates
 from navigation import NAVIGATION
+from repositories import app_settings_repository
 
 templates = Jinja2Templates(directory="templates")
 
@@ -11,7 +12,8 @@ def render_page(request, template_name: str, page_title: str, context: dict = No
     context.update({
         "request": request,
         "navigation": NAVIGATION,
-        "page_title": page_title
+        "page_title": page_title,
+        "app_settings": app_settings_repository.get_settings(),
     })
 
     return templates.TemplateResponse(

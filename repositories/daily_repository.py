@@ -1,7 +1,10 @@
-import json
-from datetime import date, datetime, timedelta
+﻿import json
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
+from zoneinfo import ZoneInfo
+
+from repositories import app_settings_repository
 
 
 FILE_PATH = Path("data/music/daily_reports.json")
@@ -20,12 +23,47 @@ BOOK_OPTIONS = [
     "New Real Book 3",
     "ETC",
 ]
-WEEKDAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"]
+WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
 def now_iso():
+    return (
+        datetime.now(timezone.utc)
+        .isoformat(timespec="seconds")
+        .replace("+00:00", "Z")
+    )
 
-    return datetime.now().isoformat(timespec="seconds")
+
+def get_app_timezone():
+    return ZoneInfo(app_settings_repository.get_time_zone_name())
+
+
+def get_week_start_day():
+    return app_settings_repository.get_week_start_day()
+
+
+def get_today():
+    return datetime.now(get_app_timezone()).date()
+
+
+def parse_timestamp(value):
+    text = str(value or "").strip()
+
+    if not text:
+        return None
+
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+
+    return parsed
 
 
 def ensure_file():
@@ -55,11 +93,10 @@ def ensure_file():
 def get_week_range(target_date=None):
 
     if target_date is None:
-        target_date = date.today()
+        target_date = get_today()
 
-    start = target_date - timedelta(
-        days=target_date.weekday()
-    )
+    delta = (target_date.weekday() - get_week_start_day()) % 7
+    start = target_date - timedelta(days=delta)
     end = start + timedelta(days=6)
 
     return start, end
@@ -87,10 +124,18 @@ def parse_item_date(value):
     if not text:
         return None
 
-    try:
-        return date.fromisoformat(text[:10])
-    except ValueError:
+    if len(text) >= 10 and text[4] == "-" and text[7] == "-":
+        try:
+            return date.fromisoformat(text[:10])
+        except ValueError:
+            return None
+
+    parsed = parse_timestamp(text)
+
+    if parsed is None:
         return None
+
+    return parsed.astimezone(get_app_timezone()).date()
 
 
 def load_all():
@@ -152,11 +197,11 @@ def normalize_homework_item(item):
 
     item.setdefault("id", uuid4().hex)
     item["title"] = str(
-        item.get("title") or "제목 없는 숙제"
-    ).strip() or "제목 없는 숙제"
+        item.get("title") or "?쒕ぉ ?녿뒗 ?숈젣"
+    ).strip() or "?쒕ぉ ?녿뒗 ?숈젣"
     item["memo"] = str(
-        item.get("memo") or "메모 없음"
-    ).strip() or "메모 없음"
+        item.get("memo") or "硫붾え ?놁쓬"
+    ).strip() or "硫붾え ?놁쓬"
     item.setdefault("createdAt", now_iso())
     item.setdefault("updatedAt", item["createdAt"])
     return item
@@ -166,8 +211,8 @@ def normalize_practice_item(item):
 
     item.setdefault("id", uuid4().hex)
     item["title"] = str(
-        item.get("title") or "이름 없는 연습"
-    ).strip() or "이름 없는 연습"
+        item.get("title") or "?대쫫 ?녿뒗 ?곗뒿"
+    ).strip() or "?대쫫 ?녿뒗 ?곗뒿"
     item["bpm"] = str(item.get("bpm") or "").strip()
     item["book"] = str(item.get("book") or "").strip()
     item["page"] = str(item.get("page") or "").strip()
@@ -191,8 +236,8 @@ def normalize_ensemble_item(item):
 
     normalized = normalize_practice_item(item)
     normalized["title"] = str(
-        item.get("title") or "이름 없는 합주 노트"
-    ).strip() or "이름 없는 합주 노트"
+        item.get("title") or "?대쫫 ?녿뒗 ?⑹＜ ?명듃"
+    ).strip() or "?대쫫 ?녿뒗 ?⑹＜ ?명듃"
     return normalized
 
 
@@ -246,8 +291,8 @@ def ensure_insights(data):
         for item in items:
             item.setdefault("id", uuid4().hex)
             item["title"] = str(
-                item.get("title") or "제목 없는 인사이트"
-            ).strip() or "제목 없는 인사이트"
+                item.get("title") or "?쒕ぉ ?녿뒗 ?몄궗?댄듃"
+            ).strip() or "?쒕ぉ ?녿뒗 ?몄궗?댄듃"
             item["memo"] = str(
                 item.get("memo") or ""
             ).strip()
@@ -343,12 +388,13 @@ def get_first_activity_date():
                     first_date = created_date
 
     save_all(data)
-    return first_date or date.today()
+    return first_date or get_today()
 
 
 def build_week_archive(report):
 
     week_start = date.fromisoformat(report["weekKey"])
+    weekday_labels = app_settings_repository.get_weekday_labels()
     daily_buckets = []
 
     for offset in range(7):
@@ -356,7 +402,7 @@ def build_week_archive(report):
         daily_buckets.append(
             {
                 "date": current_day.isoformat(),
-                "weekday": WEEKDAY_LABELS[offset],
+                "weekday": weekday_labels[offset],
                 "label": f"{current_day.month}.{current_day.day}",
                 "practice": [],
                 "ensemble": [],
@@ -450,10 +496,10 @@ def update_homework(homework_id, payload):
 
         item["title"] = str(
             payload.get("title") or item.get("title")
-        ).strip() or "제목 없는 숙제"
+        ).strip() or "?쒕ぉ ?녿뒗 ?숈젣"
         item["memo"] = str(
             payload.get("memo") or item.get("memo")
-        ).strip() or "메모 없음"
+        ).strip() or "硫붾え ?놁쓬"
         item["updatedAt"] = now_iso()
         break
 
@@ -488,7 +534,7 @@ def merge_homework(source_id, target_id):
         line
         for line in merged_lines
         if line
-    ) or "메모 없음"
+    ) or "硫붾え ?놁쓬"
     target["updatedAt"] = now_iso()
 
     report["homework"] = [
@@ -670,8 +716,8 @@ def add_insight(payload):
     item = {
         "id": uuid4().hex,
         "title": str(
-            payload.get("title") or "제목 없는 인사이트"
-        ).strip() or "제목 없는 인사이트",
+            payload.get("title") or "?쒕ぉ ?녿뒗 ?몄궗?댄듃"
+        ).strip() or "?쒕ぉ ?녿뒗 ?몄궗?댄듃",
         "memo": str(
             payload.get("memo") or ""
         ).strip(),
@@ -698,7 +744,7 @@ def update_insight(category, insight_id, payload):
 
         item["title"] = str(
             payload.get("title") or item.get("title")
-        ).strip() or "제목 없는 인사이트"
+        ).strip() or "?쒕ぉ ?녿뒗 ?몄궗?댄듃"
         item["memo"] = str(
             payload.get("memo") or item.get("memo")
         ).strip()
@@ -729,25 +775,26 @@ def delete_insight(category, insight_id):
 
 def build_calendar_summary(days=140):
 
-    today = date.today()
+    today = get_today()
     first_activity_date = get_first_activity_date()
     start = first_activity_date
     all_reports = get_all_reports()
+    week_start_day = get_week_start_day()
     summary = {}
 
     for offset in range((today - start).days + 1):
         current_day = start + timedelta(days=offset)
         day_key = current_day.isoformat()
         summary[day_key] = {
-            "date": day_key,
-            "count": 0,
-            "missingMetronome": False,
-            "level": 0,
-            "soloCount": 0,
-            "ensembleCount": 0,
-            "weekdayIndex": current_day.weekday(),
-            "weekKey": get_week_key(current_day),
-        }
+                "date": day_key,
+                "count": 0,
+                "missingMetronome": False,
+                "level": 0,
+                "soloCount": 0,
+                "ensembleCount": 0,
+                "weekdayIndex": (current_day.weekday() - week_start_day) % 7,
+                "weekKey": get_week_key(current_day),
+            }
 
     for report in all_reports:
         for bucket_name in ["practice", "ensemble"]:
@@ -797,3 +844,6 @@ def build_calendar_summary(days=140):
         ],
         "bookOptions": BOOK_OPTIONS,
     }
+
+
+
