@@ -4,15 +4,15 @@ const LickSettings = (() => {
 
     const COUNTRY_OPTIONS = {
         kr: {
-            label: "\uc11c\uc6b8",
+            label: "한국",
             timeZone: "Asia/Seoul",
         },
         jp: {
-            label: "\uc77c\ubcf8",
+            label: "일본",
             timeZone: "Asia/Tokyo",
         },
         us: {
-            label: "\ubbf8\uad6d",
+            label: "미국",
             timeZone: "America/New_York",
         },
         utc: {
@@ -22,13 +22,13 @@ const LickSettings = (() => {
     };
 
     const WEEKDAY_OPTIONS = [
-        { value: 0, label: "\uc6d4\uc694\uc77c" },
-        { value: 1, label: "\ud654\uc694\uc77c" },
-        { value: 2, label: "\uc218\uc694\uc77c" },
-        { value: 3, label: "\ubaa9\uc694\uc77c" },
-        { value: 4, label: "\uae08\uc694\uc77c" },
-        { value: 5, label: "\ud1a0\uc694\uc77c" },
-        { value: 6, label: "\uc77c\uc694\uc77c" },
+        { value: 0, label: "월요일" },
+        { value: 1, label: "화요일" },
+        { value: 2, label: "수요일" },
+        { value: 3, label: "목요일" },
+        { value: 4, label: "금요일" },
+        { value: 5, label: "토요일" },
+        { value: 6, label: "일요일" },
     ];
 
     const DEFAULT_SETTINGS = {
