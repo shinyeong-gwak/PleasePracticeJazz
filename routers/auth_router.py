@@ -8,7 +8,7 @@ from core.auth import (
     create_access_token,
     verify_access_token,
 )
-from core.render import templates
+from core.render import render_page
 
 
 router = APIRouter()
@@ -24,23 +24,14 @@ def login_page(request: Request):
     if token and verify_access_token(token):
         return RedirectResponse("/", status_code=303)
 
-    return templates.TemplateResponse(
-        "auth/login.html",
-        {
-            "request": request,
-            "page_title": "로그인",
-        },
-    )
+    return render_page(request, "auth/login.html", "로그인")
 
 
 @router.post("/auth/login")
 def login_api(payload: LoginPayload):
     key = str(payload.accessKey or "").strip()
     if key != AUTH_SECRET:
-        return JSONResponse(
-            {"message": "키가 맞지 않아요."},
-            status_code=401,
-        )
+        return JSONResponse({"message": "키가 맞지 않아요."}, status_code=401)
 
     token = create_access_token()
     response = JSONResponse(
@@ -65,10 +56,7 @@ def login_api(payload: LoginPayload):
 def token_api(request: Request):
     token = request.cookies.get(AUTH_COOKIE_NAME)
     if not token or not verify_access_token(token):
-        return JSONResponse(
-            {"message": "인증이 필요해요."},
-            status_code=401,
-        )
+        return JSONResponse({"message": "인증이 필요해요."}, status_code=401)
 
     return JSONResponse(
         {
