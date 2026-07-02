@@ -285,7 +285,7 @@ function renderCurrentArchive() {
     }
 
     if (DAILY_STATE.homework.length === 0) {
-        homeworkList.innerHTML = "<div class='practice-report-empty'>?대쾲二??숈젣媛 ?꾩쭅 ?놁뒿?덈떎.</div>";
+        homeworkList.innerHTML = "<div class='practice-report-empty'>이번 주에 숙제가 없습니다.</div>";
     } else {
         homeworkList.innerHTML = DAILY_STATE.homework.map((item) => `
             <article class="practice-report-item">
@@ -305,7 +305,7 @@ function renderCurrentArchive() {
             </div>
             ${
                 day.isEmpty
-                    ? "<div class='practice-report-empty'>湲곕줉 ?놁쓬</div>"
+                    ? "<div class='practice-report-empty'>기록 없음</div>"
                     : `
                         <div class="practice-report-day-list">
                             ${day.practice.map((item) => buildArchiveItemMarkup(item, "practice")).join("")}
@@ -321,7 +321,7 @@ function renderCurrentArchive() {
             const target = buildTargetFromDataset(card);
 
             if (target) {
-                if (!confirmDelete("??移대뱶瑜??ㅻ뒛 ?명듃濡?蹂듭젣?좉퉴??")) {
+                if (!confirmDelete("이 카드를 오늘 카드로 복제할까요?")) {
                     return;
                 }
                 await duplicateArchiveTarget(target);
