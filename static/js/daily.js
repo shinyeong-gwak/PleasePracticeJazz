@@ -413,7 +413,7 @@ function getStatusLabel(status) {
 }
 
 function getMetronomeLabel(enabled) {
-    return enabled ? "硫뷀듃濡쒕냸 O" : "硫뷀듃濡쒕냸 X";
+    return enabled ? "메트로놈 O" : "메트로놈 X";
 }
 
 function buildPracticeMeta(item) {
@@ -431,11 +431,11 @@ function buildPracticeMeta(item) {
         parts.push(`p.${item.page}`);
     }
 
-    return parts.join(" 쨌 ");
+    return parts.join(" · ");
 }
 
 function getMobileTargetTitle(target) {
-    return target?.title?.trim() || "?좏깮???명듃 ?놁쓬";
+    return target?.title?.trim() || "선택된 제목 없음";
 }
 
 function getMobileTargetBpm(target) {
@@ -457,7 +457,7 @@ function updateMobileToolState() {
     const title = getMobileTargetTitle(target);
     const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
     const pageLabel = target?.book
-        ? `${target.book}${target?.page ? ` 쨌 p.${target.page}` : ""}`
+        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
         : target?.page
             ? `p.${target.page}`
             : "";
@@ -472,13 +472,13 @@ function updateMobileToolState() {
     subtitleNode.textContent = bpm
         ? `${bpm} BPM · ${noteKind} 카드 · ${pageLabel || ""}`
         : `${noteKind} 카드 · ${pageLabel || ""}`;
-    irealValue.textContent = title === "?좏깮???명듃 ?놁쓬" ? "?쒕ぉ" : title;
-    goodnotesValue.textContent = pageLabel || "?낅낫";
+    irealValue.textContent = title === "선택된 제목 없음" ? "제목" : title;
+    goodnotesValue.textContent = pageLabel || "없음";
     if (realbookValue) {
-        realbookValue.textContent = target?.book ? "?닿린" : "?낅낫";
+        realbookValue.textContent = target?.book ? "열기" : "없음";
     }
-    metro2Value.textContent = bpm ? `${bpm} BPM` : "BPM";
-    metro4Value.textContent = bpm ? `${bpm} BPM` : "BPM";
+    metro2Value.textContent = bpm ? `${bpm} 2필` : "BPM";
+    metro4Value.textContent = bpm ? `${bpm} 4필` : "BPM";
     spotifyValue.textContent = spotifyLabel;
     if (lickValue) {
         lickValue.textContent = lickLabel;
@@ -686,7 +686,7 @@ async function openRealbookView(target) {
     const result = await response.json();
 
     if (!response.ok || !result.success || !result.viewUrl) {
-        alert(result.message || "?낅낫瑜?李얠? 紐삵뻽?듬땲??");
+        alert(result.message || "정보를 찾지 못했습니다.");
         return;
     }
 
@@ -720,7 +720,7 @@ function bindMobileToolButtons() {
     irealButton.addEventListener("click", () => {
         const title = encodeURIComponent(getMobileTargetTitle(DAILY_STATE.activeMobileTarget));
 
-        if (!title || title === encodeURIComponent("?좏깮???명듃 ?놁쓬")) {
+        if (!title || title === encodeURIComponent("선택된 제목 없음")) {
             return;
         }
 
@@ -800,7 +800,7 @@ function resetPracticeForm() {
     document.getElementById("practiceRendererFileInput").value = "";
     setSelectedPracticeTopics([]);
     setPracticeStatus("normal");
-    document.getElementById("addPracticeCardButton").textContent = "+ 移대뱶 異붽?";
+    document.getElementById("addPracticeCardButton").textContent = "+ 카드 추가";
     document.getElementById("cancelPracticeEditButton").classList.add("hidden");
     setActiveMobileTarget(getPracticeFormTarget());
 }
@@ -962,7 +962,7 @@ function renderHomeworkBoard() {
         });
 
         remove.addEventListener("click", async () => {
-            if (!confirmDelete("???숈젣 移대뱶瑜???젣?좉퉴??")) {
+            if (!confirmDelete("이 숙제 카드를 삭제할까요?")) {
                 return;
             }
 
@@ -1163,8 +1163,8 @@ function renderPracticeCards() {
             ? item.topics.map((topic) => `#${topic}`).join(" ")
             : "Topics none";
         fragment.querySelector(".practice-summary-metro").className = `practice-summary-metro ${hasMetronome ? "hidden" : ""}`;
-        fragment.querySelector(".practice-summary-topics").textContent = item.memo || "?쒖쨪 ???놁쓬";
-        fragment.querySelector(".practice-summary-memo").textContent = buildPracticeMeta(item) || "?낅낫 ?뺣낫 ?놁쓬";
+        fragment.querySelector(".practice-summary-topics").textContent = item.memo || "메모 없음";
+        fragment.querySelector(".practice-summary-memo").textContent = buildPracticeMeta(item) || "추가 정보 없음";
 
         card.addEventListener("click", (event) => {
             if (event.target.closest(".practice-remove-button")) {
