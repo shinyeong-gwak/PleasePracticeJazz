@@ -1,8 +1,5 @@
-import json
-from pathlib import Path
+from repositories.db import execute, get_or_create_user_id, query_one
 
-
-FILE_PATH = Path("data/music/app_settings.json")
 
 DEFAULT_SETTINGS = {
     "country": "kr",
@@ -29,6 +26,11 @@ COUNTRY_OPTIONS = {
     },
 }
 
+TIMEZONE_TO_COUNTRY = {
+    option["timeZone"]: country
+    for country, option in COUNTRY_OPTIONS.items()
+}
+
 WEEKDAY_LABELS = [
     "\uc6d4",
     "\ud654",
@@ -38,44 +40,6 @@ WEEKDAY_LABELS = [
     "\ud1a0",
     "\uc77c",
 ]
-
-
-def ensure_file():
-    FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-    if not FILE_PATH.exists():
-        FILE_PATH.write_text(
-            json.dumps(
-                DEFAULT_SETTINGS,
-                ensure_ascii=False,
-                indent=2,
-            ),
-            encoding="utf-8",
-        )
-
-
-def load_all():
-    ensure_file()
-
-    try:
-        data = json.loads(FILE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        data = {}
-
-    return normalize_settings(data)
-
-
-def save_all(settings):
-    FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-    FILE_PATH.write_text(
-        json.dumps(
-            normalize_settings(settings),
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
 
 
 def normalize_week_start_day(value):
@@ -95,19 +59,119 @@ def normalize_country(value):
     return country if country in COUNTRY_OPTIONS else DEFAULT_SETTINGS["country"]
 
 
+def normalize_time_zone(value, country=None):
+    time_zone = str(value or "").strip()
+
+    if time_zone in TIMEZONE_TO_COUNTRY:
+        return time_zone
+
+    if country:
+        return COUNTRY_OPTIONS[normalize_country(country)]["timeZone"]
+
+    return DEFAULT_SETTINGS["timeZone"]
+
+
+def infer_country(time_zone):
+    return TIMEZONE_TO_COUNTRY.get(
+        normalize_time_zone(time_zone),
+        DEFAULT_SETTINGS["country"],
+    )
+
+
 def normalize_settings(settings):
     settings = settings or {}
-    country = normalize_country(settings.get("country"))
-    time_zone = COUNTRY_OPTIONS[country]["timeZone"]
-
-    if settings.get("timeZone") in [option["timeZone"] for option in COUNTRY_OPTIONS.values()]:
-        time_zone = settings.get("timeZone") or time_zone
+    time_zone = normalize_time_zone(
+        settings.get("timeZone"),
+        settings.get("country"),
+    )
 
     return {
-        "country": country,
+        "country": infer_country(time_zone),
         "timeZone": time_zone,
         "weekStartDay": normalize_week_start_day(settings.get("weekStartDay")),
     }
+
+
+def _select_settings_row(user_id):
+    return query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                user_id::text AS "userId",
+                locale,
+                time_zone AS "timeZone",
+                week_start_day AS "weekStartDay"
+            FROM user_settings
+            WHERE user_id = :'user_id'::uuid
+            LIMIT 1
+        ) AS t
+        """,
+        {"user_id": user_id},
+    )
+
+
+def ensure_settings_row():
+    user_id = get_or_create_user_id()
+    settings = _select_settings_row(user_id)
+    if settings:
+        return settings
+
+    execute(
+        """
+        INSERT INTO user_settings (user_id, locale, time_zone, week_start_day)
+        VALUES (
+            :'user_id'::uuid,
+            :'locale',
+            :'time_zone',
+            :'week_start_day'::int
+        )
+        ON CONFLICT (user_id) DO NOTHING
+        """,
+        {
+            "user_id": user_id,
+            "locale": "ko-KR",
+            "time_zone": DEFAULT_SETTINGS["timeZone"],
+            "week_start_day": DEFAULT_SETTINGS["weekStartDay"],
+        },
+    )
+
+    return _select_settings_row(user_id)
+
+
+def load_all():
+    row = ensure_settings_row()
+    return normalize_settings(row)
+
+
+def save_all(settings):
+    normalized = normalize_settings(settings)
+    user_id = get_or_create_user_id()
+
+    execute(
+        """
+        INSERT INTO user_settings (user_id, locale, time_zone, week_start_day)
+        VALUES (
+            :'user_id'::uuid,
+            :'locale',
+            :'time_zone',
+            :'week_start_day'::int
+        )
+        ON CONFLICT (user_id) DO UPDATE SET
+            locale = EXCLUDED.locale,
+            time_zone = EXCLUDED.time_zone,
+            week_start_day = EXCLUDED.week_start_day,
+            updated_at = now()
+        """,
+        {
+            "user_id": user_id,
+            "locale": "ko-KR",
+            "time_zone": normalized["timeZone"],
+            "week_start_day": normalized["weekStartDay"],
+        },
+    )
+
+    return normalized
 
 
 def get_settings():

@@ -1,54 +1,87 @@
-import json
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-FILE_PATH = BASE_DIR / "data" / "music" / "playlists.json"
+from repositories.db import execute, get_or_create_user_id, query_rows
 
 
 def get_all():
-
-    if not FILE_PATH.exists():
-        return []
-
-    with open(FILE_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    user_id = get_or_create_user_id()
+    return query_rows(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                name,
+                source_url AS url
+            FROM playlist
+            WHERE user_id = :'user_id'::uuid
+              AND LEFT(name, 2) <> '__'
+            ORDER BY created_at DESC
+        ) AS t
+        """,
+        {"user_id": user_id},
+    )
 
 
 def save_all(playlists):
+    user_id = get_or_create_user_id()
 
-    with open(FILE_PATH, "w", encoding="utf-8") as f:
-        json.dump(
-            playlists,
-            f,
-            ensure_ascii=False,
-            indent=4
+    execute(
+        """
+        DELETE FROM playlist
+        WHERE user_id = :'user_id'::uuid
+        """,
+        {"user_id": user_id},
+    )
+
+    for playlist in playlists or []:
+        execute(
+            """
+            INSERT INTO playlist (user_id, name, source_url)
+            VALUES (
+                :'user_id'::uuid,
+                :'name',
+                :'url'
+            )
+            """,
+            {
+                "user_id": user_id,
+                "name": playlist.get("name") or "",
+                "url": playlist.get("url") or "",
+            },
         )
 
 
 def add(name, url):
+    user_id = get_or_create_user_id()
 
-    playlists = get_all()
-
-    playlists.append({
-        "name": name,
-        "url": url
-    })
-
-    save_all(playlists)
+    execute(
+        """
+        INSERT INTO playlist (user_id, name, source_url)
+        VALUES (
+            :'user_id'::uuid,
+            :'name',
+            :'url'
+        )
+        """,
+        {
+            "user_id": user_id,
+            "name": name,
+            "url": url,
+        },
+    )
 
 
 def delete(name, url):
+    user_id = get_or_create_user_id()
 
-    playlists = get_all()
-
-    filtered = [
-        playlist
-        for playlist in playlists
-        if not (
-            playlist.get("name") == name
-            and playlist.get("url") == url
-        )
-    ]
-
-    save_all(filtered)
+    execute(
+        """
+        DELETE FROM playlist
+        WHERE user_id = :'user_id'::uuid
+          AND name = :'name'
+          AND source_url = :'url'
+        """,
+        {
+            "user_id": user_id,
+            "name": name,
+            "url": url,
+        },
+    )
