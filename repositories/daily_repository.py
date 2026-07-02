@@ -519,8 +519,9 @@ def get_current_report():
     return report
 
 
-def get_all_reports():
-    reports = _build_reports()
+def get_all_reports(reports=None):
+    if reports is None:
+        reports = _build_reports()
     return sorted(reports.values(), key=lambda item: item["weekKey"], reverse=True)
 
 
@@ -528,11 +529,14 @@ def get_insights():
     return _build_insights()
 
 
-def get_tune_suggestions():
+def get_tune_suggestions(reports=None):
+    if reports is None:
+        reports = get_all_reports()
+
     suggestions = []
     seen = set()
 
-    for report in get_all_reports():
+    for report in reports:
         for collection_name in ["practice", "ensemble"]:
             for item in report.get(collection_name, []):
                 title = str(item.get("title") or "").strip()

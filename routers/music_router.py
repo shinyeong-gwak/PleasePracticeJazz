@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Request, Form
 from starlette.responses import RedirectResponse, JSONResponse
 
+from core.render import render_page
 from repositories import (
-    playlist_repository,
-    lick_repository,
-    score_repository,
-    playlist_sync_repository,
     daily_repository,
+    lick_repository,
+    playlist_repository,
+    playlist_sync_repository,
+    score_repository,
 )
 from services import music_service
-from core.render import render_page
+
 
 router = APIRouter(prefix="/music")
 
@@ -21,11 +22,11 @@ def playlist_page(request: Request):
     return render_page(
         request,
         "music/playlist.html",
-        "음악",
+        "플레이리스트",
         {
             "playlists": playlists,
-            "sync_states": sync_states
-        }
+            "sync_states": sync_states,
+        },
     )
 
 
@@ -50,14 +51,32 @@ def delete_playlist(name: str = Form(...), url: str = Form(...)):
 @router.get("/licks")
 def licks_page(request: Request, file: str = ""):
     licks = lick_repository.get_all()
-    return render_page(request, "music/licks.html",
-                       "음악",{"licks": licks, "selected_lick_file": file})
+    return render_page(
+        request,
+        "music/licks.html",
+        "리듬 연습",
+        {
+            "licks": licks,
+            "selected_lick_file": file,
+        },
+    )
 
 
 @router.get("/daily")
 @router.get("/daliy")
 def daily_page(request: Request):
-    current_report = daily_repository.get_current_report()
+    reports = daily_repository.get_all_reports()
+    week_key = daily_repository.get_week_key()
+    current_report = next(
+        (report for report in reports if report.get("weekKey") == week_key),
+        {
+            "weekKey": week_key,
+            "weekLabel": daily_repository.get_week_label(),
+            "homework": [],
+            "practice": [],
+            "ensemble": [],
+        },
+    )
     return render_page(
         request,
         "music/daily.html",
@@ -65,10 +84,10 @@ def daily_page(request: Request):
         {
             "daily_report": current_report,
             "current_archive": daily_repository.build_week_archive(current_report),
-            "tune_suggestions": daily_repository.get_tune_suggestions(),
+            "tune_suggestions": daily_repository.get_tune_suggestions(reports),
             "recent_lick_files": lick_repository.get_recent_files(),
             "recent_score_files": score_repository.get_recent_files(),
-        }
+        },
     )
 
 
@@ -79,8 +98,8 @@ def report_page(request: Request):
         "music/report.html",
         "주간 리포트",
         {
-            "calendar_summary": daily_repository.build_calendar_summary()
-        }
+            "calendar_summary": daily_repository.build_calendar_summary(),
+        },
     )
 
 
@@ -91,25 +110,21 @@ def insights_page(request: Request):
         "music/insights.html",
         "인사이트",
         {
-            "insights": daily_repository.get_insights()
-        }
+            "insights": daily_repository.get_insights(),
+        },
     )
 
 
 @router.post("/daily/homework")
 async def add_daily_homework(request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.add_homework(payload)
-    )
+    return JSONResponse(daily_repository.add_homework(payload))
 
 
 @router.put("/daily/homework/{homework_id}")
 async def update_daily_homework(homework_id: str, request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.update_homework(homework_id, payload)
-    )
+    return JSONResponse(daily_repository.update_homework(homework_id, payload))
 
 
 @router.post("/daily/homework/merge")
@@ -118,89 +133,62 @@ async def merge_daily_homework(request: Request):
     return JSONResponse(
         daily_repository.merge_homework(
             payload.get("sourceId", ""),
-            payload.get("targetId", "")
+            payload.get("targetId", ""),
         )
     )
 
 
 @router.delete("/daily/homework/{homework_id}")
 def delete_daily_homework(homework_id: str):
-    return JSONResponse(
-        daily_repository.delete_homework(homework_id)
-    )
+    return JSONResponse(daily_repository.delete_homework(homework_id))
 
 
 @router.post("/daily/practice")
 async def add_daily_practice(request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.add_practice(payload)
-    )
+    return JSONResponse(daily_repository.add_practice(payload))
 
 
 @router.put("/daily/practice/{practice_id}")
 async def update_daily_practice(practice_id: str, request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.update_practice(practice_id, payload)
-    )
+    return JSONResponse(daily_repository.update_practice(practice_id, payload))
 
 
 @router.delete("/daily/practice/{practice_id}")
 def delete_daily_practice(practice_id: str):
-    return JSONResponse(
-        daily_repository.delete_practice(practice_id)
-    )
+    return JSONResponse(daily_repository.delete_practice(practice_id))
 
 
 @router.post("/daily/ensemble")
 async def add_daily_ensemble(request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.add_ensemble(payload)
-    )
+    return JSONResponse(daily_repository.add_ensemble(payload))
 
 
 @router.put("/daily/ensemble/{ensemble_id}")
 async def update_daily_ensemble(ensemble_id: str, request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.update_ensemble(ensemble_id, payload)
-    )
+    return JSONResponse(daily_repository.update_ensemble(ensemble_id, payload))
 
 
 @router.delete("/daily/ensemble/{ensemble_id}")
 def delete_daily_ensemble(ensemble_id: str):
-    return JSONResponse(
-        daily_repository.delete_ensemble(ensemble_id)
-    )
+    return JSONResponse(daily_repository.delete_ensemble(ensemble_id))
 
 
 @router.post("/insights")
 async def add_insight(request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.add_insight(payload)
-    )
+    return JSONResponse(daily_repository.add_insight(payload))
 
 
 @router.put("/insights/{category}/{insight_id}")
 async def update_insight(category: str, insight_id: str, request: Request):
     payload = await request.json()
-    return JSONResponse(
-        daily_repository.update_insight(
-            category,
-            insight_id,
-            payload
-        )
-    )
+    return JSONResponse(daily_repository.update_insight(category, insight_id, payload))
 
 
 @router.delete("/insights/{category}/{insight_id}")
 def delete_insight(category: str, insight_id: str):
-    return JSONResponse(
-        daily_repository.delete_insight(
-            category,
-            insight_id
-        )
-    )
+    return JSONResponse(daily_repository.delete_insight(category, insight_id))
