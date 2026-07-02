@@ -14,7 +14,7 @@ def _build_dsn():
 
     host = os.getenv("PGHOST", "localhost")
     port = os.getenv("PGPORT", "5432")
-    dbname = os.getenv("PGDATABASE", "postgre")
+    dbname = os.getenv("PGDATABASE", "postgres")
     user = os.getenv("PGUSER", "postgres")
     password = os.getenv("PGPASSWORD")
 
