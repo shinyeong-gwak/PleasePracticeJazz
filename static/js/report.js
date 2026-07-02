@@ -143,7 +143,7 @@ function updateMobileToolState() {
     const bpm = getMobileTargetBpm(target);
     const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
     const pageLabel = target?.book
-        ? `${target.book}${target?.page ? ` 쨌 p.${target.page}` : ""}`
+        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
         : target?.page
             ? `p.${target.page}`
             : "";
@@ -154,8 +154,8 @@ function updateMobileToolState() {
 
     titleNode.textContent = title;
     subtitleNode.textContent = bpm
-        ? `${bpm} BPM 쨌 ${noteKind} 移대뱶 湲곗?${pageLabel ? ` 쨌 ${pageLabel}` : ""}`
-        : `${noteKind} 移대뱶 湲곗?${pageLabel ? ` 쨌 ${pageLabel}` : ""}`;
+        ? `${bpm} BPM · ${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`
+        : `${noteKind} 카드 기준${pageLabel ? ` · ${pageLabel}` : ""}`;
     if (realbookValue) {
         realbookValue.textContent = target?.book ? "?닿린" : "?낅낫";
     }
@@ -304,7 +304,7 @@ async function duplicateArchiveTarget(target) {
 
     REPORT_STATE.activeMobileTarget = target;
     updateMobileToolState();
-    alert("?ㅻ뒛 移대뱶濡?蹂듭젣?덉뒿?덈떎.");
+    alert("등록된 숙제가 없습니다.");
 }
 
 function bindMobileToolButtons() {
@@ -332,7 +332,7 @@ function bindMobileToolButtons() {
     irealButton.addEventListener("click", () => {
         const title = encodeURIComponent(getMobileTargetTitle(REPORT_STATE.activeMobileTarget));
 
-        if (!title || title === encodeURIComponent("?좏깮???명듃 ?놁쓬")) {
+        if (!title || title === encodeURIComponent("선택된 노트 없음")) {
             return;
         }
 
@@ -343,7 +343,7 @@ function bindMobileToolButtons() {
     metro4Button.addEventListener("click", () => startMetronome(1));
 
     goodnotesButton.addEventListener("click", () => {
-        alert("Goodnotes 버튼은 아직 준비 중이에요.");
+        alert("Goodnotes 버튼은 준비만 해두었어요.");
     });
 
     if (realbookButton) {
