@@ -3,32 +3,20 @@ const LickSettings = (() => {
     const SERVER_SETTINGS_NODE_ID = "app-settings-data";
 
     const COUNTRY_OPTIONS = {
-        kr: {
-            label: "한국",
-            timeZone: "Asia/Seoul",
-        },
-        jp: {
-            label: "일본",
-            timeZone: "Asia/Tokyo",
-        },
-        us: {
-            label: "미국",
-            timeZone: "America/New_York",
-        },
-        utc: {
-            label: "UTC",
-            timeZone: "UTC",
-        },
+        kr: { label: "서울", timeZone: "Asia/Seoul" },
+        jp: { label: "일본", timeZone: "Asia/Tokyo" },
+        us: { label: "미국", timeZone: "America/New_York" },
+        utc: { label: "UTC", timeZone: "UTC" },
     };
 
     const WEEKDAY_OPTIONS = [
-        { value: 0, label: "월요일" },
-        { value: 1, label: "화요일" },
-        { value: 2, label: "수요일" },
-        { value: 3, label: "목요일" },
-        { value: 4, label: "금요일" },
-        { value: 5, label: "토요일" },
-        { value: 6, label: "일요일" },
+        { value: 0, label: "일요일" },
+        { value: 1, label: "월요일" },
+        { value: 2, label: "화요일" },
+        { value: 3, label: "수요일" },
+        { value: 4, label: "목요일" },
+        { value: 5, label: "금요일" },
+        { value: 6, label: "토요일" },
     ];
 
     const DEFAULT_SETTINGS = {
@@ -39,7 +27,6 @@ const LickSettings = (() => {
 
     function readJsonNode(id) {
         const node = document.getElementById(id);
-
         if (!node) {
             return null;
         }
@@ -48,20 +35,6 @@ const LickSettings = (() => {
             return JSON.parse(node.textContent || "{}");
         } catch {
             return null;
-        }
-    }
-
-    function readServerSettings() {
-        return normalizeSettings(
-            readJsonNode(SERVER_SETTINGS_NODE_ID) || DEFAULT_SETTINGS
-        );
-    }
-
-    function readRawSettings() {
-        try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
-        } catch {
-            return {};
         }
     }
 
@@ -78,13 +51,25 @@ const LickSettings = (() => {
 
     function normalizeSettings(settings = {}) {
         const country = normalizeCountry(settings.country);
-        const countryOption = COUNTRY_OPTIONS[country];
-
         return {
             country,
-            timeZone: countryOption.timeZone,
+            timeZone: COUNTRY_OPTIONS[country].timeZone,
             weekStartDay: normalizeWeekStartDay(settings.weekStartDay),
         };
+    }
+
+    function readServerSettings() {
+        return normalizeSettings(
+            readJsonNode(SERVER_SETTINGS_NODE_ID) || DEFAULT_SETTINGS
+        );
+    }
+
+    function readRawSettings() {
+        try {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+        } catch {
+            return {};
+        }
     }
 
     function writeSettingsToStorage(settings) {
@@ -127,23 +112,17 @@ const LickSettings = (() => {
 
         const response = await fetch("/settings/api", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(next),
         });
 
         const result = await response.json();
-
         if (!response.ok) {
-            throw new Error(result.message || "save failed");
+            throw new Error(result.message || "저장에 실패했어요");
         }
 
         writeSettingsToStorage(result);
-        window.dispatchEvent(
-            new CustomEvent("lick-settings-change", { detail: result })
-        );
-
+        window.dispatchEvent(new CustomEvent("lick-settings-change", { detail: result }));
         return result;
     }
 
@@ -169,7 +148,6 @@ const LickSettings = (() => {
         }
 
         const text = String(value || "").trim();
-
         if (!text) {
             return null;
         }
@@ -197,7 +175,6 @@ const LickSettings = (() => {
         }
 
         const date = parseDate(value);
-
         if (!date || Number.isNaN(date.getTime())) {
             return null;
         }
@@ -209,10 +186,8 @@ const LickSettings = (() => {
             day: "2-digit",
         });
 
-        const parts = formatter.formatToParts(date);
         const result = {};
-
-        parts.forEach((part) => {
+        formatter.formatToParts(date).forEach((part) => {
             if (part.type !== "literal") {
                 result[part.type] = part.value;
             }
@@ -276,7 +251,6 @@ const LickSettings = (() => {
 
     function initSettingsPage() {
         const form = document.querySelector("[data-settings-form]");
-
         if (!form) {
             return;
         }
@@ -296,7 +270,6 @@ const LickSettings = (() => {
         }
 
         const current = getSettings();
-
         countrySelect.value = current.country;
         weekStartSelect.value = String(current.weekStartDay);
 
@@ -306,35 +279,19 @@ const LickSettings = (() => {
                 weekStartDay: weekStartSelect.value,
             });
 
-            if (previewCountry) {
-                previewCountry.textContent = preview.countryLabel;
-            }
-
-            if (previewTimeZone) {
-                previewTimeZone.textContent = preview.timeZone;
-            }
-
-            if (previewWeekStart) {
-                previewWeekStart.textContent = preview.weekStartLabel;
-            }
-
-            if (previewDate) {
-                previewDate.textContent = preview.currentDate;
-            }
-
-            if (previewTime) {
-                previewTime.textContent = preview.currentTime;
-            }
+            if (previewCountry) previewCountry.textContent = preview.countryLabel;
+            if (previewTimeZone) previewTimeZone.textContent = preview.timeZone;
+            if (previewWeekStart) previewWeekStart.textContent = preview.weekStartLabel;
+            if (previewDate) previewDate.textContent = preview.currentDate;
+            if (previewTime) previewTime.textContent = preview.currentTime;
         };
 
         syncPreview();
-
         countrySelect.addEventListener("change", syncPreview);
         weekStartSelect.addEventListener("change", syncPreview);
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-
             if (saveButton) {
                 saveButton.disabled = true;
             }
@@ -351,11 +308,10 @@ const LickSettings = (() => {
                 syncLiveText();
 
                 if (statusNode) {
-                    statusNode.textContent = `${COUNTRY_OPTIONS[result.country].label} / ${formatWeekdayLabel(result.weekStartDay)} start saved`;
+                    statusNode.textContent = `${COUNTRY_OPTIONS[result.country].label} / ${formatWeekdayLabel(result.weekStartDay)} 시작으로 저장했어요`;
                 }
             } catch (error) {
                 console.error(error);
-
                 if (statusNode) {
                     statusNode.textContent = "저장에 실패했어요";
                 }

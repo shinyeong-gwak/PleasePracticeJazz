@@ -72,15 +72,15 @@ function buildArchiveItemMarkup(item, kind) {
             data-target-memo="${item.memo || ""}"
             data-target-topics="${(item.topics || []).join(", ")}"
         >
-            <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "?대쫫 ?녿뒗 ?⑹＜ ?명듃" : "?대쫫 ?녿뒗 ?곗뒿")}</div>
-            <div class="practice-report-item-meta">${kind === "ensemble" ? "?⑹＜" : "?곗뒿"}${meta.length ? ` 쨌 ${meta.join(" 쨌 ")}` : ""}</div>
-            <div class="practice-report-item-copy">${item.memo || "硫붾え ?놁쓬"}</div>
+            <div class="practice-report-item-title">${item.title || (kind === "ensemble" ? "제목 없는 합주" : "제목 없는 연습")}</div>
+            <div class="practice-report-item-meta">${kind === "ensemble" ? "합주" : "연습"}${meta.length ? ` · ${meta.join(" · ")}` : ""}</div>
+            <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
         </article>
     `;
 }
 
 function getMobileTargetTitle(target) {
-    return target?.title?.trim() || "?좏깮???명듃 ?놁쓬";
+    return target?.title?.trim() || "선택된 제목 없음";
 }
 
 function getMobileTargetBpm(target) {
@@ -141,7 +141,7 @@ function updateMobileToolState() {
     const target = REPORT_STATE.activeMobileTarget;
     const title = getMobileTargetTitle(target);
     const bpm = getMobileTargetBpm(target);
-    const noteKind = target?.kind === "ensemble" ? "?⑹＜" : "?곗뒿";
+    const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
     const pageLabel = target?.book
         ? `${target.book}${target?.page ? ` 쨌 p.${target.page}` : ""}`
         : target?.page
@@ -238,7 +238,7 @@ async function startMetronome(feelDivider) {
     const bpm = parseInt(getMobileTargetBpm(REPORT_STATE.activeMobileTarget), 10);
 
     if (!bpm) {
-        alert("?좏깮??移대뱶??BPM???놁뒿?덈떎.");
+        alert("선택한 카드에 BPM이 없습니다.");
         return;
     }
 
@@ -269,7 +269,7 @@ async function openRealbookView(target) {
     const result = await response.json();
 
     if (!response.ok || !result.success || !result.viewUrl) {
-        alert(result.message || "?낅낫瑜?李얠? 紐삵뻽?듬땲??");
+        alert(result.message || "정보를 찾지 못했습니다.");
         return;
     }
 
@@ -343,7 +343,7 @@ function bindMobileToolButtons() {
     metro4Button.addEventListener("click", () => startMetronome(1));
 
     goodnotesButton.addEventListener("click", () => {
-        alert("Goodnotes 踰꾪듉? 以鍮꾨쭔 ?대몢?덉뼱??");
+        alert("Goodnotes 버튼은 아직 준비 중이에요.");
     });
 
     if (realbookButton) {
@@ -356,7 +356,7 @@ function bindMobileToolButtons() {
         const url = REPORT_STATE.activeMobileTarget?.spotifyUrl;
 
         if (!url) {
-            alert("?좏깮??移대뱶??Spotify 留곹겕媛 ?놁뒿?덈떎.");
+            alert("선택한 카드에 Spotify 링크가 없습니다.");
             return;
         }
 
@@ -368,7 +368,7 @@ function bindMobileToolButtons() {
             const file = REPORT_STATE.activeMobileTarget?.lickFile;
 
             if (!file) {
-                alert("?좏깮??移대뱶??Lick MP3媛 ?놁뒿?덈떎.");
+                alert("선택한 카드에 Lick MP3가 없습니다.");
                 return;
             }
 
@@ -443,7 +443,7 @@ function renderWeekList() {
             data-week-key="${week.weekKey}"
         >
             <span class="report-week-button-title">${week.weekLabel}</span>
-            <span class="report-week-button-meta">?숈젣 ${week.homeworkCount} 쨌 ?⑹＜ ${week.ensembleCount} 쨌 ?곗뒿 ${week.practiceCount}</span>
+            <span class="report-week-button-meta">숙제 ${week.homeworkCount} · 합주 ${week.ensembleCount} · 연습 ${week.practiceCount}</span>
         </button>
     `).join("");
 
@@ -470,15 +470,15 @@ function renderSelectedWeek() {
     }
 
     titleNode.textContent = selectedWeek.weekLabel;
-    metaNode.textContent = `?숈젣 ${selectedWeek.homeworkCount} 쨌 ?⑹＜ ${selectedWeek.ensembleCount} 쨌 ?곗뒿 ${selectedWeek.practiceCount}`;
+    metaNode.textContent = `숙제 ${selectedWeek.homeworkCount} · 합주 ${selectedWeek.ensembleCount} · 연습 ${selectedWeek.practiceCount}`;
 
     if (selectedWeek.homework.length === 0) {
-        homeworkNode.innerHTML = "<div class='practice-report-empty'>??二쇱뿉???숈젣媛 ?놁뒿?덈떎.</div>";
+        homeworkNode.innerHTML = "<div class='practice-report-empty'>이번 주에 숙제가 없습니다.</div>";
     } else {
         homeworkNode.innerHTML = selectedWeek.homework.map((item) => `
             <article class="practice-report-item">
                 <div class="practice-report-item-title">${item.title}</div>
-                <div class="practice-report-item-copy">${item.memo || "硫붾え ?놁쓬"}</div>
+                <div class="practice-report-item-copy">${item.memo || "메모 없음"}</div>
             </article>
         `).join("");
     }

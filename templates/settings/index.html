@@ -6,7 +6,7 @@
         <div>
             <p class="eyebrow">Settings</p>
             <h1>설정</h1>
-            <p class="page-copy">국가와 시간대를 맞춰서 저장된 날짜가 로컬 시간 기준으로 보이게 합니다.</p>
+            <p class="page-copy">국가와 주 시작 요일을 맞춰서 저장된 날짜와 시간을 로컬 기준으로 보여줍니다.</p>
         </div>
     </div>
 
@@ -15,7 +15,7 @@
             <label class="settings-field">
                 <span class="practice-field-label">국가 / 시간대</span>
                 <select data-settings-country>
-                    <option value="kr">한국 (Asia/Seoul)</option>
+                    <option value="kr">서울 (Asia/Seoul)</option>
                     <option value="jp">일본 (Asia/Tokyo)</option>
                     <option value="us">미국 동부 (America/New_York)</option>
                     <option value="utc">UTC</option>
@@ -23,29 +23,29 @@
             </label>
 
             <label class="settings-field">
-                <span class="practice-field-label">한주의 시작</span>
+                <span class="practice-field-label">한 주의 시작</span>
                 <select data-settings-week-start>
-                    <option value="0">월요일</option>
-                    <option value="1">화요일</option>
-                    <option value="2">수요일</option>
-                    <option value="3">목요일</option>
-                    <option value="4">금요일</option>
-                    <option value="5">토요일</option>
-                    <option value="6">일요일</option>
+                    <option value="0">일요일</option>
+                    <option value="1">월요일</option>
+                    <option value="2">화요일</option>
+                    <option value="3">수요일</option>
+                    <option value="4">목요일</option>
+                    <option value="5">금요일</option>
+                    <option value="6">토요일</option>
                 </select>
             </label>
 
             <div class="settings-preview">
                 <div class="settings-preview-label">현재 선택</div>
                 <div class="settings-preview-value">
-                    <span data-settings-preview-country>한국</span>
+                    <span data-settings-preview-country>서울</span>
                     <span data-settings-preview-timezone>Asia/Seoul</span>
                 </div>
-                <div class="settings-preview-label">주간 시작</div>
-                <div class="settings-preview-value" data-settings-preview-week-start>월요일</div>
+                <div class="settings-preview-label">주 시작</div>
+                <div class="settings-preview-value" data-settings-preview-week-start>일요일</div>
                 <div class="settings-preview-label">현재 날짜</div>
                 <div class="settings-preview-value" data-settings-preview-date></div>
-                <div class="settings-preview-label">현재 시각</div>
+                <div class="settings-preview-label">현재 시간</div>
                 <div class="settings-preview-value" data-settings-preview-time></div>
             </div>
 

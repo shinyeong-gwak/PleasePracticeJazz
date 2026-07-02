@@ -56,6 +56,9 @@ def _run(sql, params=None):
         command,
         input=sql,
         text=True,
+        encoding="utf-8",
+        errors="replace",
+        env={**os.environ, "PGCLIENTENCODING": "UTF8"},
         capture_output=True,
         check=False,
     )
