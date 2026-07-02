@@ -9,15 +9,15 @@ DEFAULT_SETTINGS = {
 
 COUNTRY_OPTIONS = {
     "kr": {
-        "label": "\uc11c\uc6b8",
+        "label": "한국",
         "timeZone": "Asia/Seoul",
     },
     "jp": {
-        "label": "\uc77c\ubcf8",
+        "label": "일본",
         "timeZone": "Asia/Tokyo",
     },
     "us": {
-        "label": "\ubbf8\uad6d",
+        "label": "미국",
         "timeZone": "America/New_York",
     },
     "utc": {
@@ -32,13 +32,13 @@ TIMEZONE_TO_COUNTRY = {
 }
 
 WEEKDAY_LABELS = [
-    "\uc6d4",
-    "\ud654",
-    "\uc218",
-    "\ubaa9",
-    "\uae08",
-    "\ud1a0",
-    "\uc77c",
+    "월",
+    "화",
+    "수",
+    "목",
+    "금",
+    "토",
+    "일",
 ]
 
 

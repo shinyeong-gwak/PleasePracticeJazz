@@ -15,27 +15,27 @@ class SettingsPayload(BaseModel):
 
 @router.get("/")
 def home(request: Request):
-    return render_page(request, "music/index.html", "\uc74c\uc545")
+    return render_page(request, "music/index.html", "음악")
 
 
 @router.get("/music")
 def music(request: Request):
-    return render_page(request, "music/index.html", "\uc74c\uc545")
+    return render_page(request, "music/index.html", "음악")
 
 
 @router.get("/account")
 def account(request: Request):
-    return render_page(request, "account/index.html", "\uac00\uacc4")
+    return render_page(request, "account/index.html", "가계")
 
 
 @router.get("/dev")
 def dev(request: Request):
-    return render_page(request, "dev/index.html", "\uac1c\ubc1c")
+    return render_page(request, "dev/index.html", "개발")
 
 
 @router.get("/settings")
 def settings(request: Request):
-    return render_page(request, "settings/index.html", "\uc124\uc815")
+    return render_page(request, "settings/index.html", "설정")
 
 
 @router.get("/settings/api")
