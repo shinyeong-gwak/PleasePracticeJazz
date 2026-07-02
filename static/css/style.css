@@ -135,6 +135,12 @@ button:disabled {
     overflow: hidden;
 }
 
+body.login-page {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+}
+
 .settings-fab {
     position: fixed;
     top: 14px;
@@ -237,6 +243,37 @@ button:disabled {
     background: var(--panel);
     box-shadow: var(--shadow);
     animation: page-rise 0.5s ease both;
+}
+
+.login-shell {
+    width: min(520px, calc(100vw - 32px));
+}
+
+.login-card {
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.login-copy {
+    margin-bottom: 20px;
+}
+
+.login-form {
+    display: grid;
+    gap: 16px;
+}
+
+.login-status {
+    min-height: 1.2em;
+    color: var(--danger-strong);
+    font-size: 14px;
+}
+
+.login-submit {
+    width: 100%;
 }
 
 .page-shell > *:nth-child(2) {
