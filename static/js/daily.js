@@ -7,6 +7,8 @@ const DAILY_STATE = {
     practice: [],
     ensemble: [],
     tuneSuggestions: [],
+    recentLickFiles: [],
+    recentScoreFiles: [],
     editingPracticeId: null,
     draggedHomeworkId: null,
     activeMobileTarget: null,
@@ -83,6 +85,81 @@ function loadInitialTuneSuggestions() {
         console.error("daily tune suggestions parse error", error);
         DAILY_STATE.tuneSuggestions = [];
     }
+}
+
+async function loadDailyBootstrap() {
+    const response = await fetch("/music/daily/data", {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`daily bootstrap failed: ${response.status}`);
+    }
+
+    return response.json();
+}
+
+function renderAssetOptions(selectId, items, placeholder) {
+    const select = document.getElementById(selectId);
+
+    if (!select) {
+        return;
+    }
+
+    const currentValue = select.value;
+    select.innerHTML = "";
+
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = placeholder;
+    select.appendChild(emptyOption);
+
+    (items || []).forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item;
+        option.textContent = item;
+        select.appendChild(option);
+    });
+
+    if (currentValue) {
+        select.value = currentValue;
+    }
+}
+
+function renderInlineAssetOptions() {
+    document.querySelectorAll(".practice-inline-lick-file").forEach((select) => {
+        const currentValue = select.value;
+        select.innerHTML = "<option value=\"\">Lick MP3</option>";
+
+        DAILY_STATE.recentLickFiles.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item;
+            option.textContent = item;
+            select.appendChild(option);
+        });
+
+        if (currentValue) {
+            select.value = currentValue;
+        }
+    });
+
+    document.querySelectorAll(".practice-inline-renderer-file").forEach((select) => {
+        const currentValue = select.value;
+        select.innerHTML = "<option value=\"\">Renderer</option>";
+
+        DAILY_STATE.recentScoreFiles.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item;
+            option.textContent = item;
+            select.appendChild(option);
+        });
+
+        if (currentValue) {
+            select.value = currentValue;
+        }
+    });
 }
 
 function getArchiveWeekStart() {
@@ -1193,6 +1270,8 @@ function renderEnsembleBoard() {
     DAILY_STATE.ensemble.forEach((item) => {
         board.appendChild(createEnsembleCardNode(item, template));
     });
+
+    renderInlineAssetOptions();
 }
 
 function renderPracticeCards() {
@@ -1322,7 +1401,7 @@ async function addEnsemble() {
     renderAll();
 }
 
-function initPracticeDailyPage() {
+async function initPracticeDailyPage() {
     if (!document.getElementById("practiceEditorCard")) {
         return;
     }
@@ -1344,9 +1423,30 @@ function initPracticeDailyPage() {
     setActiveMobileTarget(getPracticeFormTarget());
 
     renderAll();
+
+    try {
+        const payload = await loadDailyBootstrap();
+
+        updateStateFromReport(payload.daily_report || {});
+        DAILY_STATE.tuneSuggestions = payload.tune_suggestions || [];
+        DAILY_STATE.recentLickFiles = payload.recent_lick_files || [];
+        DAILY_STATE.recentScoreFiles = payload.recent_score_files || [];
+
+        renderAssetOptions("practiceLickFileInput", DAILY_STATE.recentLickFiles, "선택");
+        renderAssetOptions("practiceRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
+        renderAssetOptions("ensembleLickFileInput", DAILY_STATE.recentLickFiles, "선택");
+        renderAssetOptions("ensembleRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
+
+        renderAll();
+        setActiveMobileTarget(getPracticeFormTarget());
+    } catch (error) {
+        console.error("daily bootstrap error", error);
+    }
 }
 
-document.addEventListener("DOMContentLoaded", initPracticeDailyPage);
+document.addEventListener("DOMContentLoaded", () => {
+    void initPracticeDailyPage();
+});
 window.addEventListener("lick-settings-change", () => {
     const dateNode = document.getElementById("practiceDailyDate");
 
@@ -1362,10 +1462,6 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
-
-
-
 
 
 

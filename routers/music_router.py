@@ -65,6 +65,34 @@ def licks_page(request: Request, file: str = ""):
 @router.get("/daily")
 @router.get("/daliy")
 def daily_page(request: Request):
+    return render_page(
+        request,
+        "music/daily.html",
+        "연습일지",
+        {
+            "daily_report": {},
+            "current_archive": {"weekLabel": ""},
+            "tune_suggestions": [],
+            "recent_lick_files": [],
+            "recent_score_files": [],
+        },
+    )
+
+
+@router.get("/report")
+def report_page(request: Request):
+    return render_page(
+        request,
+        "music/report.html",
+        "주간 리포트",
+        {
+            "calendar_summary": {"days": [], "weeks": []},
+        },
+    )
+
+
+@router.get("/daily/data")
+def daily_page_data():
     reports = daily_repository.get_all_reports()
     week_key = daily_repository.get_week_key()
     current_report = next(
@@ -77,29 +105,24 @@ def daily_page(request: Request):
             "ensemble": [],
         },
     )
-    return render_page(
-        request,
-        "music/daily.html",
-        "연습일지",
+
+    return JSONResponse(
         {
             "daily_report": current_report,
             "current_archive": daily_repository.build_week_archive(current_report),
             "tune_suggestions": daily_repository.get_tune_suggestions(reports),
             "recent_lick_files": lick_repository.get_recent_files(),
             "recent_score_files": score_repository.get_recent_files(),
-        },
+        }
     )
 
 
-@router.get("/report")
-def report_page(request: Request):
-    return render_page(
-        request,
-        "music/report.html",
-        "주간 리포트",
+@router.get("/report/data")
+def report_page_data():
+    return JSONResponse(
         {
             "calendar_summary": daily_repository.build_calendar_summary(),
-        },
+        }
     )
 
 

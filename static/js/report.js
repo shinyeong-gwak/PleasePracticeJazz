@@ -47,6 +47,20 @@ function loadReportData() {
     }
 }
 
+async function loadReportBootstrap() {
+    const response = await fetch("/music/report/data", {
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`report bootstrap failed: ${response.status}`);
+    }
+
+    return response.json();
+}
+
 function getLevelClass(level) {
     if (level < 0) {
         return "report-cell-bad";
@@ -533,7 +547,7 @@ function renderSelectedWeek() {
     });
 }
 
-function initReportPage() {
+async function initReportPage() {
     const data = loadReportData();
 
     REPORT_STATE.days = data.days || [];
@@ -546,9 +560,28 @@ function initReportPage() {
     renderSelectedWeek();
     bindMobileToolButtons();
     updateMobileToolState();
+
+    try {
+        const payload = await loadReportBootstrap();
+        const summary = payload.calendar_summary || {};
+
+        REPORT_STATE.days = summary.days || [];
+        REPORT_STATE.weeks = summary.weeks || [];
+        REPORT_STATE.selectedWeekKey = REPORT_STATE.weeks[0]?.weekKey || "";
+
+        renderWeekdays();
+        renderReportCalendar();
+        renderWeekList();
+        renderSelectedWeek();
+        updateMobileToolState();
+    } catch (error) {
+        console.error("report bootstrap error", error);
+    }
 }
 
-document.addEventListener("DOMContentLoaded", initReportPage);
+document.addEventListener("DOMContentLoaded", () => {
+    void initReportPage();
+});
 window.addEventListener("lick-settings-change", () => {
     renderWeekdays();
     renderReportCalendar();
@@ -561,5 +594,4 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
 
