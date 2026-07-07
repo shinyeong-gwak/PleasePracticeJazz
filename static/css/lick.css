@@ -365,6 +365,15 @@ audio {
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
+    .kb-rhythm-icon {
+        display: block;
+        width: 28px;
+        height: 28px;
+        margin: 0 auto;
+        object-fit: contain;
+        pointer-events: none;
+    }
+
     .kb-row button:active {
 
         transform: translateY(1px);

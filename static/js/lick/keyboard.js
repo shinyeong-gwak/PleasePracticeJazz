@@ -23,10 +23,16 @@ const MUSIC_INPUT_IDS = [
     "voicingRhythmInput"
 ];
 
+const RHYTHM_INPUT_IDS = new Set([
+    "melodyRhythmInput",
+    "voicingRhythmInput"
+]);
+
 const RHYTHM_TOKENS = new Set([
     "1",
     "2",
     "4",
+    "6",
     "8",
     "12",
     "16",
@@ -34,8 +40,43 @@ const RHYTHM_TOKENS = new Set([
     "24"
 ]);
 
+const RHYTHM_ICON_BY_TOKEN = {
+    "1": {
+        src: "/static/img/rhythm-whole-note.svg",
+        alt: "whole note"
+    },
+    "2": {
+        src: "/static/img/rhythm-half-note.svg",
+        alt: "half note"
+    },
+    "12": {
+        src: "/static/img/rhythm-eighth-triplet.svg",
+        alt: "eighth note triplet"
+    },
+    "20": {
+        src: "/static/img/rhythm-sixteenth-quintuplet.svg",
+        alt: "sixteenth note quintuplet"
+    },
+    "6": {
+        src: "/static/img/rhythm-quarter-triplet.svg",
+        alt: "quarter note triplet"
+    },
+    "24": {
+        src: "/static/img/rhythm-sixteenth-sextuplet.svg",
+        alt: "sixteenth note sextuplet"
+    },
+    "!": {
+        src: "/static/img/rhythm-quarter-rest.svg",
+        alt: "quarter rest"
+    }
+};
+
 function isMusicInput(target) {
     return !!target && MUSIC_INPUT_IDS.includes(target.id);
+}
+
+function isRhythmInput(target) {
+    return !!target && RHYTHM_INPUT_IDS.has(target.id);
 }
 
 function getMusicInput(target) {
@@ -86,6 +127,8 @@ function updateKeyboardLayout() {
                 keyboardMode !== "chord"
             );
         });
+
+    renderKeyboardButtonLabels();
 }
 
 function updateRestLatchButton() {
@@ -104,6 +147,43 @@ function updateRestLatchButton() {
                 "aria-pressed",
                 restLatchActive ? "true" : "false"
             );
+        });
+}
+
+function cacheKeyboardButtonLabels() {
+    if (!keyboard) {
+        return;
+    }
+
+    keyboard
+        .querySelectorAll("[data-keyboard-action]")
+        .forEach(button => {
+            if (!button.dataset.keyboardDefaultHtml) {
+                button.dataset.keyboardDefaultHtml = button.innerHTML;
+            }
+        });
+}
+
+function renderKeyboardButtonLabels() {
+    if (!keyboard) {
+        return;
+    }
+
+    const showRhythmIcons = isRhythmInput(activeInput);
+
+    keyboard
+        .querySelectorAll("[data-keyboard-action]")
+        .forEach(button => {
+            const token = button.dataset.keyboardValue;
+            const icon = RHYTHM_ICON_BY_TOKEN[token];
+
+            if (showRhythmIcons && icon) {
+                button.innerHTML =
+                    `<img class="kb-rhythm-icon" src="${icon.src}" alt="${icon.alt}">`;
+                return;
+            }
+
+            button.innerHTML = button.dataset.keyboardDefaultHtml || "";
         });
 }
 
@@ -608,6 +688,8 @@ document.addEventListener(
                 "musicKeyboard"
             );
 
+        cacheKeyboardButtonLabels();
+        renderKeyboardButtonLabels();
         registerKeyboardButtons();
         updatePianoMode();
         updateRestLatchButton();
