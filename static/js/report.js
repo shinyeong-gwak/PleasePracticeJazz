@@ -13,6 +13,25 @@
     mobileToolsCollapsed: false,
 };
 
+const REALBOOK_LABELS = {
+    "Real-Book-1.pdf": "Real Book 1",
+    "Real-Book-2.pdf": "Real Book 2",
+    "Real-Book-3.pdf": "Real Book 3",
+    "New-Real-Book.pdf": "New Real Book 1",
+    "New-Real-Book-2.pdf": "New Real Book 2",
+    "New-Real-Book-3.pdf": "New Real Book 3",
+};
+
+function getRealbookLabel(value) {
+    const text = `${value || ""}`.trim();
+
+    if (!text) {
+        return "";
+    }
+
+    return REALBOOK_LABELS[text] || text;
+}
+
 function loadReportData() {
     const node = document.getElementById("report-calendar-data");
 
@@ -44,7 +63,7 @@ function buildArchiveItemMarkup(item, kind) {
     }
 
     if (item.book) {
-        meta.push(item.book);
+        meta.push(getRealbookLabel(item.book));
     }
 
     if (item.page) {
@@ -142,8 +161,9 @@ function updateMobileToolState() {
     const title = getMobileTargetTitle(target);
     const bpm = getMobileTargetBpm(target);
     const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
-    const pageLabel = target?.book
-        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
+    const bookLabel = getRealbookLabel(target?.book);
+    const pageLabel = bookLabel
+        ? `${bookLabel}${target?.page ? ` · p.${target.page}` : ""}`
         : target?.page
             ? `p.${target.page}`
             : "";
@@ -541,6 +561,5 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
 
 

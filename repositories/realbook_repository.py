@@ -15,6 +15,10 @@ BOOK_FILE_MAP = {
     "New Real Book 2": "New-Real-Book-2.pdf",
     "New Real Book 3": "New-Real-Book-3.pdf",
 }
+BOOK_LABEL_MAP = {
+    file_name: label
+    for label, file_name in BOOK_FILE_MAP.items()
+}
 
 
 def normalize_title(value: str) -> str:
@@ -26,8 +30,35 @@ def normalize_title(value: str) -> str:
     )
 
 
+def resolve_book_file_name(book_name: str) -> str:
+    value = str(book_name or "").strip()
+
+    if not value:
+        return ""
+
+    if value in BOOK_FILE_MAP:
+        return BOOK_FILE_MAP[value]
+
+    if value in BOOK_LABEL_MAP:
+        return value
+
+    return value
+
+
+def get_book_label(book_name: str) -> str:
+    value = str(book_name or "").strip()
+
+    if not value:
+        return ""
+
+    if value in BOOK_FILE_MAP:
+        return value
+
+    return BOOK_LABEL_MAP.get(value, value)
+
+
 def get_pdf_path(book_name: str) -> Path | None:
-    file_name = BOOK_FILE_MAP.get(str(book_name or "").strip())
+    file_name = resolve_book_file_name(book_name)
 
     if not file_name:
         return None
@@ -183,6 +214,6 @@ def resolve_realbook_page(book: str, title: str = "", page: str = ""):
         "success": True,
         "fileName": pdf_path.name,
         "page": resolved_page,
-        "book": book,
+        "book": get_book_label(book),
         "title": str(title or "").strip()
     }

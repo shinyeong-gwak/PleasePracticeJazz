@@ -21,8 +21,27 @@ const DAILY_STATE = {
     mobileToolsCollapsed: false,
 };
 
+const REALBOOK_LABELS = {
+    "Real-Book-1.pdf": "Real Book 1",
+    "Real-Book-2.pdf": "Real Book 2",
+    "Real-Book-3.pdf": "Real Book 3",
+    "New-Real-Book.pdf": "New Real Book 1",
+    "New-Real-Book-2.pdf": "New Real Book 2",
+    "New-Real-Book-3.pdf": "New Real Book 3",
+};
+
 function isDailyMobileLayout() {
     return window.matchMedia("(max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait)").matches;
+}
+
+function getRealbookLabel(value) {
+    const text = `${value || ""}`.trim();
+
+    if (!text) {
+        return "";
+    }
+
+    return REALBOOK_LABELS[text] || text;
 }
 
 function formatDailyDate() {
@@ -196,7 +215,7 @@ function buildArchiveItemMarkup(item, kind) {
     }
 
     if (item.book) {
-        meta.push(item.book);
+        meta.push(getRealbookLabel(item.book));
     }
 
     if (item.page) {
@@ -428,7 +447,7 @@ function buildPracticeMeta(item) {
     }
 
     if (item.book) {
-        parts.push(item.book);
+        parts.push(getRealbookLabel(item.book));
     }
 
     if (item.page) {
@@ -460,8 +479,9 @@ function updateMobileToolState() {
     const bpm = getMobileTargetBpm(target);
     const title = getMobileTargetTitle(target);
     const noteKind = target?.kind === "ensemble" ? "합주" : "연습";
-    const pageLabel = target?.book
-        ? `${target.book}${target?.page ? ` · p.${target.page}` : ""}`
+    const bookLabel = getRealbookLabel(target?.book);
+    const pageLabel = bookLabel
+        ? `${bookLabel}${target?.page ? ` · p.${target.page}` : ""}`
         : target?.page
             ? `p.${target.page}`
             : "";
@@ -1186,14 +1206,15 @@ function renderPracticeCards() {
         const card = fragment.querySelector(".practice-summary-card");
         const removeButton = fragment.querySelector(".practice-remove-button");
         const hasMetronome = !!item.metronome;
+        const bookLabel = getRealbookLabel(item.book);
 
         card.dataset.practiceId = item.id;
         card.classList.toggle("practice-summary-card-bad", item.status === "bad" || !hasMetronome);
         card.classList.toggle("practice-summary-card-good", item.status === "good");
         fragment.querySelector(".practice-summary-title").textContent = item.title || "제목 없는 연습";
         fragment.querySelector(".practice-summary-topline").textContent = item.page
-            ? `${item.book || "Book"} / p.${item.page}`
-            : item.book || "Book";
+            ? `${bookLabel || "Book"} / p.${item.page}`
+            : bookLabel || "Book";
         fragment.querySelector(".practice-summary-status").textContent = getStatusLabel(item.status);
         fragment.querySelector(".practice-summary-status").className = `practice-summary-status practice-summary-status-${item.status || "normal"}`;
         fragment.querySelector(".practice-summary-bpm").textContent = item.bpm ? `${item.bpm} BPM` : "BPM 없음";
@@ -1341,7 +1362,6 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
 
 
 
