@@ -31,6 +31,7 @@ const RHYTHM_INPUT_IDS = new Set([
 const RHYTHM_TOKENS = new Set([
     "1",
     "2",
+    "3",
     "4",
     "6",
     "8",
@@ -39,37 +40,6 @@ const RHYTHM_TOKENS = new Set([
     "20",
     "24"
 ]);
-
-const RHYTHM_ICON_BY_TOKEN = {
-    "1": {
-        src: "/static/img/rhythm-whole-note.svg",
-        alt: "whole note"
-    },
-    "2": {
-        src: "/static/img/rhythm-half-note.svg",
-        alt: "half note"
-    },
-    "12": {
-        src: "/static/img/rhythm-eighth-triplet.svg",
-        alt: "eighth note triplet"
-    },
-    "20": {
-        src: "/static/img/rhythm-sixteenth-quintuplet.svg",
-        alt: "sixteenth note quintuplet"
-    },
-    "6": {
-        src: "/static/img/rhythm-quarter-triplet.svg",
-        alt: "quarter note triplet"
-    },
-    "24": {
-        src: "/static/img/rhythm-sixteenth-sextuplet.svg",
-        alt: "sixteenth note sextuplet"
-    },
-    "!": {
-        src: "/static/img/rhythm-quarter-rest.svg",
-        alt: "quarter rest"
-    }
-};
 
 function isMusicInput(target) {
     return !!target && MUSIC_INPUT_IDS.includes(target.id);
@@ -96,17 +66,33 @@ function updateKeyboardLayout() {
         return;
     }
 
+    const rhythmMode =
+        isRhythmInput(activeInput);
+
     keyboardMode =
         activeInput?.id === "chordsInput"
             ? "chord"
             : "general";
+
+    if (rhythmMode && pianoMode) {
+        pianoMode = false;
+    }
+
+    keyboard
+        .querySelectorAll(".kb-rhythm-row")
+        .forEach(row => {
+            row.classList.toggle(
+                "hidden",
+                !rhythmMode
+            );
+        });
 
     keyboard
         .querySelectorAll(".kb-general-row")
         .forEach(row => {
             row.classList.toggle(
                 "hidden",
-                keyboardMode !== "general"
+                rhythmMode || keyboardMode !== "general"
             );
         });
 
@@ -115,7 +101,7 @@ function updateKeyboardLayout() {
         .forEach(row => {
             row.classList.toggle(
                 "hidden",
-                keyboardMode !== "general" || pianoMode
+                rhythmMode || keyboardMode !== "general" || pianoMode
             );
         });
 
@@ -124,11 +110,28 @@ function updateKeyboardLayout() {
         .forEach(row => {
             row.classList.toggle(
                 "hidden",
-                keyboardMode !== "chord"
+                rhythmMode || keyboardMode !== "chord"
             );
         });
 
-    renderKeyboardButtonLabels();
+    const piano =
+        keyboard.querySelector("#pianoKeyboard");
+
+    if (piano) {
+        piano.classList.toggle(
+            "hidden",
+            rhythmMode || !pianoMode
+        );
+    }
+
+    keyboard
+        .querySelectorAll(".kb-bottom-row")
+        .forEach(row => {
+            row.classList.toggle(
+                "hidden",
+                rhythmMode
+            );
+        });
 }
 
 function updateRestLatchButton() {
@@ -147,43 +150,6 @@ function updateRestLatchButton() {
                 "aria-pressed",
                 restLatchActive ? "true" : "false"
             );
-        });
-}
-
-function cacheKeyboardButtonLabels() {
-    if (!keyboard) {
-        return;
-    }
-
-    keyboard
-        .querySelectorAll("[data-keyboard-action]")
-        .forEach(button => {
-            if (!button.dataset.keyboardDefaultHtml) {
-                button.dataset.keyboardDefaultHtml = button.innerHTML;
-            }
-        });
-}
-
-function renderKeyboardButtonLabels() {
-    if (!keyboard) {
-        return;
-    }
-
-    const showRhythmIcons = isRhythmInput(activeInput);
-
-    keyboard
-        .querySelectorAll("[data-keyboard-action]")
-        .forEach(button => {
-            const token = button.dataset.keyboardValue;
-            const icon = RHYTHM_ICON_BY_TOKEN[token];
-
-            if (showRhythmIcons && icon) {
-                button.innerHTML =
-                    `<img class="kb-rhythm-icon" src="${icon.src}" alt="${icon.alt}">`;
-                return;
-            }
-
-            button.innerHTML = button.dataset.keyboardDefaultHtml || "";
         });
 }
 
@@ -699,8 +665,6 @@ document.addEventListener(
                 "musicKeyboard"
             );
 
-        cacheKeyboardButtonLabels();
-        renderKeyboardButtonLabels();
         registerKeyboardButtons();
         updatePianoMode();
         updateRestLatchButton();
