@@ -21,6 +21,10 @@ const DAILY_STATE = {
     mobileToolsCollapsed: false,
 };
 
+function isDailyMobileLayout() {
+    return window.matchMedia("(max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait)").matches;
+}
+
 function formatDailyDate() {
     return LickSettings.formatDateLabel(new Date());
 }
@@ -695,6 +699,7 @@ async function openRealbookView(target) {
 
 function bindMobileToolButtons() {
     const tools = document.getElementById("practiceMobileTools");
+    const desktopToggle = document.getElementById("practiceDesktopToolsToggle");
     const irealButton = document.getElementById("mobileIrealButton");
     const metro2Button = document.getElementById("mobileMetro2Button");
     const metro4Button = document.getElementById("mobileMetro4Button");
@@ -708,11 +713,23 @@ function bindMobileToolButtons() {
         return;
     }
 
+    if (desktopToggle && tools) {
+        desktopToggle.addEventListener("click", () => {
+            if (isDailyMobileLayout()) {
+                return;
+            }
+
+            const isVisible = tools.classList.toggle("show");
+            desktopToggle.classList.toggle("is-active", isVisible);
+            desktopToggle.setAttribute("aria-expanded", isVisible ? "true" : "false");
+        });
+    }
+
     if (toggleButton && tools) {
         toggleButton.addEventListener("click", () => {
             DAILY_STATE.mobileToolsCollapsed = !DAILY_STATE.mobileToolsCollapsed;
             tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
-        toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "숨기기" : "열기";
+            toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "숨기기" : "열기";
             toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
         });
     }
@@ -764,6 +781,27 @@ function bindMobileToolButtons() {
         });
     }
 }
+
+document.addEventListener("click", (event) => {
+    if (isDailyMobileLayout()) {
+        return;
+    }
+
+    const tools = document.getElementById("practiceMobileTools");
+    const desktopToggle = document.getElementById("practiceDesktopToolsToggle");
+
+    if (!tools || !desktopToggle || !tools.classList.contains("show")) {
+        return;
+    }
+
+    if (event.target.closest("#practiceMobileTools, #practiceDesktopToolsToggle")) {
+        return;
+    }
+
+    tools.classList.remove("show");
+    desktopToggle.classList.remove("is-active");
+    desktopToggle.setAttribute("aria-expanded", "false");
+});
 
 function getSelectedPracticeTopics() {
     return Array.from(
@@ -1303,8 +1341,6 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
-
 
 
 

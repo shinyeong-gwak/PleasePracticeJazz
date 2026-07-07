@@ -1356,8 +1356,173 @@ tr.hidden,
     display: none;
 }
 
+.practice-desktop-tools-toggle {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 998;
+    display: none;
+    min-width: 70px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(120, 148, 138, 0.2);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 16px 36px rgba(17, 45, 36, 0.16);
+    color: var(--accent-strong);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+}
+
+.practice-desktop-tools-toggle.is-active {
+    background: var(--accent-strong);
+    color: #fff;
+    border-color: var(--accent-strong);
+}
+
 .practice-mobile-tools {
     display: none;
+}
+
+@media (min-width: 1025px) {
+    .practice-desktop-tools-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .practice-mobile-tools {
+        position: fixed;
+        right: 18px;
+        bottom: 72px;
+        width: min(360px, calc(100vw - 36px));
+        display: none;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(120, 148, 138, 0.18);
+        box-shadow: 0 18px 40px rgba(35, 55, 47, 0.14);
+        backdrop-filter: blur(18px);
+        z-index: 999;
+        max-height: min(62vh, 520px);
+        overflow-y: auto;
+    }
+
+    .practice-mobile-tools.show {
+        display: grid;
+    }
+
+    .practice-mobile-tools-header {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .practice-mobile-tools-meta {
+        display: grid;
+        gap: 4px;
+        padding: 2px 4px 0;
+        min-width: 0;
+    }
+
+    .practice-mobile-tools-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .practice-mobile-tools-subtitle {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .practice-mobile-tools-toggle {
+        flex-shrink: 0;
+        min-height: 34px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(120, 148, 138, 0.2);
+        background: #f5faf7;
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 800;
+        box-shadow: none;
+    }
+
+    .practice-mobile-tools-body {
+        display: grid;
+    }
+
+    .practice-mobile-tools-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .practice-mobile-tool-button {
+        min-height: 58px;
+        padding: 10px 14px;
+        border-radius: 18px;
+        border: none;
+        background: rgba(255, 255, 255, 0.82);
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        align-items: center;
+        justify-items: start;
+        gap: 10px;
+        box-shadow: none;
+    }
+
+    .practice-mobile-tool-button img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        border-radius: 6px;
+    }
+
+    .practice-mobile-tool-button-metro {
+        background: rgba(255, 255, 255, 0.82);
+    }
+
+    .practice-mobile-tool-button.is-active {
+        box-shadow: 0 10px 24px rgba(61, 153, 115, 0.18);
+        background: rgba(223, 245, 233, 0.95);
+    }
+
+    .practice-mobile-tool-emoji {
+        font-size: 28px;
+        line-height: 1;
+        justify-self: center;
+    }
+
+    .practice-mobile-tool-value {
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .practice-mobile-tools.is-collapsed {
+        gap: 0;
+        padding-bottom: 10px;
+        box-shadow: 0 10px 24px rgba(35, 55, 47, 0.1);
+    }
+
+    .practice-mobile-tools.is-collapsed .practice-mobile-tools-subtitle {
+        display: none;
+    }
+
+    .practice-mobile-tools.is-collapsed .practice-mobile-tools-body {
+        display: none;
+    }
 }
 
 @media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
