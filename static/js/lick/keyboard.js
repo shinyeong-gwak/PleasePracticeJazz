@@ -13,6 +13,7 @@ let audioContext = null;
 let keyboardMode = "general";
 let audioUnlocked = false;
 let restLatchActive = false;
+let desktopToggleButton = null;
 
 const MUSIC_INPUT_IDS = [
     "chordsInput",
@@ -183,6 +184,11 @@ function showKeyboardFor(target) {
         keyboard.classList.add("show");
     }
 
+    if (desktopToggleButton) {
+        desktopToggleButton.classList.add("is-active");
+        desktopToggleButton.setAttribute("aria-expanded", "true");
+    }
+
     target.readOnly = true;
     target.focus({preventScroll: true});
 
@@ -217,6 +223,11 @@ function showKeyboardFor(target) {
 function hideKeyboard() {
     if (keyboard) {
         keyboard.classList.remove("show");
+    }
+
+    if (desktopToggleButton) {
+        desktopToggleButton.classList.remove("is-active");
+        desktopToggleButton.setAttribute("aria-expanded", "false");
     }
 
     if (activeInput) {
@@ -632,6 +643,10 @@ function shouldKeepKeyboardVisible(target) {
         return false;
     }
 
+    if (target.closest("#desktopKeyboardToggle")) {
+        return true;
+    }
+
     if (target.closest("#musicKeyboard")) {
         return true;
     }
@@ -657,6 +672,34 @@ function blurMusicInputs(exceptTarget = null) {
     });
 }
 
+function toggleDesktopKeyboard() {
+    if (!keyboard || isMobile) {
+        return;
+    }
+
+    const isVisible =
+        keyboard.classList.contains("show");
+
+    if (isVisible) {
+        blurMusicInputs();
+        hideKeyboard();
+        return;
+    }
+
+    const fallbackInput =
+        activeInput ||
+        MUSIC_INPUT_IDS
+            .map(id => document.getElementById(id))
+            .find(Boolean);
+
+    if (!fallbackInput) {
+        return;
+    }
+
+    setActiveMusicInput(fallbackInput);
+    showKeyboardFor(fallbackInput);
+}
+
 document.addEventListener(
     "DOMContentLoaded",
     () => {
@@ -664,10 +707,24 @@ document.addEventListener(
             document.getElementById(
                 "musicKeyboard"
             );
+        desktopToggleButton =
+            document.getElementById(
+                "desktopKeyboardToggle"
+            );
 
         registerKeyboardButtons();
         updatePianoMode();
         updateRestLatchButton();
+
+        if (desktopToggleButton) {
+            desktopToggleButton.addEventListener(
+                "click",
+                () => {
+                    void ensureKeyboardAudioReady();
+                    toggleDesktopKeyboard();
+                }
+            );
+        }
 
         if (!isMobile) {
             return;
@@ -727,6 +784,12 @@ document.addEventListener(
         }
 
         if (!isMobile) {
+            if (shouldKeepKeyboardVisible(event.target)) {
+                return;
+            }
+
+            blurMusicInputs();
+            hideKeyboard();
             return;
         }
 
@@ -760,6 +823,12 @@ document.addEventListener(
         }
 
         if (!isMobile) {
+            if (shouldKeepKeyboardVisible(event.target)) {
+                return;
+            }
+
+            blurMusicInputs();
+            hideKeyboard();
             return;
         }
 

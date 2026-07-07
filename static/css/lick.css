@@ -270,6 +270,166 @@ audio {
     flex-wrap: wrap;
 }
 
+.desktop-keyboard-toggle {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 99998;
+    display: none;
+    min-width: 64px;
+    padding: 10px 14px;
+    border: 1px solid rgba(33, 78, 62, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 16px 36px rgba(17, 45, 36, 0.18);
+    color: #214e3e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+}
+
+.desktop-keyboard-toggle.is-active {
+    background: #214e3e;
+    color: #fff;
+    border-color: #214e3e;
+}
+
+.music-keyboard {
+    display: none;
+}
+
+.music-keyboard.show {
+    display: block;
+}
+
+.music-keyboard .hidden {
+    display: none !important;
+}
+
+.kb-row {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.kb-chord-row button {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.kb-row button {
+    flex: 1;
+    min-height: 34px;
+    border: none;
+    border-radius: 6px;
+    background: white;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+    font-size: 12px !important;
+    color: black !important;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.kb-rhythm-icon {
+    display: block;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.kb-row button:active {
+    transform: translateY(1px);
+    background: #f0f0f0;
+}
+
+.kb-row button.is-latched {
+    transform: translateY(1px);
+    background: #dbeafe;
+    box-shadow: inset 0 1px 3px rgba(37, 99, 235, 0.28);
+    color: #1d4ed8 !important;
+}
+
+.kb-row .wide {
+    flex: 2.5 !important;
+}
+
+.kb-row .mini {
+    flex: 0.9 !important;
+    min-width: 44px;
+}
+
+.kb-bottom-row {
+    align-items: stretch;
+}
+
+.kb-piano {
+    margin-bottom: 8px;
+    padding: 8px 6px 2px;
+    border-radius: 10px;
+    background: #bcc3cd;
+}
+
+.kb-piano-black-row,
+.kb-piano-white-row {
+    display: grid;
+    gap: 4px;
+}
+
+.kb-piano-black-row {
+    grid-template-columns: .7fr 1fr 1fr .7fr 1fr 1fr 1fr .7fr;
+    margin-bottom: 4px;
+}
+
+.kb-piano-white-row {
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.kb-piano-black-spacer,
+.kb-piano-black-gap {
+    display: block;
+}
+
+.kb-piano-key.white {
+    height: 58px;
+    background: #fff;
+    color: #111 !important;
+}
+
+.kb-piano-key.black {
+    height: 42px;
+    background: #1f2937 !important;
+    color: #fff !important;
+    font-size: 10px !important;
+}
+
+@media (min-width: 1025px) {
+    .desktop-keyboard-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .music-keyboard {
+        position: fixed;
+        right: 18px;
+        bottom: 72px;
+        width: min(420px, calc(100vw - 36px));
+        padding: 10px;
+        z-index: 99999;
+        border: 1px solid #b8bcc2;
+        border-radius: 16px;
+        background: rgba(209, 213, 219, 0.96);
+        box-shadow: 0 18px 48px rgba(34, 44, 56, 0.18);
+        backdrop-filter: blur(12px);
+        user-select: none;
+        max-height: min(44vh, 360px);
+        overflow-y: auto;
+    }
+}
+
 @media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
     .lick-workbench {
         display: flex;
@@ -311,8 +471,11 @@ audio {
         padding: 20px;
     }
 
-    .music-keyboard {
+    .desktop-keyboard-toggle {
         display: none;
+    }
+
+    .music-keyboard {
         position: fixed;
         left: 12px;
         right: 12px;
@@ -328,128 +491,6 @@ audio {
         user-select: none;
         max-height: min(48vh, 420px);
         overflow-y: auto;
-    }
-
-    .music-keyboard.show {
-        display: block;
-    }
-
-    .music-keyboard .hidden {
-        display: none !important;
-    }
-
-    .kb-row {
-
-        display: flex;
-
-        gap: 5px;
-
-        margin-bottom: 6px;
-    }
-
-    .kb-chord-row button {
-
-        flex: 1 1 0;
-        min-width: 0;
-    }
-
-    .kb-row button {
-        flex: 1;
-        min-height: 34px;
-        border: none;
-        border-radius: 6px;
-        background: white;
-        box-shadow: 0 1px 0 rgba(0,0,0,.25);
-        font-size: 12px !important;
-        color: black !important;
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    .kb-rhythm-icon {
-        display: block;
-        width: 28px;
-        height: 28px;
-        margin: 0 auto;
-        object-fit: contain;
-        pointer-events: none;
-    }
-
-    .kb-row button:active {
-
-        transform: translateY(1px);
-
-        background: #f0f0f0;
-    }
-
-    .kb-row button.is-latched {
-        transform: translateY(1px);
-        background: #dbeafe;
-        box-shadow: inset 0 1px 3px rgba(37, 99, 235, 0.28);
-        color: #1d4ed8 !important;
-    }
-
-    .kb-row .wide {
-
-        flex: 2.5 !important;
-    }
-
-    .kb-row .mini {
-
-        flex: .9 !important;
-        min-width: 44px;
-    }
-
-    .kb-bottom-row {
-
-        align-items: stretch;
-    }
-
-    .kb-piano {
-
-        margin-bottom: 8px;
-        padding: 8px 6px 2px;
-        border-radius: 10px;
-        background: #bcc3cd;
-    }
-
-    .kb-piano-black-row,
-    .kb-piano-white-row {
-
-        display: grid;
-        gap: 4px;
-    }
-
-    .kb-piano-black-row {
-
-        grid-template-columns:
-            .7fr 1fr 1fr .7fr 1fr 1fr 1fr .7fr;
-        margin-bottom: 4px;
-    }
-
-    .kb-piano-white-row {
-
-        grid-template-columns: repeat(7, 1fr);
-    }
-
-    .kb-piano-black-spacer,
-    .kb-piano-black-gap {
-
-        display: block;
-    }
-
-    .kb-piano-key.white {
-
-        height: 58px;
-        background: #fff;
-        color: #111 !important;
-    }
-
-    .kb-piano-key.black {
-
-        height: 42px;
-        background: #1f2937 !important;
-        color: #fff !important;
-        font-size: 10px !important;
     }
 
     input,
