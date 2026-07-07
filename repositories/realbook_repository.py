@@ -5,8 +5,10 @@ import subprocess
 from pathlib import Path
 from urllib.parse import unquote_plus
 
+from repositories.db import query_one
 
-REALBOOK_DIR = Path("./downloads/realbook")
+
+REALBOOK_DIR = Path("downloads/realbook")
 CACHE_FILE = Path("data/music/realbook_matches.json")
 BOOK_FILE_MAP = {
     "Real Book 1": "Real-Book-1.pdf",
@@ -67,6 +69,82 @@ def get_pdf_path(book_name: str) -> Path | None:
 
     path = REALBOOK_DIR / file_name
     return path if path.exists() else None
+
+
+def find_page_by_title_in_db(book_name: str, title: str):
+    query_text = unquote_plus(str(title or "")).strip()
+    normalized_query = normalize_title(query_text)
+    book_label = get_book_label(book_name)
+    file_name = resolve_book_file_name(book_name)
+
+    if not normalized_query or not book_label:
+        return None
+
+    row = query_one(
+        """
+        WITH target_book AS (
+            SELECT sb.id
+            FROM music.sheet_book sb
+            WHERE sb.title = :'book_title'
+               OR split_part(sb.pdf_path, '/', array_length(string_to_array(sb.pdf_path, '/'), 1)) = :'file_name'
+            ORDER BY
+                CASE
+                    WHEN sb.title = :'book_title' THEN 0
+                    ELSE 1
+                END
+            LIMIT 1
+        ),
+        ranked_song AS (
+            SELECT
+                s.id,
+                s.title,
+                s.normalized_title,
+                CASE
+                    WHEN s.normalized_title = :'normalized_title' THEN 3
+                    WHEN s.normalized_title LIKE :'normalized_prefix' THEN 2
+                    WHEN s.normalized_title LIKE :'normalized_contains' THEN 1
+                    ELSE 0
+                END AS match_rank
+            FROM music.song s
+            WHERE s.normalized_title = :'normalized_title'
+               OR s.normalized_title LIKE :'normalized_prefix'
+               OR s.normalized_title LIKE :'normalized_contains'
+            ORDER BY match_rank DESC, length(s.normalized_title) ASC
+            LIMIT 1
+        )
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                sbs.page,
+                rs.title,
+                rs.normalized_title
+            FROM target_book tb
+            JOIN music.sheet_book_song sbs
+              ON sbs.sheet_book_id = tb.id
+            JOIN ranked_song rs
+              ON rs.id = sbs.song_id
+            ORDER BY sbs.page ASC
+            LIMIT 1
+        ) AS t
+        """,
+        {
+            "book_title": book_label,
+            "file_name": file_name,
+            "normalized_title": normalized_query,
+            "normalized_prefix": f"{normalized_query}%",
+            "normalized_contains": f"%{normalized_query}%",
+        },
+    )
+
+    if not row:
+        return None
+
+    try:
+        page = int(row.get("page") or 0)
+    except (TypeError, ValueError):
+        return None
+
+    return page if page > 0 else None
 
 
 def load_cache():
@@ -291,10 +369,13 @@ def resolve_realbook_page(book: str, title: str = "", page: str = ""):
             "message": "선택한 악보집 PDF를 찾을 수 없습니다."
         }
 
-    resolved_page = find_page_by_title(
-        pdf_path,
-        title
-    )
+    resolved_page = find_page_by_title_in_db(book, title)
+
+    if resolved_page is None:
+        resolved_page = find_page_by_title(
+            pdf_path,
+            title
+        )
 
     if resolved_page is None:
         try:
