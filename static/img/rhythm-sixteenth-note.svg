@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Sixteenth note">
+  <g fill="#111827">
+    <ellipse cx="23" cy="45" rx="11" ry="7.5" transform="rotate(-20 23 45)"/>
+    <rect x="29" y="13" width="4" height="32" rx="2"/>
+    <path d="M33 14C41 16 47 21 48 28C43 24 39 23 33 23Z"/>
+    <path d="M33 21C41 23 47 28 48 35C43 31 39 30 33 30Z"/>
+  </g>
+</svg>
