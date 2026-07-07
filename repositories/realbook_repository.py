@@ -3,6 +3,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from urllib.parse import unquote_plus
 
 
 REALBOOK_DIR = Path("downloads/realbook")
@@ -22,10 +23,11 @@ BOOK_LABEL_MAP = {
 
 
 def normalize_title(value: str) -> str:
+    decoded = unquote_plus(str(value or ""))
     return re.sub(
         r"[\W_]+",
         "",
-        str(value or "").casefold(),
+        decoded.casefold(),
         flags=re.UNICODE
     )
 
@@ -95,7 +97,8 @@ def save_cache(cache):
 
 
 def find_page_by_title(pdf_path: Path, title: str):
-    normalized_query = normalize_title(title)
+    query_text = unquote_plus(str(title or "")).strip()
+    normalized_query = normalize_title(query_text)
 
     if not normalized_query:
         return None
@@ -115,12 +118,97 @@ ObjC.import('Foundation');
 ObjC.import('PDFKit');
 
 const path = {json.dumps(str(pdf_path.resolve()))};
-const query = {json.dumps(normalized_query)};
+const queryRaw = {json.dumps(query_text)};
 
 function normalize(value) {{
   return String(value || '')
     .toLowerCase()
-    .replace(/[\\W_]+/gu, '');
+    .replace(/\\+/g, ' ')
+    .replace(/&/g, ' and ')
+    .replace(/\\bst[.]?\\b/gu, ' street ')
+    .replace(/\\bmt[.]?\\b/gu, ' mount ')
+    .replace(/\\bft[.]?\\b/gu, ' fort ')
+    .replace(/[’']/gu, '')
+    .replace(/[^\\p{{L}}\\p{{N}}]+/gu, ' ')
+    .trim()
+    .replace(/\\s+/g, ' ');
+}}
+
+function compact(value) {{
+  return normalize(value).replace(/\\s+/g, '');
+}}
+
+function scorePage(text, query) {{
+  const normalizedText = normalize(text);
+  const compactText = normalizedText.replace(/\\s+/g, '');
+  const normalizedQuery = normalize(query);
+  const compactQuery = compact(query);
+
+  if (!normalizedQuery || !compactQuery) {{
+    return {{ score: 0, exact: false }};
+  }}
+
+  if (compactText.includes(compactQuery)) {{
+    return {{ score: 10, exact: true }};
+  }}
+
+  const stopwords = new Set(['a', 'an', 'and', 'of', 'the', 'on', 'in']);
+  const queryTokens = normalizedQuery
+    .split(' ')
+    .filter(Boolean);
+  const textTokens = normalizedText
+    .split(' ')
+    .filter(Boolean);
+  const filteredQueryTokens = queryTokens.filter(
+    token => token.length > 1 && !stopwords.has(token)
+  );
+
+  if (!filteredQueryTokens.length) {{
+    return {{ score: 0, exact: false }};
+  }}
+
+  let matched = 0;
+  let orderedIndex = -1;
+  let orderedMatches = 0;
+
+  for (const token of filteredQueryTokens) {{
+    const foundIndex = textTokens.findIndex(
+      candidate =>
+        candidate === token ||
+        candidate.startsWith(token) ||
+        token.startsWith(candidate)
+    );
+
+    if (foundIndex >= 0) {{
+      matched += 1;
+
+      const nextOrderedIndex = textTokens.findIndex(
+        (candidate, index) =>
+          index > orderedIndex &&
+          (
+            candidate === token ||
+            candidate.startsWith(token) ||
+            token.startsWith(candidate)
+          )
+      );
+
+      if (nextOrderedIndex >= 0) {{
+        orderedIndex = nextOrderedIndex;
+        orderedMatches += 1;
+      }}
+    }}
+  }}
+
+  const overlapRatio = matched / filteredQueryTokens.length;
+  const orderedRatio = orderedMatches / filteredQueryTokens.length;
+  const phraseBonus = filteredQueryTokens.length >= 2 &&
+    compactText.includes(filteredQueryTokens.join('')) ? 0.25 : 0;
+  const score = overlapRatio + (orderedRatio * 0.35) + phraseBonus;
+
+  return {{
+    score,
+    exact: false
+  }};
 }}
 
 const url = $.NSURL.fileURLWithPath(path);
@@ -130,16 +218,29 @@ if (!doc) {{
   console.log(JSON.stringify({{ page: 0 }}));
 }} else {{
   let pageNumber = 0;
+  let bestPage = 0;
+  let bestScore = 0;
 
   for (let index = 0; index < doc.pageCount; index += 1) {{
     const page = doc.pageAtIndex(index);
     const raw = page ? page.string : null;
     const text = raw ? ObjC.unwrap(raw) : '';
 
-    if (normalize(text).includes(query)) {{
+    const result = scorePage(text, queryRaw);
+
+    if (result.exact) {{
       pageNumber = index + 1;
       break;
     }}
+
+    if (result.score > bestScore) {{
+      bestScore = result.score;
+      bestPage = index + 1;
+    }}
+  }}
+
+  if (!pageNumber && bestScore >= 0.72) {{
+    pageNumber = bestPage;
   }}
 
   console.log(JSON.stringify({{ page: pageNumber }}));
