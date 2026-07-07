@@ -208,9 +208,31 @@ def _query_user_row(sql, params=None):
     return query_rows(sql, merged)
 
 
-def _load_weekly_goals():
+def _build_week_filter_sql(column_name, target_date=None):
+    if target_date is None:
+        return "", {}
+
+    week_start, week_end = get_week_range(target_date)
+    return (
+        f"""
+          AND ({column_name} AT TIME ZONE :'time_zone')::date
+              BETWEEN :'week_start'::date AND :'week_end'::date
+        """,
+        {
+            "time_zone": get_app_timezone().key,
+            "week_start": week_start.isoformat(),
+            "week_end": week_end.isoformat(),
+        },
+    )
+
+
+def _load_weekly_goals(target_date=None):
+    week_filter_sql, week_filter_params = _build_week_filter_sql(
+        "created_at",
+        target_date,
+    )
     return _query_user_row(
-        """
+        f"""
         SELECT row_to_json(t)
         FROM (
             SELECT
@@ -223,15 +245,21 @@ def _load_weekly_goals():
                 updated_at::text AS "updatedAt"
             FROM weekly_goal
             WHERE user_id = :'user_id'::uuid
+            {week_filter_sql}
             ORDER BY created_at DESC
         ) AS t
-        """
+        """,
+        week_filter_params,
     )
 
 
-def _load_practice_items():
+def _load_practice_items(target_date=None):
+    week_filter_sql, week_filter_params = _build_week_filter_sql(
+        "pi.created_at",
+        target_date,
+    )
     return _query_user_row(
-        """
+        f"""
         SELECT row_to_json(t)
         FROM (
             SELECT
@@ -250,7 +278,7 @@ def _load_practice_items():
                 COALESCE(sc.file_name, sc.original_file_name, '') AS "rendererFile",
                 lower(pi.status::text) AS status,
                 COALESCE(pi.metronome, false) AS metronome,
-                COALESCE(array_agg(DISTINCT tp.name) FILTER (WHERE tp.name IS NOT NULL), '{}'::text[]) AS topics,
+                COALESCE(array_agg(DISTINCT tp.name) FILTER (WHERE tp.name IS NOT NULL), '{{}}'::text[]) AS topics,
                 pi.created_at::text AS "createdAt",
                 pi.updated_at::text AS "updatedAt"
             FROM practice_item pi
@@ -259,6 +287,7 @@ def _load_practice_items():
             LEFT JOIN practice_topic pt ON pt.practice_id = pi.id
             LEFT JOIN topic tp ON tp.id = pt.topic_id
             WHERE pi.user_id = :'user_id'::uuid
+            {week_filter_sql}
             GROUP BY
                 pi.id,
                 pi.type,
@@ -277,7 +306,8 @@ def _load_practice_items():
                 sc.original_file_name
             ORDER BY pi.created_at DESC
         ) AS t
-        """
+        """,
+        week_filter_params,
     )
 
 
@@ -480,6 +510,23 @@ def _build_reports():
     return reports
 
 
+def _build_report_for_week(target_date=None):
+    week_key = get_week_key(target_date)
+    report = {
+        "weekKey": week_key,
+        "weekLabel": get_week_label(target_date),
+        "homework": _load_weekly_goals(target_date),
+        "practice": [],
+        "ensemble": [],
+    }
+
+    for item in _load_practice_items(target_date):
+        collection = "ensemble" if item.get("collection") == "ensemble" else "practice"
+        report[collection].append(item)
+
+    return report
+
+
 def _build_insights():
     insights = {category: [] for category in INSIGHT_CATEGORIES}
 
@@ -503,20 +550,7 @@ def _build_insights():
 
 
 def get_current_report():
-    reports = _build_reports()
-    week_key = get_week_key()
-    report = reports.get(
-        week_key,
-        {
-            "weekKey": week_key,
-            "weekLabel": get_week_label(),
-            "homework": [],
-            "practice": [],
-            "ensemble": [],
-        },
-    )
-
-    return report
+    return _build_report_for_week()
 
 
 def get_all_reports(reports=None):
@@ -531,7 +565,23 @@ def get_insights():
 
 def get_tune_suggestions(reports=None):
     if reports is None:
-        reports = get_all_reports()
+        rows = _query_user_row(
+            """
+            SELECT row_to_json(t)
+            FROM (
+                SELECT DISTINCT title
+                FROM practice_item
+                WHERE user_id = :'user_id'::uuid
+                  AND COALESCE(title, '') <> ''
+                ORDER BY title
+            ) AS t
+            """
+        )
+        return [
+            str(row.get("title") or "").strip()
+            for row in rows
+            if str(row.get("title") or "").strip()
+        ]
 
     suggestions = []
     seen = set()
@@ -549,19 +599,27 @@ def get_tune_suggestions(reports=None):
 
 
 def get_first_activity_date():
-    first_date = None
+    row = _query_user_row(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT MIN(created_date)::text AS "createdDate"
+            FROM (
+                SELECT (created_at AT TIME ZONE :'time_zone')::date AS created_date
+                FROM weekly_goal
+                WHERE user_id = :'user_id'::uuid
+                UNION ALL
+                SELECT (created_at AT TIME ZONE :'time_zone')::date AS created_date
+                FROM practice_item
+                WHERE user_id = :'user_id'::uuid
+            ) AS combined
+        ) AS t
+        """,
+        {"time_zone": get_app_timezone().key},
+    )
 
-    for report in get_all_reports():
-        for collection_name in ["homework", "practice", "ensemble"]:
-            for item in report.get(collection_name, []):
-                created_date = parse_item_date(item.get("createdAt"))
-                if created_date is None:
-                    continue
-
-                if first_date is None or created_date < first_date:
-                    first_date = created_date
-
-    return first_date or get_today()
+    created_date = parse_item_date(row[0].get("createdDate")) if row else None
+    return created_date or get_today()
 
 
 def build_week_archive(report):

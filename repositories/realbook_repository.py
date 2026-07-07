@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.parse import unquote_plus
 
 
-REALBOOK_DIR = Path("downloads/realbook")
+REALBOOK_DIR = Path("./downloads/realbook")
 CACHE_FILE = Path("data/music/realbook_matches.json")
 BOOK_FILE_MAP = {
     "Real Book 1": "Real-Book-1.pdf",
