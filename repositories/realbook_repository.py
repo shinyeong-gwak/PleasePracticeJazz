@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -75,6 +76,9 @@ def find_page_by_title(pdf_path: Path, title: str):
     if isinstance(cached_page, int) and cached_page > 0:
         return cached_page
 
+    if shutil.which("osascript") is None:
+        return None
+
     script = f"""
 ObjC.import('Foundation');
 ObjC.import('PDFKit');
@@ -111,13 +115,16 @@ if (!doc) {{
 }}
 """
 
-    result = subprocess.run(
-        ["osascript", "-l", "JavaScript"],
-        input=script,
-        text=True,
-        capture_output=True,
-        check=False
-    )
+    try:
+        result = subprocess.run(
+            ["osascript", "-l", "JavaScript"],
+            input=script,
+            text=True,
+            capture_output=True,
+            check=False
+        )
+    except FileNotFoundError:
+        return None
 
     output_lines = [
         line.strip()
