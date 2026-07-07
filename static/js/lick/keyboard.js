@@ -192,19 +192,30 @@ function setRestLatchActive(active) {
     updateRestLatchButton();
 }
 
-function showKeyboardFor(target) {
-    if (!isMobile || !isMusicInput(target)) {
+function setActiveMusicInput(target) {
+    if (!isMusicInput(target)) {
         return;
     }
 
     activeInput = target;
-    activeCaret = target.value.length;
+    activeCaret =
+        typeof target.selectionStart === "number"
+            ? target.selectionStart
+            : target.value.length;
+
+    updateKeyboardLayout();
+}
+
+function showKeyboardFor(target) {
+    if (!isMusicInput(target)) {
+        return;
+    }
+
+    setActiveMusicInput(target);
 
     if (keyboard) {
         keyboard.classList.add("show");
     }
-
-    updateKeyboardLayout();
 
     target.readOnly = true;
     target.focus({preventScroll: true});
@@ -736,17 +747,22 @@ document.addEventListener(
 document.addEventListener(
     "pointerdown",
     event => {
-        if (!isMobile) {
-            return;
-        }
-
         const input =
             getMusicInput(event.target);
 
         if (isMusicInput(input)) {
-            event.preventDefault();
-            blurMusicInputs(input);
-            showKeyboardFor(input);
+            if (isMobile) {
+                event.preventDefault();
+                blurMusicInputs(input);
+                showKeyboardFor(input);
+                return;
+            }
+
+            setActiveMusicInput(input);
+            return;
+        }
+
+        if (!isMobile) {
             return;
         }
 
@@ -768,13 +784,18 @@ document.addEventListener(
 document.addEventListener(
     "focusin",
     event => {
-        if (!isMobile) {
+        if (isMusicInput(event.target)) {
+            if (isMobile) {
+                blurMusicInputs(event.target);
+                showKeyboardFor(event.target);
+                return;
+            }
+
+            setActiveMusicInput(event.target);
             return;
         }
 
-        if (isMusicInput(event.target)) {
-            blurMusicInputs(event.target);
-            showKeyboardFor(event.target);
+        if (!isMobile) {
             return;
         }
 
