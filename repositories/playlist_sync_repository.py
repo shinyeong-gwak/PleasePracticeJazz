@@ -66,6 +66,49 @@ def _ensure_playlist(playlist_name, url):
     return created["id"] if created else None
 
 
+def _upsert_audio_track(item):
+    file_name = item.get("filename") or ""
+    file_path = str(item.get("filePath") or f"downloads/mp3/{file_name}")
+
+    row = query_one(
+        """
+        WITH inserted AS (
+            INSERT INTO audio_track (
+                file_name,
+                file_path,
+                source_type,
+                source_url,
+                duration_sec
+            )
+            VALUES (
+                :'file_name',
+                :'file_path',
+                :'source_type',
+                :'source_url',
+                NULLIF(:'duration_sec', '')::int
+            )
+            ON CONFLICT (file_path) DO UPDATE SET
+                file_name = EXCLUDED.file_name,
+                source_type = EXCLUDED.source_type,
+                source_url = EXCLUDED.source_url,
+                duration_sec = EXCLUDED.duration_sec,
+                updated_at = now()
+            RETURNING id::text AS id
+        )
+        SELECT row_to_json(inserted)
+        FROM inserted
+        """,
+        {
+            "file_name": file_name,
+            "file_path": file_path,
+            "source_type": "youtube" if item.get("url") else "local",
+            "source_url": item.get("url") or "",
+            "duration_sec": item.get("durationSec") or "",
+        },
+    )
+    return row["id"] if row else None
+
+
 def get_all():
     user_id = get_or_create_user_id()
     playlists = query_rows(
@@ -78,20 +121,22 @@ def get_all():
                 COALESCE(
                     json_agg(
                         json_build_object(
-                            'id', pi.youtube_video_id,
-                            'title', COALESCE(pi.title, pi.file_name),
+                            'id', at.id::text,
+                            'title', COALESCE(at.file_name, at.file_path),
                             'artist', '',
-                            'url', pi.source_url,
-                            'filename', pi.file_name,
-                            'filePath', pi.file_path
+                            'url', COALESCE(at.source_url, ''),
+                            'filename', at.file_name,
+                            'filePath', at.file_path
                         )
-                        ORDER BY pi.created_at, pi.id
-                    ) FILTER (WHERE pi.id IS NOT NULL),
+                        ORDER BY pt.position, at.created_at, at.id
+                    ) FILTER (WHERE at.id IS NOT NULL),
                     '[]'::json
                 ) AS items
             FROM playlist p
-            LEFT JOIN playlist_item pi
-                ON pi.playlist_id = p.id
+            LEFT JOIN playlist_track pt
+                ON pt.playlist_id = p.id
+            LEFT JOIN audio_track at
+                ON at.id = pt.track_id
             WHERE p.user_id = :'user_id'::uuid
               AND LEFT(p.name, 2) <> '__'
             GROUP BY p.id
@@ -126,56 +171,49 @@ def save_playlist_state(playlist_name, playlist_state):
 
     execute(
         """
-        DELETE FROM playlist_item
+        DELETE FROM playlist_track
         WHERE playlist_id = :'playlist_id'::uuid
         """,
         {"playlist_id": playlist_id},
     )
 
-    for item in playlist_state.get("items", []):
+    for index, item in enumerate(playlist_state.get("items", []), start=1):
+        track_id = _upsert_audio_track(item)
+        if not track_id:
+            continue
+
         execute(
             """
-            INSERT INTO playlist_item (
+            INSERT INTO playlist_track (
                 playlist_id,
-                file_name,
-                file_path,
-                source_url,
-                duration_sec,
-                downloaded_at,
-                youtube_video_id,
-                title
+                track_id,
+                position
             )
             VALUES (
                 :'playlist_id'::uuid,
-                :'file_name',
-                :'file_path',
-                :'source_url',
-                NULLIF(:'duration_sec', '')::int,
-                now(),
-                :'youtube_video_id',
-                :'title'
+                :'track_id'::uuid,
+                :'position'::int
             )
+            ON CONFLICT (playlist_id, track_id) DO UPDATE SET
+                position = EXCLUDED.position
             """,
             {
                 "playlist_id": playlist_id,
-                "file_name": item.get("filename") or "",
-                "file_path": str(item.get("filePath") or f"downloads/mp3/{item.get('filename') or ''}"),
-                "source_url": item.get("url") or "",
-                "title": item.get("title") or "",
-                "youtube_video_id": item.get("id") or "",
-                "duration_sec": item.get("durationSec") or "",
+                "track_id": track_id,
+                "position": index,
             },
         )
 
 
-def iter_other_playlist_items(playlist_name):
+def iter_other_playlist_tracks(playlist_name):
     rows = query_rows(
         """
         SELECT row_to_json(t)
         FROM (
-            SELECT pi.file_name AS filename
+            SELECT at.file_name AS filename
             FROM playlist p
-            JOIN playlist_item pi ON pi.playlist_id = p.id
+            JOIN playlist_track pt ON pt.playlist_id = p.id
+            JOIN audio_track at ON at.id = pt.track_id
             WHERE p.user_id = :'user_id'::uuid
               AND LEFT(p.name, 2) <> '__'
               AND p.name <> :'playlist_name'

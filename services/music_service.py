@@ -9,7 +9,7 @@ from utils.music_util import (
 
 def should_delete_file(filename, playlist_name):
 
-    for item in playlist_sync_repository.iter_other_playlist_items(playlist_name):
+    for item in playlist_sync_repository.iter_other_playlist_tracks(playlist_name):
         if item.get("filename") == filename:
             return False
 
