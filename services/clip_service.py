@@ -3,6 +3,7 @@ from pathlib import Path
 import os
 
 from pydub import AudioSegment
+from repositories.clip_repository import resolve_mp3_path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,7 +27,7 @@ def create_clip(
         end_sec: float,
         clip_name: str = ""):
 
-    source_file = MP3_DIR / file_name
+    source_file = resolve_mp3_path(file_name)
 
     print("SOURCE =", source_file)
     print("EXISTS =", source_file.exists())
@@ -108,7 +109,7 @@ def create_pitch_version(
         file_name: str,
         semitones: int):
 
-    source_file = MP3_DIR / file_name
+    source_file = resolve_mp3_path(file_name)
 
     output_file = (
         next_pitch_file_name(

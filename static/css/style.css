@@ -396,6 +396,198 @@ body.login-page {
     gap: 18px;
 }
 
+.clips-page {
+    max-width: 1180px;
+}
+
+.clips-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.clips-browser,
+.clips-editor {
+    display: grid;
+    gap: 18px;
+}
+
+.clips-browser-head {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: start;
+}
+
+.clips-browser-head h2 {
+    margin: 0 0 6px;
+}
+
+.clips-folder-tools {
+    position: relative;
+}
+
+.icon-button {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: var(--panel-soft);
+    box-shadow: none;
+}
+
+.folder-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: min(320px, calc(100vw - 48px));
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 20px 46px rgba(32, 88, 69, 0.14);
+    z-index: 10;
+}
+
+.folder-menu-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.folder-menu-actions button {
+    min-width: 0;
+    padding-inline: 8px;
+    white-space: nowrap;
+}
+
+.folder-menu-status {
+    min-height: 18px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.audio-tree {
+    display: grid;
+    gap: 4px;
+    max-height: min(68vh, 680px);
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fbfefd;
+}
+
+.audio-tree-row {
+    width: 100%;
+    min-height: 38px;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px calc(10px + var(--depth, 0) * 18px);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    box-shadow: none;
+}
+
+.audio-tree-row:hover {
+    background: #eef8f4;
+    transform: none;
+}
+
+.audio-tree-row.is-selected {
+    border-color: #b6ddcf;
+    background: linear-gradient(135deg, #e5f7ef 0%, #f6fcf9 100%);
+    color: var(--accent-strong);
+    font-weight: 800;
+}
+
+.audio-tree-row.is-folder-selected:not(.is-selected) {
+    background: #f3faf7;
+    border-color: var(--line);
+}
+
+.audio-tree-icon {
+    color: var(--accent-strong);
+    font-weight: 900;
+    text-align: center;
+}
+
+.audio-tree-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audio-tree-empty {
+    padding: 18px;
+    color: var(--muted);
+    text-align: center;
+}
+
+.clips-player-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.clips-player-card audio {
+    width: 100%;
+}
+
+.clip-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.clip-grid-button {
+    min-height: 45px;
+}
+
+.clip-time-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.clip-inline-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 1px;
+}
+
+.clip-inline-actions button {
+    white-space: nowrap;
+}
+
+.clip-help {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.55;
+}
+
+.clip-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .login-card {
     padding: 28px;
     border: 1px solid var(--line);
@@ -1754,6 +1946,29 @@ tr.hidden,
     .practice-card-top {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .clips-layout,
+    .clip-controls-grid,
+    .clips-player-card {
+        grid-template-columns: 1fr;
+    }
+
+    .clip-time-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .clip-inline-actions {
+        padding-bottom: 0;
+    }
+
+    .clip-editor-actions {
+        justify-content: stretch;
+    }
+
+    .clip-editor-actions button,
+    .clips-player-card button {
+        width: 100%;
     }
 
     .practice-mobile-tools {

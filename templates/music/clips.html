@@ -1,120 +1,127 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<section class="page-shell clips-page">
+    <div class="page-header">
+        <div>
+            <p class="eyebrow">Clip Studio</p>
+            <h1>클립 만들기</h1>
+            <p class="page-copy">폴더 안의 MP3를 고르고 필요한 구간만 잘라 lick 파일로 저장해요.</p>
+        </div>
+    </div>
 
-<select id="fileSelect">
+    <section class="clips-layout">
+        <article class="card clips-browser">
+            <div class="clips-browser-head">
+                <div>
+                    <h2>음원</h2>
+                    <p class="section-count" data-audio-selected-label>선택된 음원이 없어요</p>
+                </div>
 
-  {% for file in mp3_files %}
-  <option>{{ file }}</option>
-  {% endfor %}
+                <div class="clips-folder-tools">
+                    <button type="button" class="icon-button" data-folder-menu-toggle aria-label="폴더 관리" title="폴더 관리">📂</button>
+                    <div class="folder-menu" data-folder-menu hidden>
+                        <label class="settings-field">
+                            <span class="practice-field-label">정렬</span>
+                            <select data-audio-sort>
+                                <option value="name-asc">이름 오름차순</option>
+                                <option value="name-desc">이름 내림차순</option>
+                                <option value="folder-first">폴더 먼저</option>
+                            </select>
+                        </label>
+                        <label class="settings-field">
+                            <span class="practice-field-label">폴더 이름</span>
+                            <input type="text" data-folder-name placeholder="새 폴더">
+                        </label>
+                        <div class="folder-menu-actions">
+                            <button type="button" class="secondary-button" data-folder-create>추가</button>
+                            <button type="button" class="secondary-button" data-folder-rename>이름변경</button>
+                            <button type="button" class="danger-button" data-folder-delete>삭제</button>
+                        </div>
+                        <div class="folder-menu-status" data-folder-status></div>
+                    </div>
+                </div>
+            </div>
 
-</select>
+            <select id="fileSelect" class="hidden" aria-hidden="true">
+                {% for file in mp3_files %}
+                <option value="{{ file }}">{{ file }}</option>
+                {% endfor %}
+            </select>
 
-<button onclick="loadAudio()">
-  불러오기
-</button>
+            <div class="audio-tree" data-audio-tree></div>
+        </article>
 
-<br><br>
+        <article class="card clips-editor">
+            <div class="clips-player-card">
+                <audio id="player" controls></audio>
+                <button type="button" class="primary-button" onclick="loadAudio()">불러오기</button>
+            </div>
 
-<audio
-        id="player"
-        controls>
-</audio>
+            <div class="clip-controls-grid">
+                <label class="settings-field">
+                    <span class="practice-field-label">속도</span>
+                    <select id="playbackRate" onchange="changePlaybackRate()">
+                        <option value="0.5">0.5x</option>
+                        <option value="0.75">0.75x</option>
+                        <option value="1" selected>1.0x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                        <option value="2">2.0x</option>
+                    </select>
+                </label>
 
-<label>속도</label>
+                <label class="settings-field">
+                    <span class="practice-field-label">Pitch</span>
+                    <select id="pitch">
+                        <option value="-3">-3</option>
+                        <option value="-2">-2</option>
+                        <option value="-1">-1</option>
+                        <option value="0" selected>0</option>
+                        <option value="1">+1</option>
+                        <option value="2">+2</option>
+                        <option value="3">+3</option>
+                    </select>
+                </label>
 
-<select
-        id="playbackRate"
-        onchange="changePlaybackRate()">
+                <button type="button" class="secondary-button clip-grid-button" onclick="createPitchVersion()">피치 생성</button>
+            </div>
 
-  <option value="0.5">0.5x</option>
-  <option value="0.75">0.75x</option>
-  <option value="1" selected>1.0x</option>
-  <option value="1.25">1.25x</option>
-  <option value="1.5">1.5x</option>
-  <option value="2">2.0x</option>
+            <div class="clip-time-grid">
+                <label class="settings-field">
+                    <span class="practice-field-label">Start</span>
+                    <input id="startTime" type="text" placeholder="1:25">
+                </label>
+                <div class="clip-inline-actions">
+                    <button type="button" onclick="captureStart()">현재 위치</button>
+                    <button type="button" onclick="moveStart()">이동</button>
+                </div>
 
-</select>
-<label>Pitch</label>
+                <label class="settings-field">
+                    <span class="practice-field-label">End</span>
+                    <input id="endTime" type="text" placeholder="1:32">
+                </label>
+                <div class="clip-inline-actions">
+                    <button type="button" onclick="captureEnd()">현재 위치</button>
+                    <button type="button" onclick="moveEnd()">이동</button>
+                </div>
+            </div>
 
-<select id="pitch">
+            <label class="settings-field">
+                <span class="practice-field-label">Clip 이름</span>
+                <input id="clipName" type="text" placeholder="intro / bridge-alt / take2">
+            </label>
 
-  <option value="-3">-3</option>
-  <option value="-2">-2</option>
-  <option value="-1">-1</option>
+            <p class="clip-help">
+                저장 이름은 원본음원-입력값.mp3 형식으로 만들어져요. 비워두면 원본음원-lick-1.mp3 규칙을 사용합니다.
+            </p>
 
-  <option
-          value="0"
-          selected>
-    0
-  </option>
-
-  <option value="1">+1</option>
-  <option value="2">+2</option>
-  <option value="3">+3</option>
-
-</select>
-
-<button
-        onclick="createPitchVersion()">
-
-  피치 생성
-
-</button>
-
-<br><br>
-
-<button onclick="captureStart()">
-  현재위치를 Start로
-</button>
-
-<button onclick="captureEnd()">
-  현재위치를 End로
-</button>
-
-Start
-
-<input
-        id="startTime"
-        type="text"
-        placeholder="1:25">
-
-<button onclick="moveStart()">
-  이동
-</button>
-
-<br>
-
-End
-
-<input
-        id="endTime"
-        type="text"
-        placeholder="1:32">
-
-<button onclick="moveEnd()">
-  이동
-</button>
-
-<br><br>
-
-Clip 이름
-
-<input
-        id="clipName"
-        type="text"
-        placeholder="예: intro / bridge-alt / take2">
-
-<div style="margin-top: 8px; color: #6b7280; font-size: 14px;">
-  저장 이름은 <strong>원곡이름-입력값.mp3</strong> 형식으로 만들어집니다.
-  비워두면 기존처럼 <strong>원곡이름-lick-1.mp3</strong> 규칙을 사용합니다.
-</div>
-
-<br><br>
-
-<button onclick="createClip()">
-  Clip 생성
-</button>
+            <div class="clip-editor-actions">
+                <button type="button" class="primary-button" onclick="createClip()">Clip 생성</button>
+            </div>
+        </article>
+    </section>
+</section>
 
 <script src="/static/js/clips.js"></script>
 {% endblock %}

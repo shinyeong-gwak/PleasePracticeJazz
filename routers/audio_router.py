@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from pathlib import Path
 from fastapi.responses import FileResponse
+from repositories.clip_repository import resolve_mp3_path
 
 from services.audio_service import process_audio
 
@@ -43,9 +44,9 @@ def serve_lick(filename: str):
 def serve_processed(filename: str):
     return FileResponse(Path("downloads/processed") / filename)
 
-@router.get("/music/audio/{filename}")
-def audio(filename: str):
+@router.get("/music/audio/{file_path:path}")
+def audio(file_path: str):
 
-    path = Path("downloads/mp3") / filename
+    path = resolve_mp3_path(file_path)
 
     return FileResponse(path)

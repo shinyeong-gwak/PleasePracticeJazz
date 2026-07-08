@@ -397,6 +397,7 @@ def _resolve_clip_id(file_name):
     if not file_name:
         return None
 
+    user_id = get_or_create_user_id()
     row = query_one(
         """
         SELECT row_to_json(t)
@@ -404,11 +405,15 @@ def _resolve_clip_id(file_name):
             SELECT id::text AS id
             FROM clip
             WHERE file_name = :'file_name'
+              AND user_id = :'user_id'::uuid
             ORDER BY created_at DESC
             LIMIT 1
         ) AS t
         """,
-        {"file_name": file_name},
+        {
+            "file_name": file_name,
+            "user_id": user_id,
+        },
     )
     return row["id"] if row else None
 
@@ -418,19 +423,26 @@ def _resolve_score_id(file_name):
     if not file_name:
         return None
 
+    user_id = get_or_create_user_id()
     row = query_one(
         """
         SELECT row_to_json(t)
         FROM (
             SELECT id::text AS id
             FROM score
-            WHERE file_name = :'file_name'
-               OR original_file_name = :'file_name'
+            WHERE user_id = :'user_id'::uuid
+              AND (
+                file_name = :'file_name'
+                OR original_file_name = :'file_name'
+              )
             ORDER BY created_at DESC
             LIMIT 1
         ) AS t
         """,
-        {"file_name": file_name},
+        {
+            "file_name": file_name,
+            "user_id": user_id,
+        },
     )
     return row["id"] if row else None
 
