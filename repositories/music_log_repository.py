@@ -34,7 +34,9 @@ def get_all():
                 END AS status,
                 COALESCE(p.source_url, '') AS message
             FROM playlist p
+            WHERE p.user_id = :'user_id'::uuid
             ORDER BY p.updated_at DESC
         ) AS t
-        """
+        """,
+        {"user_id": get_or_create_user_id()},
     )

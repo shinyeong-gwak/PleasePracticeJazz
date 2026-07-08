@@ -64,7 +64,49 @@ def normalize_lick_item(item):
     return item, changed
 
 
+def _load_lick_files_from_db():
+    user_id = get_or_create_user_id()
+    return query_rows(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT DISTINCT ON (file_name)
+                file_name AS "fileName",
+                sort_key AS "sortKey"
+            FROM (
+                SELECT
+                    at.file_name,
+                    at.created_at AS sort_key
+                FROM audio_track at
+                WHERE at.file_path LIKE 'downloads/licks/%'
+                  AND COALESCE(at.file_name, '') <> ''
+
+                UNION ALL
+
+                SELECT
+                    c.file_name,
+                    COALESCE(c.updated_at, c.created_at) AS sort_key
+                FROM clip c
+                WHERE c.user_id = :'user_id'::uuid
+                  AND COALESCE(c.file_name, '') <> ''
+            ) AS combined
+            ORDER BY file_name, sort_key DESC
+        ) AS t
+        ORDER BY "sortKey" DESC, "fileName"
+        """,
+        {"user_id": user_id},
+    )
+
+
 def get_all():
+    rows = _load_lick_files_from_db()
+    if rows:
+        return [
+            row["fileName"]
+            for row in rows
+            if str(row.get("fileName") or "").strip()
+        ]
+
     if not METADATA_DIR.exists():
         return []
 
@@ -72,6 +114,14 @@ def get_all():
 
 
 def get_recent_files(limit=10):
+    rows = _load_lick_files_from_db()
+    if rows:
+        return [
+            row["fileName"]
+            for row in rows[:limit]
+            if str(row.get("fileName") or "").strip()
+        ]
+
     if not METADATA_DIR.exists():
         return []
 

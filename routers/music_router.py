@@ -6,7 +6,6 @@ from repositories import (
     daily_repository,
     lick_repository,
     playlist_repository,
-    playlist_sync_repository,
     score_repository,
 )
 from services import music_service
@@ -18,14 +17,12 @@ router = APIRouter(prefix="/music")
 @router.get("/playlist")
 def playlist_page(request: Request):
     playlists = playlist_repository.get_all()
-    sync_states = playlist_sync_repository.get_all()
     return render_page(
         request,
         "music/playlist.html",
         "플레이리스트",
         {
             "playlists": playlists,
-            "sync_states": sync_states,
         },
     )
 

@@ -33,9 +33,8 @@
             </tr>
 
             {% for playlist in playlists %}
-            {% set state = sync_states.get(playlist["name"], {}) %}
-            {% set items = state.get("items", []) %}
-            {% set source = state.get("source", "youtube") %}
+            {% set items = playlist.get("items", []) %}
+            {% set source = playlist.get("source", "youtube") %}
             <tr>
                 <td class="playlist-cell">
                     <button class="playlist-toggle-button" type="button" onclick="togglePlaylistPanel('{{ loop.index }}')">
