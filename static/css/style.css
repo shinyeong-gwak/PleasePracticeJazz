@@ -1701,35 +1701,17 @@ tr.hidden,
     border-radius: 18px;
     background: #f3f7f4;
     padding: 12px;
-    min-height: 320px;
+    min-height: 70vh;
 }
 
-#realbookCanvas {
+.realbook-viewer-frame {
     display: block;
-    max-width: 100%;
-    margin: 0 auto;
+    width: 100%;
+    min-height: calc(70vh - 24px);
+    border: 0;
     border-radius: 12px;
     box-shadow: 0 16px 36px rgba(24, 45, 35, 0.12);
     background: white;
-}
-
-.realbook-viewer-message {
-    display: grid;
-    place-items: center;
-    min-height: 120px;
-    margin-bottom: 12px;
-    padding: 18px;
-    border: 1px dashed var(--line-strong);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.72);
-    color: var(--muted);
-    text-align: center;
-}
-
-.realbook-viewer-message[data-state="error"] {
-    color: var(--danger-strong);
-    border-color: rgba(178, 63, 63, 0.28);
-    background: rgba(255, 236, 236, 0.9);
 }
 
 .insight-columns {

@@ -116,6 +116,7 @@ def realbook_view(
             "pdf_page": max(1, page),
             "pdf_title": title,
             "pdf_book": book,
-            "pdf_file_url": f"/music/realbook/file/{safe_name}"
+            "pdf_file_url": f"/music/realbook/file/{safe_name}",
+            "pdf_embed_url": f"/music/realbook/file/{safe_name}#page={max(1, page)}&view=FitH",
         }
     )
