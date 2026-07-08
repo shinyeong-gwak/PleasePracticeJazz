@@ -1,8 +1,7 @@
-from repositories.db import execute, get_or_create_user_id, query_rows
+from repositories.db import execute, query_rows
 
 
 def get_all():
-    user_id = get_or_create_user_id()
     return query_rows(
         """
         SELECT row_to_json(t)
@@ -11,58 +10,35 @@ def get_all():
                 name,
                 source_url AS url
             FROM playlist
-            WHERE user_id = :'user_id'::uuid
-              AND LEFT(name, 2) <> '__'
+            WHERE LEFT(name, 2) <> '__'
             ORDER BY created_at DESC
         ) AS t
-        """,
-        {"user_id": user_id},
+        """
     )
 
 
 def save_all(playlists):
-    user_id = get_or_create_user_id()
-
     execute(
         """
         DELETE FROM playlist
-        WHERE user_id = :'user_id'::uuid
-        """,
-        {"user_id": user_id},
+        WHERE LEFT(name, 2) <> '__'
+        """
     )
 
     for playlist in playlists or []:
-        execute(
-            """
-            INSERT INTO playlist (user_id, name, source_url)
-            VALUES (
-                :'user_id'::uuid,
-                :'name',
-                :'url'
-            )
-            """,
-            {
-                "user_id": user_id,
-                "name": playlist.get("name") or "",
-                "url": playlist.get("url") or "",
-            },
-        )
+        add(playlist.get("name") or "", playlist.get("url") or "")
 
 
 def add(name, url):
-    user_id = get_or_create_user_id()
-
     execute(
         """
-        INSERT INTO playlist (user_id, name, source_url)
+        INSERT INTO playlist (name, source_url)
         VALUES (
-            :'user_id'::uuid,
             :'name',
             :'url'
         )
         """,
         {
-            "user_id": user_id,
             "name": name,
             "url": url,
         },
@@ -70,17 +46,13 @@ def add(name, url):
 
 
 def delete(name, url):
-    user_id = get_or_create_user_id()
-
     execute(
         """
         DELETE FROM playlist
-        WHERE user_id = :'user_id'::uuid
-          AND name = :'name'
+        WHERE name = :'name'
           AND source_url = :'url'
         """,
         {
-            "user_id": user_id,
             "name": name,
             "url": url,
         },

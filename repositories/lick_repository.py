@@ -5,13 +5,10 @@ from uuid import uuid4
 from repositories.db import (
     execute,
     get_or_create_user_id,
-    query_one,
     query_rows,
 )
 
 
-METADATA_PLAYLIST_NAME = "__licks__"
-METADATA_PLAYLIST_URL = "internal://licks"
 METADATA_DIR = Path("downloads/licks")
 
 NOTE_TOKEN_PATTERN = re.compile(r"[A-Ga-g][#bn]?\d")
@@ -43,7 +40,6 @@ def has_note_tokens(value):
 
 def normalize_lick_item(item):
     changed = False
-
     voicing = item.get("voicing", "") or ""
     voicing_rhythm = item.get("voicingRhythm", "") or ""
 
@@ -67,106 +63,6 @@ def normalize_lick_item(item):
     return item, changed
 
 
-def _ensure_metadata_playlist():
-    user_id = get_or_create_user_id()
-    playlist = query_one(
-        """
-        SELECT row_to_json(t)
-        FROM (
-            SELECT id::text AS id
-            FROM playlist
-            WHERE user_id = :'user_id'::uuid
-              AND name = :'name'
-            LIMIT 1
-        ) AS t
-        """,
-        {"user_id": user_id, "name": METADATA_PLAYLIST_NAME},
-    )
-
-    if playlist:
-        return playlist["id"]
-
-    created = query_one(
-        """
-        WITH inserted AS (
-            INSERT INTO playlist (user_id, name, source_url)
-            VALUES (
-                :'user_id'::uuid,
-                :'name',
-                :'url'
-            )
-            RETURNING id::text AS id
-        )
-        SELECT row_to_json(inserted)
-        FROM inserted
-        """,
-        {
-            "user_id": user_id,
-            "name": METADATA_PLAYLIST_NAME,
-            "url": METADATA_PLAYLIST_URL,
-        },
-    )
-
-    return created["id"] if created else None
-
-
-def _ensure_playlist_item(playlist_id, file_name):
-    item = query_one(
-        """
-        SELECT row_to_json(t)
-        FROM (
-            SELECT id::text AS id
-            FROM playlist_item
-            WHERE playlist_id = :'playlist_id'::uuid
-              AND file_name = :'file_name'
-            LIMIT 1
-        ) AS t
-        """,
-        {
-            "playlist_id": playlist_id,
-            "file_name": file_name,
-        },
-    )
-
-    if item:
-        return item["id"]
-
-    created = query_one(
-        """
-        WITH inserted AS (
-            INSERT INTO playlist_item (
-                playlist_id,
-                file_name,
-                file_path,
-                source_url,
-                title,
-                downloaded_at
-            )
-            VALUES (
-                :'playlist_id'::uuid,
-                :'file_name',
-                :'file_path',
-                :'source_url',
-                :'title',
-                now()
-            )
-            RETURNING id::text AS id
-        )
-        SELECT row_to_json(inserted)
-        FROM inserted
-        """,
-        {
-            "playlist_id": playlist_id,
-            "file_name": file_name,
-            "file_path": str(METADATA_DIR / file_name),
-            "source_url": f"{METADATA_PLAYLIST_URL}/{file_name}",
-            "title": file_name,
-        },
-    )
-
-    return created["id"] if created else None
-
-
 def get_all():
     if not METADATA_DIR.exists():
         return []
@@ -183,7 +79,6 @@ def get_recent_files(limit=10):
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
-
     return [file.name for file in files[:limit]]
 
 
@@ -194,29 +89,23 @@ def load_metadata():
         SELECT row_to_json(t)
         FROM (
             SELECT
-                COALESCE(pi.file_name, c.file_name) AS file,
-                c.id::text AS id,
-                c.name,
-                c.key,
-                c.time_signature AS time,
-                c.chords,
-                c.degrees,
-                c.melody,
-                c.melody_rhythm AS "melodyRhythm",
-                c.voicing,
-                c.voicing_rhythm AS "voicingRhythm"
-            FROM clip c
-            JOIN playlist_item pi ON pi.id = c.playlist_item_id
-            JOIN playlist p ON p.id = pi.playlist_id
-            WHERE p.user_id = :'user_id'::uuid
-              AND p.name = :'playlist_name'
-            ORDER BY c.created_at, c.id
+                COALESCE(l.source_file_name, l.name) AS file,
+                l.id::text AS id,
+                l.name,
+                l.key,
+                l.time_signature AS time,
+                l.chords,
+                l.degrees,
+                l.melody,
+                l.melody_rhythm AS "melodyRhythm",
+                l.voicing,
+                l.voicing_rhythm AS "voicingRhythm"
+            FROM lick l
+            WHERE l.user_id = :'user_id'::uuid
+            ORDER BY l.created_at, l.id
         ) AS t
         """,
-        {
-            "user_id": user_id,
-            "playlist_name": METADATA_PLAYLIST_NAME,
-        },
+        {"user_id": user_id},
     )
 
     metadata = {}
@@ -232,20 +121,15 @@ def save(data):
         return {"success": False}
 
     user_id = get_or_create_user_id()
-    playlist_id = _ensure_metadata_playlist()
-    playlist_item_id = _ensure_playlist_item(playlist_id, file_name)
-
     payload = dict(data)
     payload, _ = normalize_lick_item(payload)
-
     lick_id = payload.get("id") or uuid4().hex
 
     execute(
         """
-        INSERT INTO clip (
+        INSERT INTO lick (
             id,
             user_id,
-            playlist_item_id,
             name,
             key,
             time_signature,
@@ -255,15 +139,14 @@ def save(data):
             melody_rhythm,
             voicing,
             voicing_rhythm,
-            file_name,
-            file_path,
+            source_file_name,
+            source_file_path,
             created_at,
             updated_at
         )
         VALUES (
             :'id'::uuid,
             :'user_id'::uuid,
-            :'playlist_item_id'::uuid,
             :'name',
             :'key',
             :'time_signature',
@@ -273,14 +156,13 @@ def save(data):
             :'melody_rhythm',
             :'voicing',
             :'voicing_rhythm',
-            :'file_name',
-            :'file_path',
+            :'source_file_name',
+            :'source_file_path',
             now(),
             now()
         )
         ON CONFLICT (id) DO UPDATE SET
             user_id = EXCLUDED.user_id,
-            playlist_item_id = EXCLUDED.playlist_item_id,
             name = EXCLUDED.name,
             key = EXCLUDED.key,
             time_signature = EXCLUDED.time_signature,
@@ -290,15 +172,14 @@ def save(data):
             melody_rhythm = EXCLUDED.melody_rhythm,
             voicing = EXCLUDED.voicing,
             voicing_rhythm = EXCLUDED.voicing_rhythm,
-            file_name = EXCLUDED.file_name,
-            file_path = EXCLUDED.file_path,
+            source_file_name = EXCLUDED.source_file_name,
+            source_file_path = EXCLUDED.source_file_path,
             updated_at = now()
         """,
         {
             "id": lick_id,
             "user_id": user_id,
-            "playlist_item_id": playlist_item_id,
-            "name": payload.get("name") or "",
+            "name": payload.get("name") or file_name,
             "key": payload.get("key") or "",
             "time_signature": payload.get("time") or "",
             "chords": payload.get("chords") or "",
@@ -307,8 +188,8 @@ def save(data):
             "melody_rhythm": payload.get("melodyRhythm") or "",
             "voicing": payload.get("voicing") or "",
             "voicing_rhythm": payload.get("voicingRhythm") or "",
-            "file_name": file_name,
-            "file_path": str(METADATA_DIR / file_name),
+            "source_file_name": file_name,
+            "source_file_path": str(METADATA_DIR / file_name),
         },
     )
 
@@ -325,13 +206,13 @@ def get_metadata():
 def delete(mp3, lick_id):
     execute(
         """
-        DELETE FROM clip
-        WHERE file_name = :'file_name'
-          AND id = :'id'::uuid
+        DELETE FROM lick
+        WHERE id = :'id'::uuid
+          AND user_id = :'user_id'::uuid
         """,
         {
-            "file_name": mp3,
             "id": lick_id,
+            "user_id": get_or_create_user_id(),
         },
     )
 

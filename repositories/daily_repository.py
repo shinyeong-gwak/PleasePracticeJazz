@@ -274,7 +274,7 @@ def _load_practice_items(target_date=None):
                 COALESCE(pi.page, '') AS page,
                 COALESCE(pi.memo, '') AS memo,
                 COALESCE(pi.spotify_url, '') AS "spotifyUrl",
-                COALESCE(cl.file_name, '') AS "lickFile",
+                COALESCE(l.source_file_name, l.name, '') AS "lickFile",
                 COALESCE(sc.file_name, sc.original_file_name, '') AS "rendererFile",
                 lower(pi.status::text) AS status,
                 COALESCE(pi.metronome, false) AS metronome,
@@ -282,7 +282,7 @@ def _load_practice_items(target_date=None):
                 pi.created_at::text AS "createdAt",
                 pi.updated_at::text AS "updatedAt"
             FROM practice_item pi
-            LEFT JOIN clip cl ON cl.id = pi.lick_id
+            LEFT JOIN lick l ON l.id = pi.lick_id
             LEFT JOIN score sc ON sc.id = pi.score_id
             LEFT JOIN practice_topic pt ON pt.practice_id = pi.id
             LEFT JOIN topic tp ON tp.id = pt.topic_id
@@ -301,7 +301,8 @@ def _load_practice_items(target_date=None):
                 pi.metronome,
                 pi.created_at,
                 pi.updated_at,
-                cl.file_name,
+                l.source_file_name,
+                l.name,
                 sc.file_name,
                 sc.original_file_name
             ORDER BY pi.created_at DESC
@@ -392,7 +393,7 @@ def _ensure_topic_id(topic_name):
     return row["id"] if row else None
 
 
-def _resolve_clip_id(file_name):
+def _resolve_lick_id(file_name):
     file_name = str(file_name or "").strip()
     if not file_name:
         return None
@@ -403,9 +404,12 @@ def _resolve_clip_id(file_name):
         SELECT row_to_json(t)
         FROM (
             SELECT id::text AS id
-            FROM clip
-            WHERE file_name = :'file_name'
-              AND user_id = :'user_id'::uuid
+            FROM lick
+            WHERE user_id = :'user_id'::uuid
+              AND (
+                source_file_name = :'file_name'
+                OR name = :'file_name'
+              )
             ORDER BY created_at DESC
             LIMIT 1
         ) AS t
@@ -853,7 +857,7 @@ def _upsert_practice_payload(payload, collection="practice", existing_id=None):
     bpm = int(bpm_text) if bpm_text.isdigit() else None
     lick_file = payload.get("lickFile")
     renderer_file = payload.get("rendererFile")
-    lick_id = _resolve_clip_id(lick_file)
+    lick_id = _resolve_lick_id(lick_file)
     score_id = _resolve_score_id(renderer_file)
     status = normalize_status(payload.get("status"))
     topics = normalize_topics(payload.get("topics"))
