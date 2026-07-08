@@ -90,24 +90,13 @@ def report_page(request: Request):
 
 @router.get("/daily/data")
 def daily_page_data():
-    reports = daily_repository.get_all_reports()
-    week_key = daily_repository.get_week_key()
-    current_report = next(
-        (report for report in reports if report.get("weekKey") == week_key),
-        {
-            "weekKey": week_key,
-            "weekLabel": daily_repository.get_week_label(),
-            "homework": [],
-            "practice": [],
-            "ensemble": [],
-        },
-    )
+    current_report = daily_repository.get_current_report()
 
     return JSONResponse(
         {
             "daily_report": current_report,
             "current_archive": daily_repository.build_week_archive(current_report),
-            "tune_suggestions": daily_repository.get_tune_suggestions(reports),
+            "tune_suggestions": daily_repository.get_tune_suggestions(),
             "recent_lick_files": lick_repository.get_recent_files(),
             "recent_score_files": score_repository.get_recent_files(),
         }
