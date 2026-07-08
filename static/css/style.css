@@ -538,6 +538,55 @@ body.login-page {
     text-align: center;
 }
 
+.audio-tree-section-title {
+    padding: 12px 10px 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.audio-pool-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    gap: 8px;
+    align-items: center;
+}
+
+.audio-pool-select {
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    box-shadow: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.audio-pool-row.is-selected .audio-pool-select,
+.audio-pool-select:hover {
+    background: #eef8f4;
+    color: var(--accent-strong);
+    transform: none;
+}
+
+.audio-pool-add {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    box-shadow: none;
+    font-weight: 900;
+}
+
 .clips-player-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

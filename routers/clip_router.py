@@ -34,6 +34,7 @@ def create_clip(req: ClipRequest):
         req.endTime,
         req.clipName
     )
+    clip_repository.sync_created_audio_file(out)
     return {"fileName": out.name}
 
 
@@ -43,22 +44,28 @@ class PitchRequest(BaseModel):
 
 
 class FolderCreateRequest(BaseModel):
-    parentPath: str = ""
+    parentId: str = ""
     name: str
 
 
 class FolderRenameRequest(BaseModel):
-    path: str
+    folderId: str
     name: str
 
 
 class FolderDeleteRequest(BaseModel):
-    path: str
+    folderId: str
+
+
+class LibraryItemRequest(BaseModel):
+    trackId: str
+    folderId: str = ""
 
 
 @router.post("/clips/pitch")
 def pitch(req: PitchRequest):
     out = clip_service.create_pitch_version(req.fileName, req.semitones)
+    clip_repository.sync_created_audio_file(out)
     return {"fileName": out.name}
 
 
@@ -70,7 +77,8 @@ def clips_tree():
 @router.post("/clips/folders")
 def create_folder(req: FolderCreateRequest):
     try:
-        return clip_repository.create_folder(req.parentPath, req.name)
+        clip_repository.create_folder(req.parentId, req.name)
+        return clip_repository.get_mp3_tree()
     except ValueError as exc:
         return JSONResponse({"message": str(exc)}, status_code=400)
 
@@ -78,7 +86,8 @@ def create_folder(req: FolderCreateRequest):
 @router.put("/clips/folders")
 def rename_folder(req: FolderRenameRequest):
     try:
-        return clip_repository.rename_folder(req.path, req.name)
+        clip_repository.rename_folder(req.folderId, req.name)
+        return clip_repository.get_mp3_tree()
     except ValueError as exc:
         return JSONResponse({"message": str(exc)}, status_code=400)
 
@@ -86,6 +95,16 @@ def rename_folder(req: FolderRenameRequest):
 @router.delete("/clips/folders")
 def delete_folder(req: FolderDeleteRequest):
     try:
-        return clip_repository.delete_folder(req.path)
+        clip_repository.delete_folder(req.folderId)
+        return clip_repository.get_mp3_tree()
+    except ValueError as exc:
+        return JSONResponse({"message": str(exc)}, status_code=400)
+
+
+@router.post("/clips/library-items")
+def add_library_item(req: LibraryItemRequest):
+    try:
+        clip_repository.add_track_to_library(req.trackId, req.folderId)
+        return clip_repository.get_mp3_tree()
     except ValueError as exc:
         return JSONResponse({"message": str(exc)}, status_code=400)

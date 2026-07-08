@@ -1,4 +1,5 @@
 from repositories import music_log_repository, playlist_sync_repository
+from repositories.clip_repository import sync_created_audio_file
 from utils.music_util import (
     MP3_DIR,
     download_youtube_entry,
@@ -56,6 +57,7 @@ def sync(
                 previous_path = MP3_DIR / previous_item["filename"]
 
                 if previous_path.exists():
+                    sync_created_audio_file(previous_path, entry["url"])
                     synced_items.append({
                         "id": entry["id"],
                         "title": entry["title"],
@@ -67,6 +69,7 @@ def sync(
                     continue
 
             downloaded = download_youtube_entry(entry["url"])
+            sync_created_audio_file(MP3_DIR / downloaded["filename"], downloaded["url"])
             synced_items.append(downloaded)
             downloaded_count += 1
 

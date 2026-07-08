@@ -4,9 +4,8 @@ from repositories.db import execute, get_or_create_user_id, query_one, query_row
 
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-MP3_DIR = ROOT_DIR / "downloads" / "mp3"
-MP3_METADATA_PLAYLIST_NAME = "__mp3_files__"
-MP3_METADATA_PLAYLIST_URL = "internal://mp3"
+DOWNLOADS_DIR = ROOT_DIR / "downloads"
+MP3_DIR = DOWNLOADS_DIR / "mp3"
 
 
 def _safe_relative_path(value):
@@ -19,70 +18,206 @@ def _safe_relative_path(value):
     return relative
 
 
-def resolve_mp3_path(value):
-    base = MP3_DIR.resolve()
-    path = (MP3_DIR / _safe_relative_path(value)).resolve()
+def resolve_audio_path(value):
+    relative = _safe_relative_path(value)
+    text = relative.as_posix()
 
-    if path != base and base not in path.parents:
+    if text.startswith("downloads/"):
+        path = (ROOT_DIR / relative).resolve()
+    else:
+        path = (MP3_DIR / relative).resolve()
+
+    downloads_base = DOWNLOADS_DIR.resolve()
+    if path != downloads_base and downloads_base not in path.parents:
         raise ValueError("Invalid path")
+
+    if path.suffix.lower() != ".mp3":
+        raise ValueError("Invalid audio file")
 
     return path
 
 
+def resolve_mp3_path(value):
+    return resolve_audio_path(value)
+
+
 def _relative_key(path):
-    return path.relative_to(MP3_DIR).as_posix()
+    return path.resolve().relative_to(ROOT_DIR).as_posix()
 
 
-def _storage_path(relative_path):
-    return f"downloads/mp3/{relative_path}"
+def _display_name(file_name):
+    path = Path(str(file_name or ""))
+    return path.stem or path.name
 
 
-def _normalize_item_path(row):
-    file_path = str(row.get("filePath") or row.get("file_path") or "").replace("\\", "/")
-    file_name = str(row.get("fileName") or row.get("file_name") or "").replace("\\", "/")
+def _load_pool_tracks():
+    rows = query_rows(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                id::text AS id,
+                file_name AS "fileName",
+                file_path AS "filePath",
+                COALESCE(NULLIF(source_type, ''), 'local') AS "sourceType",
+                COALESCE(source_url, '') AS "sourceUrl",
+                duration_sec AS "durationSec"
+            FROM audio_track
+            ORDER BY file_name
+        ) AS t
+        """
+    )
 
-    if file_path.startswith("downloads/mp3/"):
-        return file_path[len("downloads/mp3/"):]
-
-    if file_path.startswith(str(MP3_DIR).replace("\\", "/")):
-        return Path(file_path).relative_to(MP3_DIR).as_posix()
-
-    if "/" in file_path and file_path.lower().endswith(".mp3"):
-        return file_path
-
-    return file_name or file_path
+    for row in rows:
+        row["displayName"] = _display_name(row.get("fileName"))
+    return rows
 
 
-def _ensure_mp3_metadata_playlist():
+def _load_folders():
     user_id = get_or_create_user_id()
-    playlist = query_one(
+    return query_rows(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                id::text AS id,
+                parent_id::text AS "parentId",
+                name,
+                sort_order AS "sortOrder"
+            FROM audio_folder
+            WHERE user_id = :'user_id'::uuid
+            ORDER BY sort_order, name
+        ) AS t
+        """,
+        {"user_id": user_id},
+    )
+
+
+def _load_library_items():
+    user_id = get_or_create_user_id()
+    return query_rows(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                li.id::text AS id,
+                li.folder_id::text AS "folderId",
+                li.track_id::text AS "trackId",
+                COALESCE(NULLIF(li.display_name, ''), at.file_name) AS "displayName",
+                li.sort_order AS "sortOrder",
+                at.file_name AS "fileName",
+                at.file_path AS "filePath",
+                COALESCE(NULLIF(at.source_type, ''), 'local') AS "sourceType",
+                COALESCE(at.source_url, '') AS "sourceUrl",
+                at.duration_sec AS "durationSec"
+            FROM audio_library_item li
+            JOIN audio_track at ON at.id = li.track_id
+            WHERE li.user_id = :'user_id'::uuid
+            ORDER BY li.sort_order, COALESCE(NULLIF(li.display_name, ''), at.file_name)
+        ) AS t
+        """,
+        {"user_id": user_id},
+    )
+
+
+def _folder_node(name, folder_id=None, parent_id=None):
+    return {
+        "type": "folder",
+        "id": folder_id or "",
+        "parentId": parent_id or "",
+        "name": name,
+        "children": [],
+    }
+
+
+def _track_node(item):
+    return {
+        "type": "file",
+        "id": item.get("id") or "",
+        "trackId": item.get("trackId") or item.get("id") or "",
+        "name": item.get("displayName") or _display_name(item.get("fileName")),
+        "fileName": item.get("fileName") or "",
+        "path": item.get("filePath") or "",
+        "sourceType": item.get("sourceType") or "local",
+        "sourceUrl": item.get("sourceUrl") or "",
+        "durationSec": item.get("durationSec"),
+    }
+
+
+def _build_library_tree(folders, items):
+    root = _folder_node("내 라이브러리")
+    by_id = {"": root}
+
+    for folder in folders:
+        by_id[folder["id"]] = _folder_node(
+            folder.get("name") or "Untitled",
+            folder.get("id"),
+            folder.get("parentId"),
+        )
+
+    for folder in folders:
+        node = by_id[folder["id"]]
+        parent = by_id.get(folder.get("parentId") or "", root)
+        parent["children"].append(node)
+
+    for item in items:
+        parent = by_id.get(item.get("folderId") or "", root)
+        parent["children"].append(_track_node(item))
+
+    return root
+
+
+def get_mp3_files():
+    return [track["filePath"] for track in _load_pool_tracks()]
+
+
+def get_mp3_tree():
+    pool = _load_pool_tracks()
+    library = _build_library_tree(_load_folders(), _load_library_items())
+    return {
+        "library": library,
+        "pool": pool,
+    }
+
+
+def create_folder(parent_id, name):
+    user_id = get_or_create_user_id()
+    folder_name = str(name or "").strip()
+    parent_id = str(parent_id or "").strip() or None
+
+    if not folder_name:
+        raise ValueError("폴더 이름을 입력해주세요.")
+
+    duplicated = query_one(
         """
         SELECT row_to_json(t)
         FROM (
             SELECT id::text AS id
-            FROM playlist
+            FROM audio_folder
             WHERE user_id = :'user_id'::uuid
+              AND COALESCE(parent_id, '00000000-0000-0000-0000-000000000000'::uuid)
+                  = COALESCE(NULLIF(:'parent_id', '')::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
               AND name = :'name'
             LIMIT 1
         ) AS t
         """,
         {
             "user_id": user_id,
-            "name": MP3_METADATA_PLAYLIST_NAME,
+            "parent_id": parent_id or "",
+            "name": folder_name,
         },
     )
-
-    if playlist:
-        return playlist["id"]
+    if duplicated:
+        raise ValueError("이미 같은 이름의 폴더가 있어요.")
 
     created = query_one(
         """
         WITH inserted AS (
-            INSERT INTO playlist (user_id, name, source_url)
+            INSERT INTO audio_folder (user_id, parent_id, name)
             VALUES (
                 :'user_id'::uuid,
-                :'name',
-                :'url'
+                NULLIF(:'parent_id', '')::uuid,
+                :'name'
             )
             RETURNING id::text AS id
         )
@@ -91,248 +226,173 @@ def _ensure_mp3_metadata_playlist():
         """,
         {
             "user_id": user_id,
-            "name": MP3_METADATA_PLAYLIST_NAME,
-            "url": MP3_METADATA_PLAYLIST_URL,
+            "parent_id": parent_id or "",
+            "name": folder_name,
         },
     )
-
     return created["id"] if created else None
 
 
-def _load_db_mp3_rows():
+def rename_folder(folder_id, name):
     user_id = get_or_create_user_id()
-    return query_rows(
-        """
-        SELECT row_to_json(t)
-        FROM (
-            SELECT
-                pi.id::text AS id,
-                pi.file_name AS "fileName",
-                pi.file_path AS "filePath",
-                pi.source_url AS "sourceUrl",
-                COALESCE(pi.title, pi.file_name) AS title,
-                p.name AS "playlistName"
-            FROM playlist p
-            JOIN playlist_item pi ON pi.playlist_id = p.id
-            WHERE p.user_id = :'user_id'::uuid
-              AND (
-                pi.file_path LIKE 'downloads/mp3/%'
-                OR pi.file_path NOT LIKE 'downloads/%'
-              )
-            ORDER BY COALESCE(pi.title, pi.file_name), pi.created_at
-        ) AS t
-        """,
-        {"user_id": user_id},
-    )
+    folder_name = str(name or "").strip()
 
-
-def sync_mp3_filesystem_items():
-    MP3_DIR.mkdir(parents=True, exist_ok=True)
-    playlist_id = _ensure_mp3_metadata_playlist()
-    existing_paths = {
-        _normalize_item_path(row)
-        for row in _load_db_mp3_rows()
-    }
-
-    for file in MP3_DIR.rglob("*.mp3"):
-        relative_path = _relative_key(file)
-        if relative_path in existing_paths:
-            continue
-
-        execute(
-            """
-            INSERT INTO playlist_item (
-                playlist_id,
-                file_name,
-                file_path,
-                source_url,
-                title,
-                downloaded_at
-            )
-            VALUES (
-                :'playlist_id'::uuid,
-                :'file_name',
-                :'file_path',
-                :'source_url',
-                :'title',
-                now()
-            )
-            """,
-            {
-                "playlist_id": playlist_id,
-                "file_name": file.name,
-                "file_path": _storage_path(relative_path),
-                "source_url": f"{MP3_METADATA_PLAYLIST_URL}/{relative_path}",
-                "title": file.name,
-            },
-        )
-
-    return _load_db_mp3_rows()
-
-
-def _folder_node(name, path):
-    return {
-        "type": "folder",
-        "name": name,
-        "path": path,
-        "children": [],
-    }
-
-
-def _get_or_create_child_folder(parent, name, path):
-    for child in parent["children"]:
-        if child["type"] == "folder" and child["path"] == path:
-            return child
-
-    child = _folder_node(name, path)
-    parent["children"].append(child)
-    return child
-
-
-def _add_folder_path(root, relative_path):
-    text = str(relative_path or "").strip().replace("\\", "/")
-    if not text:
-        return
-
-    current = root
-    accumulated = []
-    for part in Path(text).parts:
-        accumulated.append(part)
-        current = _get_or_create_child_folder(
-            current,
-            part,
-            Path(*accumulated).as_posix(),
-        )
-
-
-def _add_file_path(root, relative_path, row=None):
-    text = str(relative_path or "").strip().replace("\\", "/")
-    if not text:
-        return
-
-    parts = Path(text).parts
-    current = root
-    accumulated = []
-
-    for part in parts[:-1]:
-        accumulated.append(part)
-        current = _get_or_create_child_folder(
-            current,
-            part,
-            Path(*accumulated).as_posix(),
-        )
-
-    current["children"].append(
-        {
-            "type": "file",
-            "name": row.get("title") or parts[-1] if row else parts[-1],
-            "fileName": parts[-1],
-            "path": text,
-            "playlistItemId": row.get("id") if row else "",
-            "sourceUrl": row.get("sourceUrl") if row else "",
-            "playlistName": row.get("playlistName") if row else "",
-        }
-    )
-
-
-def get_mp3_files():
-    rows = sync_mp3_filesystem_items()
-    return sorted([
-        path
-        for path in (_normalize_item_path(row) for row in rows)
-        if path.lower().endswith(".mp3")
-    ])
-
-
-def get_mp3_tree():
-    MP3_DIR.mkdir(parents=True, exist_ok=True)
-    rows = sync_mp3_filesystem_items()
-    tree = _folder_node("MP3", "")
-
-    for folder in MP3_DIR.rglob("*"):
-        if folder.is_dir():
-            _add_folder_path(tree, _relative_key(folder))
-
-    seen = set()
-    for row in rows:
-        relative_path = _normalize_item_path(row)
-        if not relative_path.lower().endswith(".mp3") or relative_path in seen:
-            continue
-        seen.add(relative_path)
-        _add_file_path(tree, relative_path, row)
-
-    return tree
-
-
-def create_folder(parent_path, name):
-    folder_name = str(name or "").strip().replace("\\", "").replace("/", "")
-    if not folder_name:
-        raise ValueError("폴더 이름을 입력해주세요.")
-
-    parent = resolve_mp3_path(parent_path or "")
-    if not parent.exists() or not parent.is_dir():
-        raise ValueError("상위 폴더를 찾을 수 없어요.")
-
-    target = parent / folder_name
-    if target.exists():
-        raise ValueError("이미 같은 이름의 폴더가 있어요.")
-
-    target.mkdir(exist_ok=False)
-    return get_mp3_tree()
-
-
-def rename_folder(path, name):
-    folder = resolve_mp3_path(path)
-    folder_name = str(name or "").strip().replace("\\", "").replace("/", "")
-    old_relative = _relative_key(folder)
-
-    if folder == MP3_DIR.resolve():
-        raise ValueError("기본 폴더 이름은 바꿀 수 없어요.")
-
-    if not folder.exists() or not folder.is_dir():
-        raise ValueError("폴더를 찾을 수 없어요.")
+    if not folder_id:
+        raise ValueError("폴더를 선택해주세요.")
 
     if not folder_name:
         raise ValueError("새 폴더 이름을 입력해주세요.")
 
-    target = folder.parent / folder_name
-    if target.exists():
-        raise ValueError("이미 같은 이름의 폴더가 있어요.")
-
-    folder.rename(target)
-    new_relative = _relative_key(target)
-    user_id = get_or_create_user_id()
     execute(
         """
-        UPDATE playlist_item pi
-        SET file_path =
-            :'new_prefix' || substring(pi.file_path from char_length(:'old_prefix') + 1)
-        FROM playlist p
-        WHERE p.id = pi.playlist_id
-          AND p.user_id = :'user_id'::uuid
-          AND pi.file_path LIKE :'old_like'
+        UPDATE audio_folder
+        SET name = :'name',
+            updated_at = now()
+        WHERE id = :'folder_id'::uuid
+          AND user_id = :'user_id'::uuid
+        """,
+        {
+            "folder_id": folder_id,
+            "user_id": user_id,
+            "name": folder_name,
+        },
+    )
+
+
+def delete_folder(folder_id):
+    user_id = get_or_create_user_id()
+
+    if not folder_id:
+        raise ValueError("폴더를 선택해주세요.")
+
+    child = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT id::text AS id
+            FROM audio_folder
+            WHERE user_id = :'user_id'::uuid
+              AND parent_id = :'folder_id'::uuid
+            LIMIT 1
+        ) AS t
         """,
         {
             "user_id": user_id,
-            "old_prefix": _storage_path(old_relative),
-            "new_prefix": _storage_path(new_relative),
-            "old_like": f"{_storage_path(old_relative)}/%",
+            "folder_id": folder_id,
         },
     )
-    return get_mp3_tree()
+    if child:
+        raise ValueError("하위 폴더가 없는 폴더만 삭제할 수 있어요.")
 
-
-def delete_folder(path):
-    folder = resolve_mp3_path(path)
-
-    if folder == MP3_DIR.resolve():
-        raise ValueError("기본 폴더는 삭제할 수 없어요.")
-
-    if not folder.exists() or not folder.is_dir():
-        raise ValueError("폴더를 찾을 수 없어요.")
-
-    if any(folder.iterdir()):
+    item = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT id::text AS id
+            FROM audio_library_item
+            WHERE user_id = :'user_id'::uuid
+              AND folder_id = :'folder_id'::uuid
+            LIMIT 1
+        ) AS t
+        """,
+        {
+            "user_id": user_id,
+            "folder_id": folder_id,
+        },
+    )
+    if item:
         raise ValueError("비어 있는 폴더만 삭제할 수 있어요.")
 
-    folder.rmdir()
-    return get_mp3_tree()
+    execute(
+        """
+        DELETE FROM audio_folder
+        WHERE id = :'folder_id'::uuid
+          AND user_id = :'user_id'::uuid
+        """,
+        {
+            "folder_id": folder_id,
+            "user_id": user_id,
+        },
+    )
+
+
+def add_track_to_library(track_id, folder_id=None):
+    user_id = get_or_create_user_id()
+    folder_id = str(folder_id or "").strip() or None
+    row = query_one(
+        """
+        WITH inserted AS (
+            INSERT INTO audio_library_item (
+                user_id,
+                track_id,
+                folder_id,
+                display_name
+            )
+            SELECT
+                :'user_id'::uuid,
+                at.id,
+                NULLIF(:'folder_id', '')::uuid,
+                regexp_replace(at.file_name, '\\.mp3$', '', 'i')
+            FROM audio_track at
+            WHERE at.id = :'track_id'::uuid
+            ON CONFLICT (user_id, track_id) DO UPDATE SET
+                folder_id = EXCLUDED.folder_id,
+                updated_at = now()
+            RETURNING id::text AS id
+        )
+        SELECT row_to_json(inserted)
+        FROM inserted
+        """,
+        {
+            "user_id": user_id,
+            "track_id": track_id,
+            "folder_id": folder_id or "",
+        },
+    )
+    return row["id"] if row else None
+
+
+def sync_created_audio_file(file_path, source_url=None):
+    path = Path(file_path).resolve()
+    downloads_base = DOWNLOADS_DIR.resolve()
+    if path != downloads_base and downloads_base not in path.parents:
+        raise ValueError("Invalid path")
+
+    if path.suffix.lower() != ".mp3":
+        raise ValueError("Invalid audio file")
+
+    relative_path = _relative_key(path)
+    row = query_one(
+        """
+        WITH inserted AS (
+            INSERT INTO audio_track (
+                file_name,
+                file_path,
+                source_type,
+                source_url
+            )
+            VALUES (
+                :'file_name',
+                :'file_path',
+                'generated',
+                :'source_url'
+            )
+            ON CONFLICT (file_path) DO UPDATE SET
+                file_name = EXCLUDED.file_name,
+                updated_at = now()
+            RETURNING id::text AS id
+        )
+        SELECT row_to_json(inserted)
+        FROM inserted
+        """,
+        {
+            "file_name": path.name,
+            "file_path": relative_path,
+            "source_url": source_url or "",
+        },
+    )
+
+    if row:
+        add_track_to_library(row["id"])
+
+    return row["id"] if row else None

@@ -1,12 +1,12 @@
 const ClipBrowser = (() => {
-    let tree = null;
+    let payload = { library: null, pool: [] };
     let selectedFilePath = "";
-    let selectedFolderPath = "";
+    let selectedFolderId = "";
     let sortMode = "name-asc";
     const collapsedFolders = new Set();
 
-    function node(path) {
-        return document.querySelector(path);
+    function node(selector) {
+        return document.querySelector(selector);
     }
 
     function fileSelect() {
@@ -20,38 +20,30 @@ const ClipBrowser = (() => {
                 const typeCompare = Number(a.type !== "folder") - Number(b.type !== "folder");
                 if (typeCompare !== 0) return typeCompare;
             }
-
             const direction = sortMode === "name-desc" ? -1 : 1;
-            return a.name.localeCompare(b.name, "ko") * direction;
+            return String(a.name || "").localeCompare(String(b.name || ""), "ko") * direction;
         });
         return sorted;
     }
 
-    function flattenFiles(current = tree, files = []) {
-        if (!current) return files;
-        if (current.type === "file") {
-            files.push(current.path);
-            return files;
-        }
-        (current.children || []).forEach((child) => flattenFiles(child, files));
-        return files;
+    function poolTracks() {
+        return payload.pool || [];
     }
 
     function syncSelectOptions() {
         const select = fileSelect();
         if (!select) return;
 
-        const files = flattenFiles();
         select.innerHTML = "";
-        files.forEach((path) => {
+        poolTracks().forEach((track) => {
             const option = document.createElement("option");
-            option.value = path;
-            option.textContent = path;
+            option.value = track.filePath;
+            option.textContent = track.displayName || track.fileName;
             select.appendChild(option);
         });
 
-        if (!selectedFilePath && files.length) {
-            selectedFilePath = files[0];
+        if (!selectedFilePath && poolTracks().length) {
+            selectedFilePath = poolTracks()[0].filePath;
         }
         select.value = selectedFilePath;
         syncSelectedLabel();
@@ -64,88 +56,82 @@ const ClipBrowser = (() => {
         }
     }
 
-    function makeTreeRow(item, depth) {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = `audio-tree-row audio-tree-${item.type}`;
-        row.style.setProperty("--depth", depth);
-        row.dataset.path = item.path;
-        row.dataset.type = item.type;
-
-        if (item.type === "file" && item.path === selectedFilePath) {
-            row.classList.add("is-selected");
-        }
-        if (item.type === "folder" && item.path === selectedFolderPath) {
-            row.classList.add("is-folder-selected");
-        }
-
-        const icon = document.createElement("span");
-        icon.className = "audio-tree-icon";
-        icon.textContent = item.type === "folder"
-            ? (collapsedFolders.has(item.path) ? "▸" : "▾")
-            : "♪";
-
-        const name = document.createElement("span");
-        name.className = "audio-tree-name";
-        name.textContent = item.name;
-
-        row.append(icon, name);
-
-        row.addEventListener("click", () => {
-            if (item.type === "folder") {
-                selectedFolderPath = item.path;
-                if (collapsedFolders.has(item.path)) {
-                    collapsedFolders.delete(item.path);
-                } else {
-                    collapsedFolders.add(item.path);
-                }
-                renderTree();
-                return;
-            }
-
-            selectFile(item.path);
-            loadAudio();
-        });
-
-        return row;
-    }
-
-    function renderNode(item, depth, container) {
-        container.appendChild(makeTreeRow(item, depth));
-        if (item.type !== "folder" || collapsedFolders.has(item.path)) {
-            return;
-        }
-
-        normalizeChildren(item.children).forEach((child) => {
-            renderNode(child, depth + 1, container);
-        });
-    }
-
-    function renderTree() {
-        const container = node("[data-audio-tree]");
-        if (!container) return;
-
-        container.innerHTML = "";
-        if (!tree) {
-            container.textContent = "음원을 불러오는 중이에요.";
-            return;
-        }
-
-        normalizeChildren(tree.children).forEach((child) => {
-            renderNode(child, 0, container);
-        });
-
-        if (!tree.children?.length) {
-            container.innerHTML = '<div class="audio-tree-empty">downloads/mp3 안에 MP3 파일을 넣어주세요.</div>';
-        }
-    }
-
     function selectFile(path) {
         selectedFilePath = path;
         const select = fileSelect();
         if (select) select.value = path;
         syncSelectedLabel();
         renderTree();
+    }
+
+    function makeFolderRow(item, depth) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "audio-tree-row audio-tree-folder";
+        row.style.setProperty("--depth", depth);
+        if (item.id === selectedFolderId) {
+            row.classList.add("is-folder-selected");
+        }
+
+        const icon = document.createElement("span");
+        icon.className = "audio-tree-icon";
+        icon.textContent = collapsedFolders.has(item.id) ? "▸" : "▾";
+
+        const name = document.createElement("span");
+        name.className = "audio-tree-name";
+        name.textContent = item.name;
+
+        row.append(icon, name);
+        row.addEventListener("click", () => {
+            selectedFolderId = item.id || "";
+            if (collapsedFolders.has(item.id)) {
+                collapsedFolders.delete(item.id);
+            } else {
+                collapsedFolders.add(item.id);
+            }
+            renderTree();
+        });
+        return row;
+    }
+
+    function makeLibraryFileRow(item, depth) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "audio-tree-row audio-tree-file";
+        row.style.setProperty("--depth", depth);
+        if (item.path === selectedFilePath) {
+            row.classList.add("is-selected");
+        }
+
+        const icon = document.createElement("span");
+        icon.className = "audio-tree-icon";
+        icon.textContent = "♪";
+
+        const name = document.createElement("span");
+        name.className = "audio-tree-name";
+        name.textContent = item.name;
+
+        row.append(icon, name);
+        row.addEventListener("click", () => {
+            selectFile(item.path);
+            loadAudio();
+        });
+        return row;
+    }
+
+    function renderLibraryNode(item, depth, container) {
+        if (item.type === "folder") {
+            if (item.id) {
+                container.appendChild(makeFolderRow(item, depth));
+            }
+            if (!collapsedFolders.has(item.id)) {
+                normalizeChildren(item.children).forEach((child) => {
+                    renderLibraryNode(child, item.id ? depth + 1 : depth, container);
+                });
+            }
+            return;
+        }
+        container.appendChild(makeLibraryFileRow(item, depth));
     }
 
     async function readJsonResponse(response) {
@@ -156,10 +142,77 @@ const ClipBrowser = (() => {
         return data;
     }
 
-    async function refreshTree(nextTree = null) {
-        tree = nextTree || await readJsonResponse(await fetch("/music/clips/tree"));
+    async function refreshTree(nextPayload = null) {
+        payload = nextPayload || await readJsonResponse(await fetch("/music/clips/tree"));
         syncSelectOptions();
         renderTree();
+    }
+
+    function sectionTitle(text) {
+        const title = document.createElement("div");
+        title.className = "audio-tree-section-title";
+        title.textContent = text;
+        return title;
+    }
+
+    function makePoolRow(track) {
+        const row = document.createElement("div");
+        row.className = "audio-pool-row";
+        if (track.filePath === selectedFilePath) {
+            row.classList.add("is-selected");
+        }
+
+        const selectButton = document.createElement("button");
+        selectButton.type = "button";
+        selectButton.className = "audio-pool-select";
+        selectButton.textContent = track.displayName || track.fileName;
+        selectButton.addEventListener("click", () => {
+            selectFile(track.filePath);
+            loadAudio();
+        });
+
+        const addButton = document.createElement("button");
+        addButton.type = "button";
+        addButton.className = "audio-pool-add";
+        addButton.textContent = "+";
+        addButton.title = "선택한 폴더에 추가";
+        addButton.addEventListener("click", async () => {
+            await addTrackToLibrary(track.id);
+        });
+
+        row.append(selectButton, addButton);
+        return row;
+    }
+
+    function renderTree() {
+        const container = node("[data-audio-tree]");
+        if (!container) return;
+
+        container.innerHTML = "";
+        if (!payload.library && !poolTracks().length) {
+            container.innerHTML = '<div class="audio-tree-empty">음원 풀에 등록된 트랙이 없어요.</div>';
+            return;
+        }
+
+        container.appendChild(sectionTitle("내 라이브러리"));
+        if (payload.library?.children?.length) {
+            renderLibraryNode(payload.library, 0, container);
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "audio-tree-empty";
+            empty.textContent = "아직 내 폴더에 담은 곡이 없어요.";
+            container.appendChild(empty);
+        }
+
+        container.appendChild(sectionTitle("공용 음악 풀"));
+        if (poolTracks().length) {
+            poolTracks().forEach((track) => container.appendChild(makePoolRow(track)));
+        } else {
+            const empty = document.createElement("div");
+            empty.className = "audio-tree-empty";
+            empty.textContent = "공용 트랙이 없어요.";
+            container.appendChild(empty);
+        }
     }
 
     function showTreeError(error) {
@@ -169,10 +222,6 @@ const ClipBrowser = (() => {
         }
     }
 
-    function selectedFolderOrRoot() {
-        return selectedFolderPath || "";
-    }
-
     async function mutateFolder(method, body) {
         const response = await fetch("/music/clips/folders", {
             method,
@@ -180,6 +229,18 @@ const ClipBrowser = (() => {
             body: JSON.stringify(body),
         });
         return readJsonResponse(response);
+    }
+
+    async function addTrackToLibrary(trackId) {
+        const response = await fetch("/music/clips/library-items", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                trackId,
+                folderId: selectedFolderId,
+            }),
+        });
+        await refreshTree(await readJsonResponse(response));
     }
 
     function bindFolderMenu() {
@@ -207,8 +268,8 @@ const ClipBrowser = (() => {
         const run = async (action) => {
             if (status) status.textContent = "";
             try {
-                const nextTree = await action();
-                await refreshTree(nextTree);
+                const nextPayload = await action();
+                await refreshTree(nextPayload);
                 if (status) status.textContent = "반영했어요.";
                 if (nameInput) nameInput.value = "";
             } catch (error) {
@@ -217,21 +278,21 @@ const ClipBrowser = (() => {
         };
 
         createButton?.addEventListener("click", () => run(() => mutateFolder("POST", {
-            parentPath: selectedFolderOrRoot(),
+            parentId: selectedFolderId,
             name: nameInput.value,
         })));
 
         renameButton?.addEventListener("click", () => run(() => mutateFolder("PUT", {
-            path: selectedFolderPath,
+            folderId: selectedFolderId,
             name: nameInput.value,
         })));
 
         deleteButton?.addEventListener("click", () => {
-            if (!selectedFolderPath) {
+            if (!selectedFolderId) {
                 if (status) status.textContent = "삭제할 폴더를 선택해주세요.";
                 return;
             }
-            run(() => mutateFolder("DELETE", { path: selectedFolderPath }));
+            run(() => mutateFolder("DELETE", { folderId: selectedFolderId }));
         });
     }
 
@@ -242,7 +303,6 @@ const ClipBrowser = (() => {
 
     return {
         init,
-        selectFile,
         getSelectedFilePath: () => selectedFilePath || fileSelect()?.value || "",
     };
 })();
@@ -253,9 +313,7 @@ function loadAudio() {
     const fileName = ClipBrowser.getSelectedFilePath();
     const player = document.getElementById("player");
 
-    if (!fileName || !player) {
-        return;
-    }
+    if (!fileName || !player) return;
 
     player.src = "/music/audio/" + encodeURIComponent(fileName).replace(/%2F/g, "/");
     player.load();
@@ -308,7 +366,6 @@ async function createClip() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName, startTime, endTime, clipName }),
     });
-
     const result = await response.json();
     alert("생성 완료 : " + result.fileName);
 }
@@ -327,7 +384,6 @@ async function createPitchVersion() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName, semitones }),
     });
-
     const result = await response.json();
     alert("생성 완료 : " + result.fileName);
 }
