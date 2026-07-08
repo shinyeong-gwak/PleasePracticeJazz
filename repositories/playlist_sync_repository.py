@@ -156,7 +156,10 @@ def save_playlist_state(playlist_name, playlist_state):
             {
                 "playlist_id": playlist_id,
                 "file_name": item.get("filename") or "",
-                "file_path": str(item.get("filePath") or item.get("filename") or ""),
+                "file_path": str(
+                    item.get("filePath")
+                    or f"downloads/mp3/{item.get('filename') or ''}"
+                ),
                 "source_url": item.get("url") or "",
                 "title": item.get("title") or "",
                 "youtube_video_id": item.get("id") or "",

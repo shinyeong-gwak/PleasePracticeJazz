@@ -162,6 +162,13 @@ const ClipBrowser = (() => {
         renderTree();
     }
 
+    function showTreeError(error) {
+        const container = node("[data-audio-tree]");
+        if (container) {
+            container.innerHTML = `<div class="audio-tree-empty">${error.message || "음원을 불러오지 못했어요."}</div>`;
+        }
+    }
+
     function selectedFolderOrRoot() {
         return selectedFolderPath || "";
     }
@@ -186,7 +193,10 @@ const ClipBrowser = (() => {
         const deleteButton = node("[data-folder-delete]");
 
         toggle?.addEventListener("click", () => {
-            menu.hidden = !menu.hidden;
+            if (menu) {
+                menu.hidden = !menu.hidden;
+                menu.classList.toggle("is-open", !menu.hidden);
+            }
         });
 
         sortSelect?.addEventListener("change", () => {
@@ -227,7 +237,7 @@ const ClipBrowser = (() => {
 
     function init() {
         bindFolderMenu();
-        void refreshTree();
+        void refreshTree().catch(showTreeError);
     }
 
     return {
@@ -236,6 +246,8 @@ const ClipBrowser = (() => {
         getSelectedFilePath: () => selectedFilePath || fileSelect()?.value || "",
     };
 })();
+
+window.ClipBrowser = ClipBrowser;
 
 function loadAudio() {
     const fileName = ClipBrowser.getSelectedFilePath();
