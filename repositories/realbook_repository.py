@@ -22,6 +22,12 @@ BOOK_LABEL_MAP = {
     file_name: label
     for label, file_name in BOOK_FILE_MAP.items()
 }
+GENERIC_BOOK_VALUES = {
+    "",
+    "리얼북",
+    "realbook",
+    "real book",
+}
 
 
 def normalize_title(value: str) -> str:
@@ -71,32 +77,90 @@ def get_pdf_path(book_name: str) -> Path | None:
     return path if path.exists() else None
 
 
+def is_generic_book_name(book_name: str) -> bool:
+    return str(book_name or "").strip().lower() in GENERIC_BOOK_VALUES
+
+
+def get_searchable_books(book_name: str):
+    if not is_generic_book_name(book_name):
+        pdf_path = get_pdf_path(book_name)
+        if pdf_path is None:
+            return []
+        return [
+            {
+                "label": get_book_label(book_name),
+                "fileName": pdf_path.name,
+                "path": pdf_path,
+            }
+        ]
+
+    books = []
+    seen = set()
+
+    for label, file_name in BOOK_FILE_MAP.items():
+        pdf_path = REALBOOK_DIR / file_name
+        if not pdf_path.exists():
+            continue
+        books.append(
+            {
+                "label": label,
+                "fileName": file_name,
+                "path": pdf_path,
+            }
+        )
+        seen.add(file_name)
+
+    for pdf_path in sorted(REALBOOK_DIR.glob("*.pdf")):
+        if pdf_path.name in seen:
+            continue
+        books.append(
+            {
+                "label": BOOK_LABEL_MAP.get(pdf_path.name, pdf_path.stem),
+                "fileName": pdf_path.name,
+                "path": pdf_path,
+            }
+        )
+
+    return books
+
+
 def find_page_by_title_in_db(book_name: str, title: str):
     query_text = unquote_plus(str(title or "")).strip()
     normalized_query = normalize_title(query_text)
+    search_all_books = is_generic_book_name(book_name)
     book_label = get_book_label(book_name)
     file_name = resolve_book_file_name(book_name)
 
-    if not normalized_query or not book_label:
+    if not normalized_query:
         return None
 
-    row = query_one(
-        """
-        WITH target_book AS (
-            SELECT sb.id
-            FROM music.sheet_book sb
+    if not search_all_books and not book_label:
+        return None
+
+    book_filter_sql = ""
+    if not search_all_books:
+        book_filter_sql = """
             WHERE sb.title = :'book_title'
                OR split_part(
                     sb.pdf_path,
                     '/',
                     array_length(string_to_array(sb.pdf_path, '/'), 1)
                   ) = :'file_name'
-            ORDER BY
-                CASE
-                    WHEN sb.title = :'book_title' THEN 0
-                    ELSE 1
-                END
-            LIMIT 1
+        """
+
+    row = query_one(
+        f"""
+        WITH candidate_book AS (
+            SELECT
+                sb.id,
+                sb.title AS book_title,
+                split_part(
+                    sb.pdf_path,
+                    '/',
+                    array_length(string_to_array(sb.pdf_path, '/'), 1)
+                ) AS file_name
+            FROM music.sheet_book sb
+            {book_filter_sql}
         ),
         candidate_song AS (
             SELECT
@@ -120,6 +184,8 @@ def find_page_by_title_in_db(book_name: str, title: str):
         ranked_match AS (
             SELECT
                 sbs.page,
+                cb.book_title,
+                cb.file_name,
                 cs.title,
                 cs.normalized_title,
                 sbs.bookmark_title,
@@ -150,9 +216,9 @@ def find_page_by_title_in_db(book_name: str, title: str):
                     ),
                     :'normalized_title'
                 ) AS bookmark_similarity
-            FROM target_book tb
+            FROM candidate_book cb
             JOIN music.sheet_book_song sbs
-              ON sbs.sheet_book_id = tb.id
+              ON sbs.sheet_book_id = cb.id
             JOIN candidate_song cs
               ON cs.id = sbs.song_id
             WHERE cs.match_rank > 0
@@ -170,6 +236,10 @@ def find_page_by_title_in_db(book_name: str, title: str):
                 cs.match_rank DESC,
                 cs.title_similarity DESC,
                 bookmark_similarity DESC,
+                CASE
+                    WHEN cb.book_title = :'book_title' THEN 0
+                    ELSE 1
+                END,
                 length(cs.normalized_title) ASC,
                 sbs.page ASC
             LIMIT 1
@@ -178,6 +248,8 @@ def find_page_by_title_in_db(book_name: str, title: str):
         FROM (
             SELECT
                 page,
+                book_title AS "bookTitle",
+                file_name AS "fileName",
                 title,
                 normalized_title,
                 bookmark_title,
@@ -206,7 +278,15 @@ def find_page_by_title_in_db(book_name: str, title: str):
     except (TypeError, ValueError):
         return None
 
-    return page if page > 0 else None
+    if page <= 0:
+        return None
+
+    return {
+        "page": page,
+        "fileName": str(row.get("fileName") or "").strip(),
+        "book": str(row.get("bookTitle") or "").strip(),
+        "title": str(row.get("title") or "").strip(),
+    }
 
 
 def load_cache():
@@ -423,32 +503,67 @@ if (!doc) {{
 
 
 def resolve_realbook_page(book: str, title: str = "", page: str = ""):
-    pdf_path = get_pdf_path(book)
+    search_books = get_searchable_books(book)
 
-    if pdf_path is None:
+    if not search_books:
         return {
             "success": False,
             "message": "선택한 악보집 PDF를 찾을 수 없습니다."
         }
 
-    resolved_page = find_page_by_title_in_db(book, title)
+    matched = find_page_by_title_in_db(book, title)
+    selected_book = None
 
-    if resolved_page is None:
-        resolved_page = find_page_by_title(
-            pdf_path,
-            title
+    if matched:
+        selected_book = next(
+            (
+                candidate
+                for candidate in search_books
+                if candidate["fileName"] == matched.get("fileName")
+            ),
+            None,
         )
+        if selected_book is None and matched.get("fileName"):
+            pdf_path = REALBOOK_DIR / matched["fileName"]
+            if pdf_path.exists():
+                selected_book = {
+                    "label": matched.get("book") or get_book_label(matched["fileName"]),
+                    "fileName": matched["fileName"],
+                    "path": pdf_path,
+                }
 
-    if resolved_page is None:
+    if matched is None:
+        for candidate in search_books:
+            resolved_page = find_page_by_title(
+                candidate["path"],
+                title
+            )
+            if resolved_page:
+                matched = {
+                    "page": resolved_page,
+                    "fileName": candidate["fileName"],
+                    "book": candidate["label"],
+                    "title": str(title or "").strip(),
+                }
+                selected_book = candidate
+                break
+
+    if matched is None:
         try:
             fallback_page = int(str(page or "").strip())
         except ValueError:
             fallback_page = 0
 
         if fallback_page > 0:
-            resolved_page = fallback_page
+            selected_book = search_books[0]
+            matched = {
+                "page": fallback_page,
+                "fileName": selected_book["fileName"],
+                "book": selected_book["label"],
+                "title": str(title or "").strip(),
+            }
 
-    if resolved_page is None or resolved_page <= 0:
+    if matched is None or int(matched.get("page") or 0) <= 0:
         return {
             "success": False,
             "message": "곡 제목이나 페이지 번호로 악보를 찾지 못했습니다."
@@ -456,8 +571,8 @@ def resolve_realbook_page(book: str, title: str = "", page: str = ""):
 
     return {
         "success": True,
-        "fileName": pdf_path.name,
-        "page": resolved_page,
-        "book": get_book_label(book),
-        "title": str(title or "").strip()
+        "fileName": matched["fileName"],
+        "page": int(matched["page"]),
+        "book": matched.get("book") or (selected_book["label"] if selected_book else get_book_label(book)),
+        "title": matched.get("title") or str(title or "").strip(),
     }
