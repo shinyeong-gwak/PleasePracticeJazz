@@ -414,9 +414,8 @@ body.login-page {
 }
 
 .clips-browser-head {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
     align-items: start;
 }
@@ -426,7 +425,9 @@ body.login-page {
 }
 
 .clips-folder-tools {
-    position: relative;
+    display: grid;
+    justify-items: end;
+    gap: 10px;
 }
 
 .icon-button {
@@ -441,9 +442,6 @@ body.login-page {
 }
 
 .folder-menu {
-    position: absolute;
-    top: 50px;
-    right: 0;
     width: min(320px, calc(100vw - 48px));
     display: grid;
     gap: 12px;
@@ -452,7 +450,10 @@ body.login-page {
     border-radius: 18px;
     background: rgba(255, 255, 255, 0.98);
     box-shadow: 0 20px 46px rgba(32, 88, 69, 0.14);
-    z-index: 10;
+}
+
+.folder-menu[hidden] {
+    display: none;
 }
 
 .folder-menu-actions {
@@ -1952,6 +1953,18 @@ tr.hidden,
     .clip-controls-grid,
     .clips-player-card {
         grid-template-columns: 1fr;
+    }
+
+    .clips-browser-head {
+        grid-template-columns: 1fr;
+    }
+
+    .clips-folder-tools {
+        justify-items: stretch;
+    }
+
+    .folder-menu {
+        width: 100%;
     }
 
     .clip-time-grid {
