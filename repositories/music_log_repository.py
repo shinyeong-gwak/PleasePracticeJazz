@@ -1,4 +1,4 @@
-from repositories.db import execute, query_rows
+from repositories.db import execute, get_or_create_user_id, query_rows
 
 
 def add_log(playlist_name: str, url: str, status: str, message: str):
@@ -8,11 +8,13 @@ def add_log(playlist_name: str, url: str, status: str, message: str):
         SET source_url = COALESCE(NULLIF(:'url', ''), source_url),
             updated_at = now(),
             last_sync_at = now()
-        WHERE name = :'playlist_name'
+        WHERE user_id = :'user_id'::uuid
+          AND name = :'playlist_name'
         """,
         {
             "playlist_name": playlist_name,
             "url": url,
+            "user_id": get_or_create_user_id(),
         },
     )
 

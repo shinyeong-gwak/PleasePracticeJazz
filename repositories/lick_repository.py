@@ -5,6 +5,7 @@ from uuid import uuid4
 from repositories.db import (
     execute,
     get_or_create_user_id,
+    query_one,
     query_rows,
 )
 
@@ -82,6 +83,32 @@ def get_recent_files(limit=10):
     return [file.name for file in files[:limit]]
 
 
+def _resolve_clip_id(file_name):
+    file_name = str(file_name or "").strip()
+    if not file_name:
+        return None
+
+    user_id = get_or_create_user_id()
+    row = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT id::text AS id
+            FROM clip
+            WHERE user_id = :'user_id'::uuid
+              AND file_name = :'file_name'
+            ORDER BY created_at DESC
+            LIMIT 1
+        ) AS t
+        """,
+        {
+            "user_id": user_id,
+            "file_name": file_name,
+        },
+    )
+    return row["id"] if row else None
+
+
 def load_metadata():
     user_id = get_or_create_user_id()
     rows = query_rows(
@@ -89,7 +116,7 @@ def load_metadata():
         SELECT row_to_json(t)
         FROM (
             SELECT
-                COALESCE(l.source_file_name, l.name) AS file,
+                COALESCE(c.file_name, l.name) AS file,
                 l.id::text AS id,
                 l.name,
                 l.key,
@@ -101,6 +128,7 @@ def load_metadata():
                 l.voicing,
                 l.voicing_rhythm AS "voicingRhythm"
             FROM lick l
+            LEFT JOIN clip c ON c.id = l.clip_id
             WHERE l.user_id = :'user_id'::uuid
             ORDER BY l.created_at, l.id
         ) AS t
@@ -130,6 +158,7 @@ def save(data):
         INSERT INTO lick (
             id,
             user_id,
+            clip_id,
             name,
             key,
             time_signature,
@@ -139,14 +168,13 @@ def save(data):
             melody_rhythm,
             voicing,
             voicing_rhythm,
-            source_file_name,
-            source_file_path,
             created_at,
             updated_at
         )
         VALUES (
             :'id'::uuid,
             :'user_id'::uuid,
+            NULLIF(:'clip_id', '')::uuid,
             :'name',
             :'key',
             :'time_signature',
@@ -156,13 +184,12 @@ def save(data):
             :'melody_rhythm',
             :'voicing',
             :'voicing_rhythm',
-            :'source_file_name',
-            :'source_file_path',
             now(),
             now()
         )
         ON CONFLICT (id) DO UPDATE SET
             user_id = EXCLUDED.user_id,
+            clip_id = EXCLUDED.clip_id,
             name = EXCLUDED.name,
             key = EXCLUDED.key,
             time_signature = EXCLUDED.time_signature,
@@ -172,13 +199,12 @@ def save(data):
             melody_rhythm = EXCLUDED.melody_rhythm,
             voicing = EXCLUDED.voicing,
             voicing_rhythm = EXCLUDED.voicing_rhythm,
-            source_file_name = EXCLUDED.source_file_name,
-            source_file_path = EXCLUDED.source_file_path,
             updated_at = now()
         """,
         {
             "id": lick_id,
             "user_id": user_id,
+            "clip_id": _resolve_clip_id(file_name) or "",
             "name": payload.get("name") or file_name,
             "key": payload.get("key") or "",
             "time_signature": payload.get("time") or "",
@@ -188,8 +214,6 @@ def save(data):
             "melody_rhythm": payload.get("melodyRhythm") or "",
             "voicing": payload.get("voicing") or "",
             "voicing_rhythm": payload.get("voicingRhythm") or "",
-            "source_file_name": file_name,
-            "source_file_path": str(METADATA_DIR / file_name),
         },
     )
 
