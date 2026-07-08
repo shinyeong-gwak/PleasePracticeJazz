@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page_title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="login-page auth-page">
+    <main class="auth-shell auth-shell-wide">
+        <section class="auth-panel signup-panel" data-signup-flow>
+            <div class="signup-progress" aria-hidden="true">
+                <span data-signup-dot="0" class="is-active"></span>
+                <span data-signup-dot="1"></span>
+                <span data-signup-dot="2"></span>
+                <span data-signup-dot="3"></span>
+                <span data-signup-dot="4"></span>
+            </div>
+
+            <form class="signup-form" data-signup-form>
+                <section class="signup-step is-active" data-signup-step="0">
+                    <p class="eyebrow">Welcome</p>
+                    <h1>먼저 약관에 동의해주세요</h1>
+                    <p class="page-copy">연습 기록과 계정 설정을 저장하기 위한 기본 동의예요.</p>
+                    <label class="terms-box">
+                        <input type="checkbox" data-signup-terms>
+                        <span>
+                            <strong>이용약관 및 개인정보 처리에 동의합니다.</strong>
+                            <small>계정 생성, 로그인, 개인 설정 저장에 필요한 정보만 사용합니다.</small>
+                        </span>
+                    </label>
+                </section>
+
+                <section class="signup-step" data-signup-step="1">
+                    <p class="eyebrow">Email</p>
+                    <h1>이메일 주소를 알려주세요</h1>
+                    <label class="auth-field">
+                        <span class="practice-field-label">이메일</span>
+                        <input type="email" data-signup-email autocomplete="email" placeholder="you@example.com">
+                    </label>
+                </section>
+
+                <section class="signup-step" data-signup-step="2">
+                    <p class="eyebrow">User ID</p>
+                    <h1>사용할 아이디를 정해주세요</h1>
+                    <label class="auth-field">
+                        <span class="practice-field-label">아이디</span>
+                        <input type="text" data-signup-username autocomplete="username" placeholder="yourname">
+                    </label>
+                    <button type="button" class="suggestion-button" data-signup-suggestion hidden></button>
+                </section>
+
+                <section class="signup-step" data-signup-step="3">
+                    <p class="eyebrow">Password</p>
+                    <h1>비밀번호를 만들어주세요</h1>
+                    <label class="auth-field">
+                        <span class="practice-field-label">비밀번호</span>
+                        <input type="password" data-signup-password autocomplete="new-password" placeholder="8자 이상">
+                    </label>
+                </section>
+
+                <section class="signup-step" data-signup-step="4">
+                    <p class="eyebrow">Preferences</p>
+                    <h1>기본 설정을 고를게요</h1>
+                    <div class="signup-settings-grid">
+                        <label class="auth-field">
+                            <span class="practice-field-label">국가 / 시간대</span>
+                            <select data-signup-country>
+                                <option value="kr">한국 (Asia/Seoul)</option>
+                                <option value="jp">일본 (Asia/Tokyo)</option>
+                                <option value="us">미국 동부 (America/New_York)</option>
+                                <option value="utc">UTC</option>
+                            </select>
+                        </label>
+                        <label class="auth-field">
+                            <span class="practice-field-label">주의 시작 요일</span>
+                            <select data-signup-week-start>
+                                <option value="0">일요일</option>
+                                <option value="1" selected>월요일</option>
+                                <option value="2">화요일</option>
+                                <option value="3">수요일</option>
+                                <option value="4">목요일</option>
+                                <option value="5">금요일</option>
+                                <option value="6">토요일</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+
+                <div class="login-status" data-signup-status></div>
+
+                <div class="signup-actions">
+                    <button type="button" class="secondary-button" data-signup-back hidden>이전</button>
+                    <button type="button" class="primary-button" data-signup-next>다음</button>
+                    <button type="submit" class="primary-button" data-signup-submit hidden>회원가입</button>
+                </div>
+            </form>
+
+            <div class="auth-switch">
+                <span>이미 계정이 있나요?</span>
+                <a href="/login">로그인</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/auth.js"></script>
+</body>
+</html>
