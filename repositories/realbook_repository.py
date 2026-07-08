@@ -86,7 +86,11 @@ def find_page_by_title_in_db(book_name: str, title: str):
             SELECT sb.id
             FROM music.sheet_book sb
             WHERE sb.title = :'book_title'
-               OR split_part(sb.pdf_path, '/', array_length(string_to_array(sb.pdf_path, '/'), 1)) = :'file_name'
+               OR split_part(
+                    sb.pdf_path,
+                    '/',
+                    array_length(string_to_array(sb.pdf_path, '/'), 1)
+                  ) = :'file_name'
             ORDER BY
                 CASE
                     WHEN sb.title = :'book_title' THEN 0
@@ -94,37 +98,95 @@ def find_page_by_title_in_db(book_name: str, title: str):
                 END
             LIMIT 1
         ),
-        ranked_song AS (
+        candidate_song AS (
             SELECT
                 s.id,
                 s.title,
                 s.normalized_title,
                 CASE
-                    WHEN s.normalized_title = :'normalized_title' THEN 3
-                    WHEN s.normalized_title LIKE :'normalized_prefix' THEN 2
-                    WHEN s.normalized_title LIKE :'normalized_contains' THEN 1
+                    WHEN s.normalized_title = :'normalized_title' THEN 4
+                    WHEN s.normalized_title LIKE :'normalized_prefix' THEN 3
+                    WHEN s.normalized_title LIKE :'normalized_contains' THEN 2
+                    WHEN similarity(s.normalized_title, :'normalized_title') >= 0.45 THEN 1
                     ELSE 0
-                END AS match_rank
+                END AS match_rank,
+                similarity(s.normalized_title, :'normalized_title') AS title_similarity
             FROM music.song s
             WHERE s.normalized_title = :'normalized_title'
                OR s.normalized_title LIKE :'normalized_prefix'
                OR s.normalized_title LIKE :'normalized_contains'
-            ORDER BY match_rank DESC, length(s.normalized_title) ASC
+               OR similarity(s.normalized_title, :'normalized_title') >= 0.45
+        ),
+        ranked_match AS (
+            SELECT
+                sbs.page,
+                cs.title,
+                cs.normalized_title,
+                sbs.bookmark_title,
+                CASE
+                    WHEN cs.match_rank >= 2 THEN cs.match_rank * 10
+                    ELSE 0
+                END
+                + (cs.title_similarity * 100)
+                + (
+                    similarity(
+                        regexp_replace(
+                            lower(coalesce(sbs.bookmark_title, '')),
+                            '[^[:alnum:]]+',
+                            '',
+                            'g'
+                        ),
+                        :'normalized_title'
+                    ) * 40
+                ) AS score,
+                cs.match_rank,
+                cs.title_similarity,
+                similarity(
+                    regexp_replace(
+                        lower(coalesce(sbs.bookmark_title, '')),
+                        '[^[:alnum:]]+',
+                        '',
+                        'g'
+                    ),
+                    :'normalized_title'
+                ) AS bookmark_similarity
+            FROM target_book tb
+            JOIN music.sheet_book_song sbs
+              ON sbs.sheet_book_id = tb.id
+            JOIN candidate_song cs
+              ON cs.id = sbs.song_id
+            WHERE cs.match_rank > 0
+               OR similarity(
+                    regexp_replace(
+                        lower(coalesce(sbs.bookmark_title, '')),
+                        '[^[:alnum:]]+',
+                        '',
+                        'g'
+                    ),
+                    :'normalized_title'
+                ) >= 0.5
+            ORDER BY
+                score DESC,
+                cs.match_rank DESC,
+                cs.title_similarity DESC,
+                bookmark_similarity DESC,
+                length(cs.normalized_title) ASC,
+                sbs.page ASC
             LIMIT 1
         )
         SELECT row_to_json(t)
         FROM (
             SELECT
-                sbs.page,
-                rs.title,
-                rs.normalized_title
-            FROM target_book tb
-            JOIN music.sheet_book_song sbs
-              ON sbs.sheet_book_id = tb.id
-            JOIN ranked_song rs
-              ON rs.id = sbs.song_id
-            ORDER BY sbs.page ASC
-            LIMIT 1
+                page,
+                title,
+                normalized_title,
+                bookmark_title,
+                score,
+                match_rank,
+                title_similarity,
+                bookmark_similarity
+            FROM ranked_match
+            WHERE score >= 35
         ) AS t
         """,
         {
