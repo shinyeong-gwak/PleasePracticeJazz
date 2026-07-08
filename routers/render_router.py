@@ -93,7 +93,8 @@ async def realbook_file(filename: str):
     return FileResponse(
         file_path,
         media_type="application/pdf",
-        filename=safe_name
+        filename=safe_name,
+        content_disposition_type="inline",
     )
 
 
