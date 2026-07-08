@@ -32,13 +32,13 @@ TIMEZONE_TO_COUNTRY = {
 }
 
 WEEKDAY_LABELS = [
+    "일",
     "월",
     "화",
     "수",
     "목",
     "금",
     "토",
-    "일",
 ]
 
 
@@ -145,8 +145,12 @@ def load_all():
 
 
 def save_all(settings):
-    normalized = normalize_settings(settings)
     user_id = get_or_create_user_id()
+    return save_for_user(user_id, settings)
+
+
+def save_for_user(user_id, settings):
+    normalized = normalize_settings(settings)
 
     execute(
         """

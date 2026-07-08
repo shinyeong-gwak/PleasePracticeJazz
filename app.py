@@ -14,6 +14,7 @@ from routers.render_router import router as  render_router
 
 from core.lifespan import lifespan
 from fastapi.staticfiles import StaticFiles
+from repositories.db import current_user_id
 
 
 app = FastAPI(lifespan=lifespan)
@@ -21,7 +22,10 @@ app = FastAPI(lifespan=lifespan)
 PUBLIC_PATH_PREFIXES = (
     "/static",
     "/auth/login",
+    "/auth/signup",
+    "/auth/logout",
     "/login",
+    "/signup",
     "/openapi.json",
     "/docs",
     "/redoc",
@@ -37,6 +41,11 @@ def _looks_like_html(request: Request) -> bool:
     return "text/html" in accept or not accept
 
 
+def _is_uuid_like(value: str | None) -> bool:
+    text = str(value or "")
+    return len(text) == 36 and text.count("-") == 4
+
+
 @app.middleware("http")
 async def auth_guard(request: Request, call_next):
     path = request.url.path
@@ -50,7 +59,8 @@ async def auth_guard(request: Request, call_next):
     if not token:
         token = request.cookies.get(AUTH_COOKIE_NAME)
 
-    if not token or not verify_access_token(token):
+    payload = verify_access_token(token) if token else None
+    if not token or not payload:
         if _looks_like_html(request):
             return RedirectResponse("/login", status_code=303)
 
@@ -61,7 +71,13 @@ async def auth_guard(request: Request, call_next):
 
     request.state.authenticated = True
     request.state.access_token = token
-    return await call_next(request)
+    user_id = payload.get("sub") if _is_uuid_like(payload.get("sub")) else None
+    request.state.user_id = user_id
+    token_handle = current_user_id.set(user_id)
+    try:
+        return await call_next(request)
+    finally:
+        current_user_id.reset(token_handle)
 
 
 app.include_router(auth_router)

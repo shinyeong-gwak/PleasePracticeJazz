@@ -6,25 +6,35 @@
     <title>{{ page_title }}</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
-<body class="login-page">
-    <main class="login-shell">
-        <section class="login-card">
-            <div class="login-copy">
-                <p class="eyebrow">Duolickgo</p>
+<body class="login-page auth-page">
+    <main class="auth-shell">
+        <section class="auth-panel">
+            <div class="auth-copy">
+                <p class="eyebrow">Please Practice Jazz</p>
                 <h1>로그인</h1>
-                <p class="page-copy">Access key를 넣으면 토큰이 발급되고, 이후 모든 API 요청은 Bearer로 통신합니다.</p>
+                <p class="page-copy">아이디 또는 이메일로 연습 공간에 들어가요.</p>
             </div>
 
-            <form class="login-form" data-login-form>
-                <label class="settings-field">
-                    <span class="practice-field-label">Access key</span>
-                    <input type="password" data-login-key autocomplete="current-password" placeholder="duolickgo-secret-key">
+            <form class="auth-form" data-login-form>
+                <label class="auth-field">
+                    <span class="practice-field-label">아이디 또는 이메일</span>
+                    <input type="text" data-login-identifier autocomplete="username" placeholder="your-id@example.com" autofocus>
+                </label>
+
+                <label class="auth-field">
+                    <span class="practice-field-label">비밀번호</span>
+                    <input type="password" data-login-password autocomplete="current-password" placeholder="8자 이상">
                 </label>
 
                 <div class="login-status" data-login-status></div>
 
                 <button type="submit" class="primary-button login-submit" data-login-submit>로그인</button>
             </form>
+
+            <div class="auth-switch">
+                <span>처음 오셨나요?</span>
+                <a href="/signup">회원가입</a>
+            </div>
         </section>
     </main>
 

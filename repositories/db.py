@@ -1,10 +1,11 @@
 import json
 import os
 import subprocess
-from functools import lru_cache
+from contextvars import ContextVar
 
 
 DEFAULT_USER_NICKNAME = "default"
+current_user_id = ContextVar("current_user_id", default=None)
 
 
 def _build_dsn():
@@ -97,8 +98,11 @@ def execute(sql, params=None):
     _run(sql, params)
 
 
-@lru_cache(maxsize=1)
 def get_or_create_user_id():
+    scoped_user_id = current_user_id.get()
+    if scoped_user_id:
+        return scoped_user_id
+
     rows = query_rows(
         """
         SELECT row_to_json(t)

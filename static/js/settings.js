@@ -3,7 +3,7 @@ const LickSettings = (() => {
     const SERVER_SETTINGS_NODE_ID = "app-settings-data";
 
     const COUNTRY_OPTIONS = {
-        kr: { label: "서울", timeZone: "Asia/Seoul" },
+        kr: { label: "한국", timeZone: "Asia/Seoul" },
         jp: { label: "일본", timeZone: "Asia/Tokyo" },
         us: { label: "미국", timeZone: "America/New_York" },
         utc: { label: "UTC", timeZone: "UTC" },
@@ -27,9 +27,7 @@ const LickSettings = (() => {
 
     function readJsonNode(id) {
         const node = document.getElementById(id);
-        if (!node) {
-            return null;
-        }
+        if (!node) return null;
 
         try {
             return JSON.parse(node.textContent || "{}");
@@ -59,9 +57,7 @@ const LickSettings = (() => {
     }
 
     function readServerSettings() {
-        return normalizeSettings(
-            readJsonNode(SERVER_SETTINGS_NODE_ID) || DEFAULT_SETTINGS
-        );
+        return normalizeSettings(readJsonNode(SERVER_SETTINGS_NODE_ID) || DEFAULT_SETTINGS);
     }
 
     function readRawSettings() {
@@ -73,30 +69,23 @@ const LickSettings = (() => {
     }
 
     function writeSettingsToStorage(settings) {
-        localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(normalizeSettings(settings))
-        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeSettings(settings)));
     }
 
     function ensureLocalSettings() {
         const serverSettings = readServerSettings();
-        const localSettings = normalizeSettings(readRawSettings());
+        const raw = readRawSettings();
+        const localSettings = normalizeSettings(raw);
 
-        if (!readRawSettings().country) {
+        if (!raw.country) {
             writeSettingsToStorage(serverSettings);
             return serverSettings;
         }
 
-        const merged = normalizeSettings({
-            ...serverSettings,
-            ...localSettings,
-        });
-
+        const merged = normalizeSettings({ ...serverSettings, ...localSettings });
         if (JSON.stringify(localSettings) !== JSON.stringify(merged)) {
             writeSettingsToStorage(merged);
         }
-
         return merged;
     }
 
@@ -105,11 +94,7 @@ const LickSettings = (() => {
     }
 
     async function saveSettings(settings) {
-        const next = normalizeSettings({
-            ...getSettings(),
-            ...settings,
-        });
-
+        const next = normalizeSettings({ ...getSettings(), ...settings });
         const response = await fetch("/settings/api", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -118,7 +103,7 @@ const LickSettings = (() => {
 
         const result = await response.json();
         if (!response.ok) {
-            throw new Error(result.message || "저장에 실패했어요");
+            throw new Error(result.message || "저장에 실패했어요.");
         }
 
         writeSettingsToStorage(result);
@@ -143,29 +128,17 @@ const LickSettings = (() => {
     }
 
     function parseDate(value) {
-        if (value instanceof Date) {
-            return value;
-        }
+        if (value instanceof Date) return value;
 
         const text = String(value || "").trim();
-        if (!text) {
-            return null;
-        }
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-            return new Date(`${text}T00:00:00Z`);
-        }
-
-        if (/Z$|[+-]\d{2}:\d{2}$/.test(text)) {
-            return new Date(text);
-        }
-
+        if (!text) return null;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return new Date(`${text}T00:00:00Z`);
+        if (/Z$|[+-]\d{2}:\d{2}$/.test(text)) return new Date(text);
         return new Date(`${text}Z`);
     }
 
     function getDateParts(value, timeZone = getTimeZone()) {
         const text = String(value || "").trim();
-
         if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
             return {
                 year: text.slice(0, 4),
@@ -175,9 +148,7 @@ const LickSettings = (() => {
         }
 
         const date = parseDate(value);
-        if (!date || Number.isNaN(date.getTime())) {
-            return null;
-        }
+        if (!date || Number.isNaN(date.getTime())) return null;
 
         const formatter = new Intl.DateTimeFormat("en-CA", {
             timeZone,
@@ -185,14 +156,10 @@ const LickSettings = (() => {
             month: "2-digit",
             day: "2-digit",
         });
-
         const result = {};
         formatter.formatToParts(date).forEach((part) => {
-            if (part.type !== "literal") {
-                result[part.type] = part.value;
-            }
+            if (part.type !== "literal") result[part.type] = part.value;
         });
-
         return result.year && result.month && result.day ? result : null;
     }
 
@@ -219,7 +186,6 @@ const LickSettings = (() => {
     function buildPreviewText(settings = getSettings()) {
         const normalized = normalizeSettings(settings);
         const now = new Date();
-
         return {
             countryLabel: COUNTRY_OPTIONS[normalized.country].label,
             timeZone: normalized.timeZone,
@@ -239,11 +205,9 @@ const LickSettings = (() => {
         document.querySelectorAll("[data-settings-live-country]").forEach((node) => {
             node.textContent = getCountryLabel();
         });
-
         document.querySelectorAll("[data-settings-live-timezone]").forEach((node) => {
             node.textContent = getTimeZone();
         });
-
         document.querySelectorAll("[data-settings-live-week-start]").forEach((node) => {
             node.textContent = getWeekStartLabel();
         });
@@ -251,9 +215,7 @@ const LickSettings = (() => {
 
     function initSettingsPage() {
         const form = document.querySelector("[data-settings-form]");
-        if (!form) {
-            return;
-        }
+        if (!form) return;
 
         const countrySelect = form.querySelector("[data-settings-country]");
         const weekStartSelect = form.querySelector("[data-settings-week-start]");
@@ -264,10 +226,7 @@ const LickSettings = (() => {
         const previewTime = form.querySelector("[data-settings-preview-time]");
         const saveButton = form.querySelector("[data-settings-save]");
         const statusNode = form.querySelector("[data-settings-status]");
-
-        if (!countrySelect || !weekStartSelect) {
-            return;
-        }
+        if (!countrySelect || !weekStartSelect) return;
 
         const current = getSettings();
         countrySelect.value = current.country;
@@ -278,7 +237,6 @@ const LickSettings = (() => {
                 country: countrySelect.value,
                 weekStartDay: weekStartSelect.value,
             });
-
             if (previewCountry) previewCountry.textContent = preview.countryLabel;
             if (previewTimeZone) previewTimeZone.textContent = preview.timeZone;
             if (previewWeekStart) previewWeekStart.textContent = preview.weekStartLabel;
@@ -292,34 +250,37 @@ const LickSettings = (() => {
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
-            if (saveButton) {
-                saveButton.disabled = true;
-            }
+            if (saveButton) saveButton.disabled = true;
 
             try {
                 const result = await saveSettings({
                     country: countrySelect.value,
                     weekStartDay: weekStartSelect.value,
                 });
-
                 countrySelect.value = result.country;
                 weekStartSelect.value = String(result.weekStartDay);
                 syncPreview();
                 syncLiveText();
-
                 if (statusNode) {
-                    statusNode.textContent = `${COUNTRY_OPTIONS[result.country].label} / ${formatWeekdayLabel(result.weekStartDay)} 시작으로 저장했어요`;
+                    statusNode.textContent = `${COUNTRY_OPTIONS[result.country].label} / ${formatWeekdayLabel(result.weekStartDay)} 시작으로 저장했어요.`;
                 }
             } catch (error) {
                 console.error(error);
-                if (statusNode) {
-                    statusNode.textContent = "저장에 실패했어요";
-                }
+                if (statusNode) statusNode.textContent = "저장에 실패했어요.";
             } finally {
-                if (saveButton) {
-                    saveButton.disabled = false;
-                }
+                if (saveButton) saveButton.disabled = false;
             }
+        });
+    }
+
+    function initLogoutButton() {
+        const button = document.querySelector("[data-settings-logout]");
+        if (!button || !window.DuolickgoAuth) return;
+
+        button.addEventListener("click", async () => {
+            button.disabled = true;
+            await window.DuolickgoAuth.logout();
+            window.location.href = "/login";
         });
     }
 
@@ -327,6 +288,7 @@ const LickSettings = (() => {
         ensureLocalSettings();
         syncLiveText();
         initSettingsPage();
+        initLogoutButton();
     });
 
     window.addEventListener("lick-settings-change", syncLiveText);

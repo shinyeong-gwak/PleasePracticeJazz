@@ -113,6 +113,10 @@ SET default_table_access_method = heap;
 CREATE TABLE public.app_user (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     nickname text NOT NULL,
+    email text,
+    username text,
+    password_hash text,
+    terms_accepted_at timestamp with time zone,
     week_start_day public.week_start_day DEFAULT 'MONDAY'::public.week_start_day NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
@@ -439,6 +443,20 @@ CREATE INDEX idx_insight_user_category ON public.insight USING btree (user_id, c
 
 
 --
+-- Name: app_user_email_lower_key; Type: INDEX; Schema: public; Owner: sygwak
+--
+
+CREATE UNIQUE INDEX app_user_email_lower_key ON public.app_user USING btree (lower(email)) WHERE (email IS NOT NULL);
+
+
+--
+-- Name: app_user_username_lower_key; Type: INDEX; Schema: public; Owner: sygwak
+--
+
+CREATE UNIQUE INDEX app_user_username_lower_key ON public.app_user USING btree (lower(username)) WHERE (username IS NOT NULL);
+
+
+--
 -- Name: idx_lick_item; Type: INDEX; Schema: public; Owner: sygwak
 --
 
@@ -597,4 +615,3 @@ ALTER TABLE ONLY public.weekly_goal
 --
 
 \unrestrict wDM3cGkshMaMp63K0aN8s7JyjTadjZIE2YJvsPpOQisodnreAbucaDpA98LCctn
-
