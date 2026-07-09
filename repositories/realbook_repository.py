@@ -31,13 +31,17 @@ GENERIC_BOOK_VALUES = {
 
 
 def normalize_title(value: str) -> str:
-    decoded = unquote_plus(str(value or ""))
+    decoded = unquote_plus(str(value or "").replace("+", " "))
     return re.sub(
         r"[\W_]+",
         "",
         decoded.casefold(),
         flags=re.UNICODE
     )
+
+
+def normalize_query_text(value: str) -> str:
+    return unquote_plus(str(value or "").replace("+", " ")).strip()
 
 
 def resolve_book_file_name(book_name: str) -> str:
@@ -125,7 +129,7 @@ def get_searchable_books(book_name: str):
 
 
 def find_page_by_title_in_db(book_name: str, title: str):
-    query_text = unquote_plus(str(title or "")).strip()
+    query_text = normalize_query_text(title)
     normalized_query = normalize_title(query_text)
     search_all_books = is_generic_book_name(book_name)
     book_label = get_book_label(book_name)
@@ -317,7 +321,7 @@ def save_cache(cache):
 
 
 def find_page_by_title(pdf_path: Path, title: str):
-    query_text = unquote_plus(str(title or "")).strip()
+    query_text = normalize_query_text(title)
     normalized_query = normalize_title(query_text)
 
     if not normalized_query:
