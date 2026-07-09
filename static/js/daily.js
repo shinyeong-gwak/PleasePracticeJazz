@@ -21,7 +21,7 @@ const DAILY_STATE = {
         pulseCount: 0,
         unlocked: false,
     },
-    mobileToolsCollapsed: false,
+    mobileToolsCollapsed: true,
 };
 
 const REALBOOK_LABELS = {
@@ -832,14 +832,17 @@ function bindMobileToolButtons() {
         });
     }
 
-    if (toggleButton && tools) {
-        toggleButton.addEventListener("click", () => {
-            DAILY_STATE.mobileToolsCollapsed = !DAILY_STATE.mobileToolsCollapsed;
+        if (toggleButton && tools) {
             tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
-            toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "숨기기" : "열기";
+            toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "열기" : "숨기기";
             toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
-        });
-    }
+            toggleButton.addEventListener("click", () => {
+                DAILY_STATE.mobileToolsCollapsed = !DAILY_STATE.mobileToolsCollapsed;
+                tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
+                toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "열기" : "숨기기";
+                toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
+            });
+        }
 
     irealButton.addEventListener("click", () => {
         const title = encodeURIComponent(getMobileTargetTitle(DAILY_STATE.activeMobileTarget));

@@ -1,7 +1,6 @@
 const LickSettings = (() => {
-    const STORAGE_KEY_PREFIX = "please-practice-jazz.settings";
     const SERVER_SETTINGS_NODE_ID = "app-settings-data";
-    const AUTH_CONTEXT_NODE_ID = "auth-context-data";
+    let runtimeSettings = null;
 
     const COUNTRY_OPTIONS = {
         kr: { label: "한국", timeZone: "Asia/Seoul" },
@@ -37,18 +36,6 @@ const LickSettings = (() => {
         }
     }
 
-    function readAuthContext() {
-        const context = readJsonNode(AUTH_CONTEXT_NODE_ID) || {};
-        return {
-            userId: String(context.userId || "").trim(),
-        };
-    }
-
-    function getStorageKey() {
-        const userId = readAuthContext().userId || "anonymous";
-        return `${STORAGE_KEY_PREFIX}.${userId}`;
-    }
-
     function normalizeCountry(country) {
         return COUNTRY_OPTIONS[country] ? country : DEFAULT_SETTINGS.country;
     }
@@ -73,37 +60,11 @@ const LickSettings = (() => {
         return normalizeSettings(readJsonNode(SERVER_SETTINGS_NODE_ID) || DEFAULT_SETTINGS);
     }
 
-    function readRawSettings() {
-        try {
-            return JSON.parse(localStorage.getItem(getStorageKey()) || "{}") || {};
-        } catch {
-            return {};
-        }
-    }
-
-    function writeSettingsToStorage(settings) {
-        localStorage.setItem(getStorageKey(), JSON.stringify(normalizeSettings(settings)));
-    }
-
-    function ensureLocalSettings() {
-        const serverSettings = readServerSettings();
-        const raw = readRawSettings();
-        const localSettings = normalizeSettings(raw);
-
-        if (!raw.country) {
-            writeSettingsToStorage(serverSettings);
-            return serverSettings;
-        }
-
-        const merged = normalizeSettings({ ...serverSettings, ...localSettings });
-        if (JSON.stringify(localSettings) !== JSON.stringify(merged)) {
-            writeSettingsToStorage(merged);
-        }
-        return merged;
-    }
-
     function getSettings() {
-        return ensureLocalSettings();
+        if (!runtimeSettings) {
+            runtimeSettings = readServerSettings();
+        }
+        return runtimeSettings;
     }
 
     async function saveSettings(settings) {
@@ -114,14 +75,14 @@ const LickSettings = (() => {
             body: JSON.stringify(next),
         });
 
-        const result = await response.json();
+        const result = await response.json().catch(() => ({}));
         if (!response.ok) {
             throw new Error(result.message || "저장에 실패했어요.");
         }
 
-        writeSettingsToStorage(result);
-        window.dispatchEvent(new CustomEvent("lick-settings-change", { detail: result }));
-        return result;
+        runtimeSettings = normalizeSettings(result);
+        window.dispatchEvent(new CustomEvent("lick-settings-change", { detail: runtimeSettings }));
+        return runtimeSettings;
     }
 
     function getTimeZone() {
@@ -298,13 +259,18 @@ const LickSettings = (() => {
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        ensureLocalSettings();
+        runtimeSettings = readServerSettings();
         syncLiveText();
         initSettingsPage();
         initLogoutButton();
     });
 
-    window.addEventListener("lick-settings-change", syncLiveText);
+    window.addEventListener("lick-settings-change", (event) => {
+        if (event?.detail) {
+            runtimeSettings = normalizeSettings(event.detail);
+        }
+        syncLiveText();
+    });
 
     return {
         COUNTRY_OPTIONS,
@@ -322,3 +288,4 @@ const LickSettings = (() => {
         formatWeekdayLabel,
     };
 })();
+

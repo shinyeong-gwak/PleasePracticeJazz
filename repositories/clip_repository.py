@@ -51,8 +51,7 @@ def _display_name(file_name):
 
 
 def _load_pool_tracks():
-    user_id = get_or_create_user_id()
-    rows = query_rows(
+    return query_rows(
         """
         SELECT row_to_json(t)
         FROM (
@@ -60,23 +59,16 @@ def _load_pool_tracks():
                 at.id::text AS id,
                 at.file_name AS "fileName",
                 at.file_path AS "filePath",
+                COALESCE(NULLIF(at.title, ''), regexp_replace(at.file_name, '\\.mp3$', '', 'i')) AS "displayName",
                 COALESCE(NULLIF(at.source_type, ''), 'local') AS "sourceType",
                 COALESCE(at.source_url, '') AS "sourceUrl",
-                at.duration_sec AS "durationSec",
-                COALESCE(li.sort_order, 0) AS "sortOrder"
-            FROM audio_library_item li
-            JOIN audio_track at ON at.id = li.track_id
-            WHERE li.user_id = :'user_id'::uuid
-            ORDER BY li.sort_order, at.file_name
+                at.duration_sec AS "durationSec"
+            FROM audio_track at
+            WHERE at.file_path LIKE 'downloads/mp3/%'
+            ORDER BY at.file_name
         ) AS t
         """
-        ,
-        {"user_id": user_id},
     )
-
-    for row in rows:
-        row["displayName"] = _display_name(row.get("fileName"))
-    return rows
 
 
 def _load_folders():
@@ -109,7 +101,7 @@ def _load_library_items():
                 li.id::text AS id,
                 li.folder_id::text AS "folderId",
                 li.track_id::text AS "trackId",
-                COALESCE(NULLIF(li.display_name, ''), at.file_name) AS "displayName",
+                COALESCE(NULLIF(li.display_name, ''), NULLIF(at.title, ''), at.file_name) AS "displayName",
                 li.sort_order AS "sortOrder",
                 at.file_name AS "fileName",
                 at.file_path AS "filePath",
@@ -119,7 +111,7 @@ def _load_library_items():
             FROM audio_library_item li
             JOIN audio_track at ON at.id = li.track_id
             WHERE li.user_id = :'user_id'::uuid
-            ORDER BY li.sort_order, COALESCE(NULLIF(li.display_name, ''), at.file_name)
+            ORDER BY li.sort_order, COALESCE(NULLIF(li.display_name, ''), NULLIF(at.title, ''), at.file_name)
         ) AS t
         """,
         {"user_id": user_id},
@@ -141,17 +133,19 @@ def _track_node(item):
         "type": "file",
         "id": item.get("id") or "",
         "trackId": item.get("trackId") or item.get("id") or "",
+        "folderId": item.get("folderId") or "",
         "name": item.get("displayName") or _display_name(item.get("fileName")),
         "fileName": item.get("fileName") or "",
         "path": item.get("filePath") or "",
         "sourceType": item.get("sourceType") or "local",
         "sourceUrl": item.get("sourceUrl") or "",
         "durationSec": item.get("durationSec"),
+        "sortOrder": item.get("sortOrder") or 0,
     }
 
 
 def _build_library_tree(folders, items):
-    root = _folder_node("내 라이브러리")
+    root = _folder_node("라이브러리")
     by_id = {"": root}
 
     for folder in folders:
@@ -178,11 +172,9 @@ def get_mp3_files():
 
 
 def get_mp3_tree():
-    pool = _load_pool_tracks()
-    library = _build_library_tree(_load_folders(), _load_library_items())
     return {
-        "library": library,
-        "pool": pool,
+        "library": _build_library_tree(_load_folders(), _load_library_items()),
+        "pool": _load_pool_tracks(),
     }
 
 
@@ -192,7 +184,7 @@ def create_folder(parent_id, name):
     parent_id = str(parent_id or "").strip() or None
 
     if not folder_name:
-        raise ValueError("폴더 이름을 입력해주세요.")
+        raise ValueError("폴더 이름을 입력해 주세요.")
 
     duplicated = query_one(
         """
@@ -214,7 +206,7 @@ def create_folder(parent_id, name):
         },
     )
     if duplicated:
-        raise ValueError("이미 같은 이름의 폴더가 있어요.")
+        raise ValueError("같은 이름의 폴더가 이미 있어요.")
 
     created = query_one(
         """
@@ -244,10 +236,10 @@ def rename_folder(folder_id, name):
     folder_name = str(name or "").strip()
 
     if not folder_id:
-        raise ValueError("폴더를 선택해주세요.")
+        raise ValueError("폴더를 선택해 주세요.")
 
     if not folder_name:
-        raise ValueError("새 폴더 이름을 입력해주세요.")
+        raise ValueError("새 폴더 이름을 입력해 주세요.")
 
     execute(
         """
@@ -269,7 +261,7 @@ def delete_folder(folder_id):
     user_id = get_or_create_user_id()
 
     if not folder_id:
-        raise ValueError("폴더를 선택해주세요.")
+        raise ValueError("폴더를 선택해 주세요.")
 
     child = query_one(
         """
@@ -288,7 +280,7 @@ def delete_folder(folder_id):
         },
     )
     if child:
-        raise ValueError("하위 폴더가 없는 폴더만 삭제할 수 있어요.")
+        raise ValueError("하위 폴더가 있는 폴더만 삭제할 수 있어요.")
 
     item = query_one(
         """
@@ -322,9 +314,31 @@ def delete_folder(folder_id):
     )
 
 
+def _next_library_sort(user_id, folder_id=None):
+    row = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_sort
+            FROM audio_library_item
+            WHERE user_id = :'user_id'::uuid
+              AND COALESCE(folder_id, '00000000-0000-0000-0000-000000000000'::uuid)
+                  = COALESCE(NULLIF(:'folder_id', '')::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
+        ) AS t
+        """,
+        {
+            "user_id": user_id,
+            "folder_id": folder_id or "",
+        },
+    )
+    return int(row["nextSort"]) if row else 0
+
+
 def add_track_to_library(track_id, folder_id=None):
     user_id = get_or_create_user_id()
     folder_id = str(folder_id or "").strip() or None
+    next_sort = _next_library_sort(user_id, folder_id)
+
     row = query_one(
         """
         WITH inserted AS (
@@ -332,17 +346,21 @@ def add_track_to_library(track_id, folder_id=None):
                 user_id,
                 track_id,
                 folder_id,
-                display_name
+                display_name,
+                sort_order
             )
             SELECT
                 :'user_id'::uuid,
                 at.id,
                 NULLIF(:'folder_id', '')::uuid,
-                regexp_replace(at.file_name, '\\.mp3$', '', 'i')
+                COALESCE(NULLIF(at.title, ''), regexp_replace(at.file_name, '\\.mp3$', '', 'i')),
+                :'sort_order'::int
             FROM audio_track at
             WHERE at.id = :'track_id'::uuid
             ON CONFLICT (user_id, track_id) DO UPDATE SET
                 folder_id = EXCLUDED.folder_id,
+                display_name = EXCLUDED.display_name,
+                sort_order = EXCLUDED.sort_order,
                 updated_at = now()
             RETURNING id::text AS id
         )
@@ -353,9 +371,137 @@ def add_track_to_library(track_id, folder_id=None):
             "user_id": user_id,
             "track_id": track_id,
             "folder_id": folder_id or "",
+            "sort_order": next_sort,
         },
     )
     return row["id"] if row else None
+
+
+def move_track_to_folder(track_id, folder_id=None):
+    user_id = get_or_create_user_id()
+    folder_id = str(folder_id or "").strip() or None
+    next_sort = _next_library_sort(user_id, folder_id)
+
+    row = query_one(
+        """
+        WITH updated AS (
+            UPDATE audio_library_item
+            SET folder_id = NULLIF(:'folder_id', '')::uuid,
+                sort_order = :'sort_order'::int,
+                updated_at = now()
+            WHERE user_id = :'user_id'::uuid
+              AND track_id = :'track_id'::uuid
+            RETURNING id::text AS id
+        )
+        SELECT row_to_json(updated)
+        FROM updated
+        """,
+        {
+            "user_id": user_id,
+            "track_id": track_id,
+            "folder_id": folder_id or "",
+            "sort_order": next_sort,
+        },
+    )
+    return row["id"] if row else None
+
+
+def reorder_track(track_id, direction):
+    user_id = get_or_create_user_id()
+    direction = str(direction or "").strip().lower()
+    if direction not in {"up", "down"}:
+        raise ValueError("Invalid direction")
+
+    current = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT
+                id::text AS id,
+                COALESCE(folder_id::text, '') AS "folderId",
+                sort_order AS "sortOrder"
+            FROM audio_library_item
+            WHERE user_id = :'user_id'::uuid
+              AND track_id = :'track_id'::uuid
+            LIMIT 1
+        ) AS t
+        """,
+        {
+            "user_id": user_id,
+            "track_id": track_id,
+        },
+    )
+    if not current:
+        return None
+
+    if direction == "up":
+        target = query_one(
+            """
+            SELECT row_to_json(t)
+            FROM (
+                SELECT
+                    id::text AS id,
+                    sort_order AS "sortOrder"
+                FROM audio_library_item
+                WHERE user_id = :'user_id'::uuid
+                  AND COALESCE(folder_id, '00000000-0000-0000-0000-000000000000'::uuid)
+                      = COALESCE(NULLIF(:'folder_id', '')::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
+                  AND sort_order < :'sort_order'::int
+                ORDER BY sort_order DESC, id
+                LIMIT 1
+            ) AS t
+            """,
+            {
+                "user_id": user_id,
+                "folder_id": current["folderId"],
+                "sort_order": current["sortOrder"],
+            },
+        )
+    else:
+        target = query_one(
+            """
+            SELECT row_to_json(t)
+            FROM (
+                SELECT
+                    id::text AS id,
+                    sort_order AS "sortOrder"
+                FROM audio_library_item
+                WHERE user_id = :'user_id'::uuid
+                  AND COALESCE(folder_id, '00000000-0000-0000-0000-000000000000'::uuid)
+                      = COALESCE(NULLIF(:'folder_id', '')::uuid, '00000000-0000-0000-0000-000000000000'::uuid)
+                  AND sort_order > :'sort_order'::int
+                ORDER BY sort_order ASC, id
+                LIMIT 1
+            ) AS t
+            """,
+            {
+                "user_id": user_id,
+                "folder_id": current["folderId"],
+                "sort_order": current["sortOrder"],
+            },
+        )
+
+    if not target:
+        return current["id"]
+
+    execute(
+        """
+        UPDATE audio_library_item
+        SET sort_order = CASE
+                WHEN id = :'current_id'::uuid THEN :'target_sort'::int
+                WHEN id = :'target_id'::uuid THEN :'current_sort'::int
+            END,
+            updated_at = now()
+        WHERE id IN (:'current_id'::uuid, :'target_id'::uuid)
+        """,
+        {
+            "current_id": current["id"],
+            "target_id": target["id"],
+            "current_sort": current["sortOrder"],
+            "target_sort": target["sortOrder"],
+        },
+    )
+    return current["id"]
 
 
 def _resolve_audio_track_id(source_file):
@@ -471,10 +617,10 @@ def register_generated_clip(
                 :'source_track_id'::uuid,
                 :'file_name',
                 :'file_path',
-                NULLIF(:'start_sec', '')::numeric,
-                NULLIF(:'end_sec', '')::numeric,
+                NULLIF(:'start_sec', '')::numeric(12, 3),
+                NULLIF(:'end_sec', '')::numeric(12, 3),
                 :'pitch_shift'::int,
-                :'tempo_ratio'::numeric
+                :'tempo_ratio'::numeric(8, 4)
             )
             ON CONFLICT (file_path) DO UPDATE SET
                 source_track_id = EXCLUDED.source_track_id,

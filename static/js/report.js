@@ -10,7 +10,7 @@
         feel: null,
         unlocked: false,
     },
-    mobileToolsCollapsed: false,
+    mobileToolsCollapsed: true,
 };
 
 const REALBOOK_LABELS = {
@@ -356,10 +356,14 @@ function bindMobileToolButtons() {
         return;
     }
 
+    tools.classList.toggle("is-collapsed", REPORT_STATE.mobileToolsCollapsed);
+    toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "Open" : "Hide";
+    toggleButton.setAttribute("aria-expanded", REPORT_STATE.mobileToolsCollapsed ? "false" : "true");
+
     toggleButton.addEventListener("click", () => {
         REPORT_STATE.mobileToolsCollapsed = !REPORT_STATE.mobileToolsCollapsed;
         tools.classList.toggle("is-collapsed", REPORT_STATE.mobileToolsCollapsed);
-        toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "Hide" : "Open";
+        toggleButton.textContent = REPORT_STATE.mobileToolsCollapsed ? "Open" : "Hide";
         toggleButton.setAttribute("aria-expanded", REPORT_STATE.mobileToolsCollapsed ? "false" : "true");
     });
 

@@ -21,7 +21,7 @@ LickPage.actions.selectLick = function selectLick(file) {
         );
     });
 
-    audio.src = `/audio/lick/${file}`;
+    audio.src = `/audio/lick/${encodeURIComponent(file)}`;
     audio.load();
 };
 

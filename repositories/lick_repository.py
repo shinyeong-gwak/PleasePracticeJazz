@@ -70,20 +70,11 @@ def _load_lick_files_from_db():
                 sort_key AS "sortKey"
             FROM (
                 SELECT
-                    COALESCE(c.file_name, l.name) AS file_name,
-                    COALESCE(l.updated_at, l.created_at, c.updated_at, c.created_at) AS sort_key
+                    c.file_name AS file_name,
+                    COALESCE(c.updated_at, c.created_at, l.updated_at, l.created_at) AS sort_key
                 FROM lick l
-                LEFT JOIN clip c ON c.id = l.clip_id
+                JOIN clip c ON c.id = l.clip_id
                 WHERE l.user_id = :'user_id'::uuid
-                  AND COALESCE(c.file_name, l.name, '') <> ''
-
-                UNION ALL
-
-                SELECT
-                    c.file_name,
-                    COALESCE(c.updated_at, c.created_at) AS sort_key
-                FROM clip c
-                WHERE c.user_id = :'user_id'::uuid
                   AND COALESCE(c.file_name, '') <> ''
             ) AS combined
             ORDER BY file_name, sort_key DESC
@@ -151,7 +142,7 @@ def load_metadata():
         SELECT row_to_json(t)
         FROM (
             SELECT
-                COALESCE(c.file_name, l.name) AS file,
+                c.file_name AS file,
                 l.id::text AS id,
                 l.name,
                 l.key,
@@ -163,8 +154,9 @@ def load_metadata():
                 l.voicing,
                 l.voicing_rhythm AS "voicingRhythm"
             FROM lick l
-            LEFT JOIN clip c ON c.id = l.clip_id
+            JOIN clip c ON c.id = l.clip_id
             WHERE l.user_id = :'user_id'::uuid
+              AND COALESCE(c.file_name, '') <> ''
             ORDER BY l.created_at, l.id
         ) AS t
         """,

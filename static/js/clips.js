@@ -2,6 +2,8 @@ const ClipBrowser = (() => {
     let payload = { library: null, pool: [] };
     let selectedFilePath = "";
     let selectedFolderId = "";
+    let selectedTrackId = "";
+    let selectedTrackFolderId = "";
     let sortMode = "name-asc";
     const collapsedFolders = new Set();
 
@@ -20,14 +22,48 @@ const ClipBrowser = (() => {
                 const typeCompare = Number(a.type !== "folder") - Number(b.type !== "folder");
                 if (typeCompare !== 0) return typeCompare;
             }
-            const direction = sortMode === "name-desc" ? -1 : 1;
-            return String(a.name || "").localeCompare(String(b.name || ""), "ko") * direction;
+
+            if (sortMode === "name-desc") {
+                return String(b.name || "").localeCompare(String(a.name || ""), "ko");
+            }
+
+            return String(a.name || "").localeCompare(String(b.name || ""), "ko");
         });
         return sorted;
     }
 
     function poolTracks() {
         return payload.pool || [];
+    }
+
+    function collectFolders(node, depth = 0, list = []) {
+        if (!node) return list;
+
+        if (node.type === "folder" && node.id) {
+            list.push({
+                id: node.id,
+                name: node.name || "Untitled",
+                depth,
+            });
+        }
+
+        (node.children || []).forEach((child) => {
+            if (child?.type === "folder") {
+                collectFolders(child, child.id ? depth + 1 : depth, list);
+            }
+        });
+
+        return list;
+    }
+
+    function findTrackNode(node, trackId) {
+        if (!node) return null;
+        if (node.type === "file" && node.id === trackId) return node;
+        for (const child of node.children || []) {
+            const found = findTrackNode(child, trackId);
+            if (found) return found;
+        }
+        return null;
     }
 
     function syncSelectOptions() {
@@ -45,23 +81,32 @@ const ClipBrowser = (() => {
         if (!selectedFilePath && poolTracks().length) {
             selectedFilePath = poolTracks()[0].filePath;
         }
+
         select.value = selectedFilePath;
         syncSelectedLabel();
     }
 
     function syncSelectedLabel() {
         const label = node("[data-audio-selected-label]");
-        if (label) {
-            label.textContent = selectedFilePath || "선택된 음원이 없어요";
-        }
+        if (!label) return;
+
+        label.textContent = selectedFilePath || "선택된 음원이 없어요.";
     }
 
-    function selectFile(path) {
+    function selectFile(path, trackId = "", folderId = "") {
         selectedFilePath = path;
+        selectedTrackId = trackId;
+        selectedTrackFolderId = folderId || "";
+
         const select = fileSelect();
         if (select) select.value = path;
+
         syncSelectedLabel();
         renderTree();
+    }
+
+    function setSelectedTrackFromNode(item) {
+        selectFile(item.path, item.id, item.folderId || "");
     }
 
     function makeFolderRow(item, depth) {
@@ -69,6 +114,7 @@ const ClipBrowser = (() => {
         row.type = "button";
         row.className = "audio-tree-row audio-tree-folder";
         row.style.setProperty("--depth", depth);
+
         if (item.id === selectedFolderId) {
             row.classList.add("is-folder-selected");
         }
@@ -94,14 +140,38 @@ const ClipBrowser = (() => {
         return row;
     }
 
+    function runTrackMutation(action) {
+        return action()
+            .then((nextPayload) => refreshTree(nextPayload))
+            .catch((error) => showTreeError(error));
+    }
+
+    function makeTrackActionButton(label, title, handler) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tree-action-button";
+        button.textContent = label;
+        button.title = title;
+        button.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handler();
+        });
+        return button;
+    }
+
     function makeLibraryFileRow(item, depth) {
-        const row = document.createElement("button");
-        row.type = "button";
-        row.className = "audio-tree-row audio-tree-file";
+        const row = document.createElement("div");
+        row.className = "audio-tree-file-row";
         row.style.setProperty("--depth", depth);
-        if (item.path === selectedFilePath) {
+
+        if (item.id === selectedTrackId || item.path === selectedFilePath) {
             row.classList.add("is-selected");
         }
+
+        const main = document.createElement("button");
+        main.type = "button";
+        main.className = "audio-tree-row audio-tree-file-main";
 
         const icon = document.createElement("span");
         icon.className = "audio-tree-icon";
@@ -111,11 +181,37 @@ const ClipBrowser = (() => {
         name.className = "audio-tree-name";
         name.textContent = item.name;
 
-        row.append(icon, name);
-        row.addEventListener("click", () => {
-            selectFile(item.path);
+        main.append(icon, name);
+        main.addEventListener("click", () => {
+            setSelectedTrackFromNode(item);
             loadAudio();
         });
+
+        const actions = document.createElement("div");
+        actions.className = "audio-tree-file-actions";
+
+        actions.append(
+            makeTrackActionButton("▴", "위로", () => runTrackMutation(() =>
+                mutateLibraryItem("/music/clips/library-items/reorder", {
+                    trackId: item.trackId || item.id,
+                    direction: "up",
+                })
+            )),
+            makeTrackActionButton("▾", "아래로", () => runTrackMutation(() =>
+                mutateLibraryItem("/music/clips/library-items/reorder", {
+                    trackId: item.trackId || item.id,
+                    direction: "down",
+                })
+            )),
+            makeTrackActionButton("↩", "루트로", () => runTrackMutation(() =>
+                mutateLibraryItem("/music/clips/library-items/move", {
+                    trackId: item.trackId || item.id,
+                    folderId: "",
+                })
+            ))
+        );
+
+        row.append(main, actions);
         return row;
     }
 
@@ -124,6 +220,7 @@ const ClipBrowser = (() => {
             if (item.id) {
                 container.appendChild(makeFolderRow(item, depth));
             }
+
             if (!collapsedFolders.has(item.id)) {
                 normalizeChildren(item.children).forEach((child) => {
                     renderLibraryNode(child, item.id ? depth + 1 : depth, container);
@@ -131,6 +228,7 @@ const ClipBrowser = (() => {
             }
             return;
         }
+
         container.appendChild(makeLibraryFileRow(item, depth));
     }
 
@@ -155,33 +253,83 @@ const ClipBrowser = (() => {
         return title;
     }
 
-    function makePoolRow(track) {
-        const row = document.createElement("div");
-        row.className = "audio-pool-row";
-        if (track.filePath === selectedFilePath) {
-            row.classList.add("is-selected");
+    function renderTrackActions() {
+        const panel = node("[data-track-actions]");
+        const title = node("[data-track-selected-title]");
+        const folderLabel = node("[data-track-selected-folder]");
+        const folderSelect = node("[data-track-folder-target]");
+        const upButton = node("[data-track-move-up]");
+        const downButton = node("[data-track-move-down]");
+        const moveButton = node("[data-track-move-folder]");
+        const rootButton = node("[data-track-move-root]");
+
+        if (!panel || !title || !folderLabel || !folderSelect) return;
+
+        const current = findTrackNode(payload.library, selectedTrackId);
+        if (!current) {
+            panel.hidden = true;
+            folderSelect.innerHTML = "";
+            return;
         }
 
-        const selectButton = document.createElement("button");
-        selectButton.type = "button";
-        selectButton.className = "audio-pool-select";
-        selectButton.textContent = track.displayName || track.fileName;
-        selectButton.addEventListener("click", () => {
-            selectFile(track.filePath);
-            loadAudio();
+        panel.hidden = false;
+        title.textContent = current.name || current.fileName || "선택된 음원";
+        folderLabel.textContent = current.folderId
+            ? `현재 폴더: ${current.folderId}`
+            : "현재 폴더: 루트";
+
+        const folders = collectFolders(payload.library);
+        folderSelect.innerHTML = "";
+
+        const rootOption = document.createElement("option");
+        rootOption.value = "";
+        rootOption.textContent = "루트";
+        folderSelect.appendChild(rootOption);
+
+        folders.forEach((folder) => {
+            const option = document.createElement("option");
+            option.value = folder.id;
+            option.textContent = `${"　".repeat(folder.depth)}${folder.name}`;
+            folderSelect.appendChild(option);
         });
 
-        const addButton = document.createElement("button");
-        addButton.type = "button";
-        addButton.className = "audio-pool-add";
-        addButton.textContent = "+";
-        addButton.title = "선택한 폴더에 추가";
-        addButton.addEventListener("click", async () => {
-            await addTrackToLibrary(track.id);
-        });
+        folderSelect.value = current.folderId || "";
 
-        row.append(selectButton, addButton);
-        return row;
+        if (upButton) {
+            upButton.onclick = () => {
+                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/reorder", {
+                    trackId: current.trackId || current.id,
+                    direction: "up",
+                }));
+            };
+        }
+
+        if (downButton) {
+            downButton.onclick = () => {
+                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/reorder", {
+                    trackId: current.trackId || current.id,
+                    direction: "down",
+                }));
+            };
+        }
+
+        if (moveButton) {
+            moveButton.onclick = () => {
+                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/move", {
+                    trackId: current.trackId || current.id,
+                    folderId: folderSelect.value,
+                }));
+            };
+        }
+
+        if (rootButton) {
+            rootButton.onclick = () => {
+                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/move", {
+                    trackId: current.trackId || current.id,
+                    folderId: "",
+                }));
+            };
+        }
     }
 
     function renderTree() {
@@ -189,28 +337,57 @@ const ClipBrowser = (() => {
         if (!container) return;
 
         container.innerHTML = "";
+        renderTrackActions();
+
         if (!payload.library && !poolTracks().length) {
             container.innerHTML = '<div class="audio-tree-empty">음원 풀에 등록된 트랙이 없어요.</div>';
             return;
         }
 
-        container.appendChild(sectionTitle("내 라이브러리"));
+        container.appendChild(sectionTitle("라이브러리"));
         if (payload.library?.children?.length) {
             renderLibraryNode(payload.library, 0, container);
         } else {
             const empty = document.createElement("div");
             empty.className = "audio-tree-empty";
-            empty.textContent = "아직 내 폴더에 담은 곡이 없어요.";
+            empty.textContent = "아직 폴더나 라이브러리 항목이 없어요.";
             container.appendChild(empty);
         }
 
-        container.appendChild(sectionTitle("공용 음악 풀"));
+        container.appendChild(sectionTitle("공용 음원 풀"));
         if (poolTracks().length) {
-            poolTracks().forEach((track) => container.appendChild(makePoolRow(track)));
+            poolTracks().forEach((track) => {
+                const row = document.createElement("div");
+                row.className = "audio-pool-row";
+                if (track.filePath === selectedFilePath) {
+                    row.classList.add("is-selected");
+                }
+
+                const selectButton = document.createElement("button");
+                selectButton.type = "button";
+                selectButton.className = "audio-pool-select";
+                selectButton.textContent = track.displayName || track.fileName;
+                selectButton.addEventListener("click", () => {
+                    selectFile(track.filePath);
+                    loadAudio();
+                });
+
+                const addButton = document.createElement("button");
+                addButton.type = "button";
+                addButton.className = "audio-pool-add";
+                addButton.textContent = "+";
+                addButton.title = "선택한 폴더에 추가";
+                addButton.addEventListener("click", async () => {
+                    await addTrackToLibrary(track.id);
+                });
+
+                row.append(selectButton, addButton);
+                container.appendChild(row);
+            });
         } else {
             const empty = document.createElement("div");
             empty.className = "audio-tree-empty";
-            empty.textContent = "공용 트랙이 없어요.";
+            empty.textContent = "공용 음원이 없어요.";
             container.appendChild(empty);
         }
     }
@@ -225,6 +402,15 @@ const ClipBrowser = (() => {
     async function mutateFolder(method, body) {
         const response = await fetch("/music/clips/folders", {
             method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+        return readJsonResponse(response);
+    }
+
+    async function mutateLibraryItem(url, body) {
+        const response = await fetch(url, {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
         });
@@ -270,7 +456,7 @@ const ClipBrowser = (() => {
             try {
                 const nextPayload = await action();
                 await refreshTree(nextPayload);
-                if (status) status.textContent = "반영했어요.";
+                if (status) status.textContent = "적용됐어요.";
                 if (nameInput) nameInput.value = "";
             } catch (error) {
                 if (status) status.textContent = error.message;
@@ -289,7 +475,7 @@ const ClipBrowser = (() => {
 
         deleteButton?.addEventListener("click", () => {
             if (!selectedFolderId) {
-                if (status) status.textContent = "삭제할 폴더를 선택해주세요.";
+                if (status) status.textContent = "삭제할 폴더를 선택해 주세요.";
                 return;
             }
             run(() => mutateFolder("DELETE", { folderId: selectedFolderId }));

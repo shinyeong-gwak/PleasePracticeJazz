@@ -69,6 +69,16 @@ class LibraryItemRequest(BaseModel):
     folderId: str = ""
 
 
+class MoveLibraryItemRequest(BaseModel):
+    trackId: str
+    folderId: str = ""
+
+
+class ReorderLibraryItemRequest(BaseModel):
+    trackId: str
+    direction: str
+
+
 @router.post("/clips/pitch")
 def pitch(req: PitchRequest):
     out = clip_service.create_pitch_version(req.fileName, req.semitones)
@@ -119,6 +129,24 @@ def delete_folder(req: FolderDeleteRequest):
 def add_library_item(req: LibraryItemRequest):
     try:
         clip_repository.add_track_to_library(req.trackId, req.folderId)
+        return clip_repository.get_mp3_tree()
+    except ValueError as exc:
+        return JSONResponse({"message": str(exc)}, status_code=400)
+
+
+@router.put("/clips/library-items/move")
+def move_library_item(req: MoveLibraryItemRequest):
+    try:
+        clip_repository.move_track_to_folder(req.trackId, req.folderId)
+        return clip_repository.get_mp3_tree()
+    except ValueError as exc:
+        return JSONResponse({"message": str(exc)}, status_code=400)
+
+
+@router.put("/clips/library-items/reorder")
+def reorder_library_item(req: ReorderLibraryItemRequest):
+    try:
+        clip_repository.reorder_track(req.trackId, req.direction)
         return clip_repository.get_mp3_tree()
     except ValueError as exc:
         return JSONResponse({"message": str(exc)}, status_code=400)

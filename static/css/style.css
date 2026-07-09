@@ -587,6 +587,72 @@ body.login-page {
     font-weight: 900;
 }
 
+.audio-track-actions {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--panel-soft);
+}
+
+.audio-track-actions-head {
+    display: grid;
+    gap: 4px;
+}
+
+.audio-track-actions-sub {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.audio-track-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 42px) minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.audio-track-actions-grid select {
+    min-width: 0;
+}
+
+.audio-tree-file-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.audio-tree-file-main {
+    min-width: 0;
+}
+
+.audio-tree-file-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.tree-action-button {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    padding: 0;
+    border-radius: 9px;
+    background: #edf7f2;
+    color: var(--accent-strong);
+    box-shadow: none;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.audio-tree-file-row.is-selected .audio-tree-file-main {
+    border-color: #b6ddcf;
+    background: linear-gradient(135deg, #e5f7ef 0%, #f6fcf9 100%);
+    color: var(--accent-strong);
+    font-weight: 800;
+}
+
 .clips-player-card {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1864,7 +1930,7 @@ tr.hidden,
         position: fixed;
         right: 18px;
         bottom: 72px;
-        width: min(360px, calc(100vw - 36px));
+        width: min(980px, calc(100vw - 36px));
         display: none;
         gap: 10px;
         padding: 12px;
@@ -1930,27 +1996,28 @@ tr.hidden,
 
     .practice-mobile-tools-row {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
         gap: 8px;
     }
 
     .practice-mobile-tool-button {
-        min-height: 58px;
-        padding: 10px 14px;
-        border-radius: 18px;
+        min-height: 76px;
+        padding: 10px 8px;
+        border-radius: 14px;
         border: none;
         background: rgba(255, 255, 255, 0.82);
         display: grid;
-        grid-template-columns: 36px 1fr;
+        grid-template-columns: 1fr;
         align-items: center;
-        justify-items: start;
-        gap: 10px;
+        justify-items: center;
+        gap: 6px;
         box-shadow: none;
+        text-align: center;
     }
 
     .practice-mobile-tool-button img {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         object-fit: contain;
         border-radius: 6px;
     }
@@ -1965,14 +2032,13 @@ tr.hidden,
     }
 
     .practice-mobile-tool-emoji {
-        font-size: 28px;
+        font-size: 24px;
         line-height: 1;
-        justify-self: center;
     }
 
     .practice-mobile-tool-value {
         display: block;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 800;
         color: var(--text);
     }
@@ -2109,6 +2175,14 @@ tr.hidden,
     .clip-editor-actions button,
     .clips-player-card button {
         width: 100%;
+    }
+
+    .audio-track-actions-grid {
+        grid-template-columns: repeat(2, 42px) minmax(0, 1fr);
+    }
+
+    .audio-track-actions-grid .secondary-button:last-child {
+        grid-column: 1 / -1;
     }
 
     .practice-mobile-tools {
