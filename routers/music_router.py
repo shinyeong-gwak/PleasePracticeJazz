@@ -1,5 +1,5 @@
-from fastapi import APIRouter, BackgroundTasks, Request, Form
-from starlette.responses import RedirectResponse, JSONResponse
+from fastapi import APIRouter, BackgroundTasks, Form, Request
+from starlette.responses import JSONResponse, RedirectResponse
 
 from core.render import render_page
 from repositories import (
@@ -14,6 +14,17 @@ from services import music_service
 router = APIRouter(prefix="/music")
 
 
+def _build_daily_payload():
+    current_report = daily_repository.get_current_report()
+    return {
+        "daily_report": current_report,
+        "current_archive": daily_repository.build_week_archive(current_report),
+        "tune_suggestions": daily_repository.get_tune_suggestions(),
+        "recent_lick_files": lick_repository.get_recent_files(),
+        "recent_score_files": score_repository.get_recent_files(),
+    }
+
+
 @router.get("/playlist")
 def playlist_page(request: Request):
     playlists = playlist_repository.get_all()
@@ -21,9 +32,7 @@ def playlist_page(request: Request):
         request,
         "music/playlist.html",
         "플레이리스트",
-        {
-            "playlists": playlists,
-        },
+        {"playlists": playlists},
     )
 
 
@@ -55,7 +64,7 @@ def licks_page(request: Request, file: str = ""):
     return render_page(
         request,
         "music/licks.html",
-        "리듬 연습",
+        "Lick 연습",
         {
             "licks": licks,
             "selected_lick_file": file,
@@ -70,13 +79,7 @@ def daily_page(request: Request):
         request,
         "music/daily.html",
         "연습일지",
-        {
-            "daily_report": {},
-            "current_archive": {"weekLabel": ""},
-            "tune_suggestions": [],
-            "recent_lick_files": [],
-            "recent_score_files": [],
-        },
+        _build_daily_payload(),
     )
 
 
@@ -86,25 +89,13 @@ def report_page(request: Request):
         request,
         "music/report.html",
         "주간 리포트",
-        {
-            "calendar_summary": {"days": [], "weeks": []},
-        },
+        {"calendar_summary": {"days": [], "weeks": []}},
     )
 
 
 @router.get("/daily/data")
 def daily_page_data():
-    current_report = daily_repository.get_current_report()
-
-    return JSONResponse(
-        {
-            "daily_report": current_report,
-            "current_archive": daily_repository.build_week_archive(current_report),
-            "tune_suggestions": daily_repository.get_tune_suggestions(),
-            "recent_lick_files": lick_repository.get_recent_files(),
-            "recent_score_files": score_repository.get_recent_files(),
-        }
-    )
+    return JSONResponse(_build_daily_payload())
 
 
 @router.get("/report/data")

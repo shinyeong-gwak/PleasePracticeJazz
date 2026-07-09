@@ -1402,11 +1402,59 @@ tr.hidden,
     margin-top: 4px;
 }
 
+.practice-ensemble-summary {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.practice-ensemble-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+}
+
+.practice-ensemble-topline {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.practice-ensemble-summary-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.practice-ensemble-status {
+    color: var(--text);
+}
+
+.practice-ensemble-memo {
+    margin-top: 6px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.practice-ensemble-edit {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
 .practice-ensemble-note {
     width: 300px;
     min-width: 300px;
     background: #f7fbff;
     border-color: #d6e1ec;
+}
+
+.practice-ensemble-note.is-editing {
+    width: 340px;
 }
 
 .practice-ensemble-note-bad {
@@ -1704,6 +1752,7 @@ tr.hidden,
     min-height: 70vh;
 }
 
+.realbook-viewer-image,
 .realbook-viewer-canvas,
 .realbook-viewer-frame {
     display: block;
@@ -1717,6 +1766,11 @@ tr.hidden,
 
 .realbook-viewer-canvas {
     height: auto;
+}
+
+.realbook-viewer-image {
+    height: auto;
+    object-fit: contain;
 }
 
 .viewer-message {

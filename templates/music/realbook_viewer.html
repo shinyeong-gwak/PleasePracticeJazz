@@ -18,17 +18,14 @@
         </div>
 
         <div class="realbook-viewer-shell">
-            <div id="realbookViewerMessage" class="viewer-message" hidden></div>
-            <canvas id="realbookCanvas" class="realbook-viewer-canvas"></canvas>
+            <img
+                class="realbook-viewer-image"
+                src="{{ pdf_image_url }}"
+                alt="{{ pdf_title or 'Real Book page' }}">
         </div>
     </article>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script id="realbook-viewer-data" type="application/json">
-    {{ {"fileUrl": pdf_file_url, "page": pdf_page} | tojson | safe }}
-</script>
-<script src="/static/js/realbook_viewer.js"></script>
 {% endblock %}

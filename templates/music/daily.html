@@ -307,43 +307,57 @@
     <template id="ensembleCardTemplate">
         <article class="practice-homework-note practice-ensemble-note">
             <div class="practice-homework-note-top">
+                <div class="practice-ensemble-summary">
+                    <div class="practice-ensemble-title"></div>
+                    <div class="practice-ensemble-topline"></div>
+                </div>
+                <div class="practice-homework-note-actions">
+                    <button type="button" class="practice-ensemble-edit-button">편집</button>
+                    <button type="button" class="practice-homework-remove-button">×</button>
+                </div>
+            </div>
+            <div class="practice-ensemble-summary-meta">
+                <span class="practice-ensemble-status"></span>
+                <span class="practice-ensemble-topics"></span>
+            </div>
+            <div class="practice-ensemble-memo"></div>
+            <div class="practice-ensemble-edit" hidden>
                 <input class="practice-inline-title" type="text">
-                <button type="button" class="practice-homework-remove-button">×</button>
+                <div class="practice-inline-grid">
+                    <input class="practice-inline-bpm" type="number" placeholder="BPM" min="1" step="1">
+                    <select class="practice-inline-book">
+                        <option value="">리얼북</option>
+                        <option value="Real-Book-1.pdf">Real Book 1</option>
+                        <option value="Real-Book-2.pdf">Real Book 2</option>
+                        <option value="Real-Book-3.pdf">Real Book 3</option>
+                        <option value="New-Real-Book.pdf">New Real Book 1</option>
+                        <option value="New-Real-Book-2.pdf">New Real Book 2</option>
+                        <option value="New-Real-Book-3.pdf">New Real Book 3</option>
+                        <option value="ETC">ETC</option>
+                    </select>
+                    <input class="practice-inline-page" type="number" placeholder="P" min="1" step="1">
+                    <select class="practice-inline-status">
+                        <option value="normal">무난</option>
+                        <option value="good">좋음</option>
+                        <option value="bad">별로</option>
+                    </select>
+                    <select class="practice-inline-lick-file">
+                        <option value="">Lick MP3</option>
+                        {% for lick_file in recent_lick_files %}
+                        <option value="{{ lick_file }}">{{ lick_file }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="practice-inline-renderer-file">
+                        <option value="">Renderer</option>
+                        {% for score_file in recent_score_files %}
+                        <option value="{{ score_file }}">{{ score_file }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input class="practice-inline-spotify" type="text" placeholder="Spotify URL">
+                <input class="practice-inline-topics" type="text" placeholder="태그를 쉼표로 구분">
+                <textarea class="practice-inline-memo" placeholder="합주 메모"></textarea>
             </div>
-            <div class="practice-inline-grid">
-                <input class="practice-inline-bpm" type="number" placeholder="BPM" min="1" step="1">
-                <select class="practice-inline-book">
-                    <option value="">리얼북</option>
-                    <option value="Real-Book-1.pdf">Real Book 1</option>
-                    <option value="Real-Book-2.pdf">Real Book 2</option>
-                    <option value="Real-Book-3.pdf">Real Book 3</option>
-                    <option value="New-Real-Book.pdf">New Real Book 1</option>
-                    <option value="New-Real-Book-2.pdf">New Real Book 2</option>
-                    <option value="New-Real-Book-3.pdf">New Real Book 3</option>
-                    <option value="ETC">ETC</option>
-                </select>
-                <input class="practice-inline-page" type="number" placeholder="P" min="1" step="1">
-                <select class="practice-inline-status">
-                    <option value="normal">무난</option>
-                    <option value="good">좋음</option>
-                    <option value="bad">별로</option>
-                </select>
-                <select class="practice-inline-lick-file">
-                    <option value="">Lick MP3</option>
-                    {% for lick_file in recent_lick_files %}
-                    <option value="{{ lick_file }}">{{ lick_file }}</option>
-                    {% endfor %}
-                </select>
-                <select class="practice-inline-renderer-file">
-                    <option value="">Renderer</option>
-                    {% for score_file in recent_score_files %}
-                    <option value="{{ score_file }}">{{ score_file }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <input class="practice-inline-spotify" type="text" placeholder="Spotify URL">
-            <input class="practice-inline-topics" type="text" placeholder="태그를 쉼표로 구분">
-            <textarea class="practice-inline-memo" placeholder="합주 메모"></textarea>
         </article>
     </template>
 </section>
@@ -416,6 +430,12 @@
 </script>
 <script id="current-archive-data" type="application/json">
     {{ current_archive | tojson | safe }}
+</script>
+<script id="recent-lick-files-data" type="application/json">
+    {{ recent_lick_files | tojson | safe }}
+</script>
+<script id="recent-score-files-data" type="application/json">
+    {{ recent_score_files | tojson | safe }}
 </script>
 <script src="/static/js/daily.js"></script>
 {% endblock %}

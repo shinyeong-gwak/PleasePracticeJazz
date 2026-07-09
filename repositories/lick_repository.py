@@ -1,4 +1,3 @@
-from pathlib import Path
 import re
 from uuid import uuid4
 
@@ -8,9 +7,6 @@ from repositories.db import (
     query_one,
     query_rows,
 )
-
-
-METADATA_DIR = Path("downloads/licks")
 
 NOTE_TOKEN_PATTERN = re.compile(r"[A-Ga-g][#bn]?\d")
 RHYTHM_TOKEN_PATTERN = re.compile(r"(^|[\s|])!?(\d+)(~)?(?=[\s|]|$)")
@@ -65,7 +61,6 @@ def normalize_lick_item(item):
 
 
 def _load_lick_files_from_db():
-    user_id = get_or_create_user_id()
     return query_rows(
         """
         SELECT row_to_json(t)
@@ -75,11 +70,12 @@ def _load_lick_files_from_db():
                 sort_key AS "sortKey"
             FROM (
                 SELECT
-                    at.file_name,
-                    at.created_at AS sort_key
-                FROM audio_track at
-                WHERE at.file_path LIKE 'downloads/licks/%'
-                  AND COALESCE(at.file_name, '') <> ''
+                    COALESCE(c.file_name, l.name) AS file_name,
+                    COALESCE(l.updated_at, l.created_at, c.updated_at, c.created_at) AS sort_key
+                FROM lick l
+                LEFT JOIN clip c ON c.id = l.clip_id
+                WHERE l.user_id = :'user_id'::uuid
+                  AND COALESCE(c.file_name, l.name, '') <> ''
 
                 UNION ALL
 
@@ -94,7 +90,7 @@ def _load_lick_files_from_db():
         ) AS t
         ORDER BY "sortKey" DESC, "fileName"
         """,
-        {"user_id": user_id},
+        {"user_id": get_or_create_user_id()},
     )
 
 
@@ -107,10 +103,7 @@ def get_all():
             if str(row.get("fileName") or "").strip()
         ]
 
-    if not METADATA_DIR.exists():
-        return []
-
-    return sorted([file.name for file in METADATA_DIR.glob("*.mp3")])
+    return []
 
 
 def get_recent_files(limit=10):
@@ -122,15 +115,7 @@ def get_recent_files(limit=10):
             if str(row.get("fileName") or "").strip()
         ]
 
-    if not METADATA_DIR.exists():
-        return []
-
-    files = sorted(
-        METADATA_DIR.glob("*.mp3"),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return [file.name for file in files[:limit]]
+    return []
 
 
 def _resolve_clip_id(file_name):

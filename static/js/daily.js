@@ -10,6 +10,7 @@ const DAILY_STATE = {
     recentLickFiles: [],
     recentScoreFiles: [],
     editingPracticeId: null,
+    editingEnsembleId: null,
     draggedHomeworkId: null,
     activeMobileTarget: null,
     metronome: {
@@ -87,18 +88,27 @@ function loadInitialTuneSuggestions() {
     }
 }
 
-async function loadDailyBootstrap() {
-    const response = await fetch("/music/daily/data", {
-        headers: {
-            "Content-Type": "application/json",
-        },
-    });
+function loadInitialRecentFiles() {
+    const lickNode = document.getElementById("recent-lick-files-data");
+    const scoreNode = document.getElementById("recent-score-files-data");
 
-    if (!response.ok) {
-        throw new Error(`daily bootstrap failed: ${response.status}`);
+    if (lickNode) {
+        try {
+            DAILY_STATE.recentLickFiles = JSON.parse(lickNode.textContent) || [];
+        } catch (error) {
+            console.error("daily recent lick files parse error", error);
+            DAILY_STATE.recentLickFiles = [];
+        }
     }
 
-    return response.json();
+    if (scoreNode) {
+        try {
+            DAILY_STATE.recentScoreFiles = JSON.parse(scoreNode.textContent) || [];
+        } catch (error) {
+            console.error("daily recent score files parse error", error);
+            DAILY_STATE.recentScoreFiles = [];
+        }
+    }
 }
 
 function renderAssetOptions(selectId, items, placeholder) {
@@ -1170,6 +1180,9 @@ function renderHomeworkBoard() {
 function createEnsembleCardNode(item, template) {
     const fragment = template.content.cloneNode(true);
     const card = fragment.querySelector(".practice-ensemble-note");
+    const summary = fragment.querySelector(".practice-ensemble-summary");
+    const editPanel = fragment.querySelector(".practice-ensemble-edit");
+    const editButton = fragment.querySelector(".practice-ensemble-edit-button");
     const titleInput = fragment.querySelector(".practice-inline-title");
     const bpmInput = fragment.querySelector(".practice-inline-bpm");
     const bookInput = fragment.querySelector(".practice-inline-book");
@@ -1181,10 +1194,27 @@ function createEnsembleCardNode(item, template) {
     const topicsInput = fragment.querySelector(".practice-inline-topics");
     const memoInput = fragment.querySelector(".practice-inline-memo");
     const removeButton = fragment.querySelector(".practice-homework-remove-button");
+    const titleValue = fragment.querySelector(".practice-ensemble-title");
+    const toplineValue = fragment.querySelector(".practice-ensemble-topline");
+    const statusValue = fragment.querySelector(".practice-ensemble-status");
+    const topicsValue = fragment.querySelector(".practice-ensemble-topics");
+    const memoValue = fragment.querySelector(".practice-ensemble-memo");
 
     card.dataset.ensembleId = item.id;
+    card.classList.toggle("is-editing", DAILY_STATE.editingEnsembleId === item.id);
     card.classList.toggle("practice-ensemble-note-bad", item.status === "bad");
     card.classList.toggle("practice-ensemble-note-good", item.status === "good");
+
+    titleValue.textContent = item.title || "제목 없는 합주";
+    toplineValue.textContent = item.page
+        ? `${getRealbookLabel(item.book) || "Book"} / p.${item.page}`
+        : getRealbookLabel(item.book) || "Book";
+    statusValue.textContent = getStatusLabel(item.status);
+    topicsValue.textContent = (item.topics || []).length
+        ? item.topics.map((topic) => `#${topic}`).join(" ")
+        : "Topics none";
+    memoValue.textContent = item.memo || "메모 없음";
+
     titleInput.value = item.title || "";
     bpmInput.value = item.bpm || "";
     bookInput.value = item.book || "";
@@ -1195,6 +1225,23 @@ function createEnsembleCardNode(item, template) {
     spotifyInput.value = item.spotifyUrl || "";
     topicsInput.value = (item.topics || []).join(", ");
     memoInput.value = item.memo || "";
+
+    function syncEditState() {
+        const isEditing = DAILY_STATE.editingEnsembleId === item.id;
+
+        card.classList.toggle("is-editing", isEditing);
+        if (summary) {
+            summary.hidden = isEditing;
+        }
+        if (editPanel) {
+            editPanel.hidden = !isEditing;
+        }
+        if (editButton) {
+            editButton.textContent = isEditing ? "닫기" : "편집";
+        }
+    }
+
+    syncEditState();
 
     async function saveInline() {
         const report = await requestJson(`/music/daily/ensemble/${item.id}`, {
@@ -1214,6 +1261,13 @@ function createEnsembleCardNode(item, template) {
         });
         updateStateFromReport(report);
         renderAll();
+    }
+
+    if (editButton) {
+        editButton.addEventListener("click", () => {
+            DAILY_STATE.editingEnsembleId = DAILY_STATE.editingEnsembleId === item.id ? null : item.id;
+            renderAll();
+        });
     }
 
     [titleInput, bpmInput, bookInput, pageInput, statusInput, lickFileInput, rendererFileInput, spotifyInput, topicsInput, memoInput]
@@ -1408,6 +1462,7 @@ async function initPracticeDailyPage() {
 
     loadInitialReport();
     loadInitialTuneSuggestions();
+    loadInitialRecentFiles();
     bindTopicButtons();
     bindStatusButtons();
     bindHomeworkBoardAutoScroll();
@@ -1424,24 +1479,12 @@ async function initPracticeDailyPage() {
 
     renderAll();
 
-    try {
-        const payload = await loadDailyBootstrap();
-
-        updateStateFromReport(payload.daily_report || {});
-        DAILY_STATE.tuneSuggestions = payload.tune_suggestions || [];
-        DAILY_STATE.recentLickFiles = payload.recent_lick_files || [];
-        DAILY_STATE.recentScoreFiles = payload.recent_score_files || [];
-
-        renderAssetOptions("practiceLickFileInput", DAILY_STATE.recentLickFiles, "선택");
-        renderAssetOptions("practiceRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
-        renderAssetOptions("ensembleLickFileInput", DAILY_STATE.recentLickFiles, "선택");
-        renderAssetOptions("ensembleRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
-
-        renderAll();
-        setActiveMobileTarget(getPracticeFormTarget());
-    } catch (error) {
-        console.error("daily bootstrap error", error);
-    }
+    renderAssetOptions("practiceLickFileInput", DAILY_STATE.recentLickFiles, "선택");
+    renderAssetOptions("practiceRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
+    renderAssetOptions("ensembleLickFileInput", DAILY_STATE.recentLickFiles, "선택");
+    renderAssetOptions("ensembleRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
+    renderAll();
+    setActiveMobileTarget(getPracticeFormTarget());
 }
 
 document.addEventListener("DOMContentLoaded", () => {

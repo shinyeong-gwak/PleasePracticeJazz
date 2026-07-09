@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from repositories.db import execute, get_or_create_user_id, query_one
 
 
@@ -111,9 +113,18 @@ def _select_settings_row(user_id):
     )
 
 
+@lru_cache(maxsize=128)
+def _cached_settings_row(user_id):
+    return _select_settings_row(user_id)
+
+
+def _invalidate_settings_cache():
+    _cached_settings_row.cache_clear()
+
+
 def ensure_settings_row():
     user_id = get_or_create_user_id()
-    settings = _select_settings_row(user_id)
+    settings = _cached_settings_row(user_id)
     if settings:
         return settings
 
@@ -136,7 +147,8 @@ def ensure_settings_row():
         },
     )
 
-    return _select_settings_row(user_id)
+    _invalidate_settings_cache()
+    return _cached_settings_row(user_id)
 
 
 def load_all():
@@ -175,6 +187,7 @@ def save_for_user(user_id, settings):
         },
     )
 
+    _invalidate_settings_cache()
     return normalized
 
 

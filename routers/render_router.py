@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 from core.render import render_page
 from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, Response
+from pdf2image import convert_from_path
 
 from repositories import realbook_repository
 
@@ -11,6 +12,7 @@ from repositories import realbook_repository
 router = APIRouter()
 SCORE_DIR = Path("downloads/scores")
 REALBOOK_DIR = Path("downloads/realbook")
+REALBOOK_PAGE_CACHE_DIR = Path("data/music/realbook_pages")
 
 
 @router.get("/music/render")
@@ -98,6 +100,61 @@ async def realbook_file(filename: str):
     )
 
 
+def _realbook_page_cache_path(file_name: str, page: int) -> Path:
+    return REALBOOK_PAGE_CACHE_DIR / Path(file_name).stem / f"page-{page}.png"
+
+
+def _render_realbook_page_png(file_name: str, page: int) -> Path:
+    safe_name = Path(file_name).name
+    pdf_path = REALBOOK_DIR / safe_name
+
+    if not pdf_path.exists():
+        raise FileNotFoundError(safe_name)
+
+    page_number = max(1, page)
+    cache_path = _realbook_page_cache_path(safe_name, page_number)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+
+    source_mtime = pdf_path.stat().st_mtime
+    if cache_path.exists() and cache_path.stat().st_mtime >= source_mtime:
+        return cache_path
+
+    images = convert_from_path(
+        str(pdf_path),
+        first_page=page_number,
+        last_page=page_number,
+        fmt="png",
+        dpi=180,
+        thread_count=1,
+        single_file=True,
+    )
+
+    if not images:
+        raise RuntimeError("Failed to render PDF page")
+
+    images[0].save(cache_path, format="PNG")
+    return cache_path
+
+
+@router.get("/music/realbook/page/{filename}")
+async def realbook_page(filename: str, page: int = Query(default=1)):
+    safe_name = Path(filename).name
+
+    try:
+        cache_path = _render_realbook_page_png(safe_name, page)
+    except FileNotFoundError:
+        return JSONResponse({"message": "PDF 파일을 찾을 수 없습니다."}, status_code=404)
+    except Exception as exc:
+        return JSONResponse({"message": f"PDF 페이지를 이미지로 변환하지 못했습니다: {exc}"}, status_code=500)
+
+    return FileResponse(
+        cache_path,
+        media_type="image/png",
+        filename=cache_path.name,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 @router.get("/music/realbook/view")
 def realbook_view(
         request: Request,
@@ -107,6 +164,7 @@ def realbook_view(
         book: str = Query(default="")):
 
     safe_name = Path(file).name
+    page_number = max(1, page)
 
     return render_page(
         request,
@@ -114,10 +172,10 @@ def realbook_view(
         "Real Book PDF",
         {
             "pdf_file_name": safe_name,
-            "pdf_page": max(1, page),
+            "pdf_page": page_number,
             "pdf_title": title,
             "pdf_book": book,
             "pdf_file_url": f"/music/realbook/file/{safe_name}",
-            "pdf_embed_url": f"/music/realbook/file/{safe_name}#page={max(1, page)}&view=FitH",
+            "pdf_image_url": f"/music/realbook/page/{safe_name}?page={page_number}",
         }
     )

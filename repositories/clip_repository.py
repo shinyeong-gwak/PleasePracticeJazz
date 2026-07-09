@@ -51,22 +51,27 @@ def _display_name(file_name):
 
 
 def _load_pool_tracks():
+    user_id = get_or_create_user_id()
     rows = query_rows(
         """
         SELECT row_to_json(t)
         FROM (
             SELECT
-                id::text AS id,
-                file_name AS "fileName",
-                file_path AS "filePath",
-                COALESCE(NULLIF(source_type, ''), 'local') AS "sourceType",
-                COALESCE(source_url, '') AS "sourceUrl",
-                duration_sec AS "durationSec"
-            FROM audio_track
-            WHERE file_path LIKE 'downloads/mp3/%'
-            ORDER BY file_name
+                at.id::text AS id,
+                at.file_name AS "fileName",
+                at.file_path AS "filePath",
+                COALESCE(NULLIF(at.source_type, ''), 'local') AS "sourceType",
+                COALESCE(at.source_url, '') AS "sourceUrl",
+                at.duration_sec AS "durationSec",
+                COALESCE(li.sort_order, 0) AS "sortOrder"
+            FROM audio_library_item li
+            JOIN audio_track at ON at.id = li.track_id
+            WHERE li.user_id = :'user_id'::uuid
+            ORDER BY li.sort_order, at.file_name
         ) AS t
         """
+        ,
+        {"user_id": user_id},
     )
 
     for row in rows:
