@@ -1036,6 +1036,36 @@ function resetEnsembleEditor() {
     document.getElementById("ensembleTopicsInput").value = "";
     document.getElementById("ensembleStatusInput").value = "normal";
     document.getElementById("ensembleMemoInput").value = "";
+
+    const details = document.querySelector("[data-ensemble-details]");
+    const toggle = document.querySelector("[data-ensemble-details-toggle]");
+    if (details) {
+        details.hidden = true;
+    }
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.textContent = "세부 펼치기";
+    }
+}
+
+function bindEnsembleDetailsToggle() {
+    const button = document.querySelector("[data-ensemble-details-toggle]");
+    const panel = document.querySelector("[data-ensemble-details]");
+
+    if (!button || !panel) {
+        return;
+    }
+
+    panel.hidden = true;
+    button.setAttribute("aria-expanded", "false");
+    button.textContent = "세부 펼치기";
+
+    button.addEventListener("click", () => {
+        const willOpen = panel.hidden;
+        panel.hidden = !willOpen;
+        button.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        button.textContent = willOpen ? "세부 접기" : "세부 펼치기";
+    });
 }
 
 function bindHomeworkBoardAutoScroll() {
@@ -1470,6 +1500,7 @@ async function initPracticeDailyPage() {
     bindStatusButtons();
     bindHomeworkBoardAutoScroll();
     bindTapOutsideBlur();
+    bindEnsembleDetailsToggle();
 
     document.getElementById("practiceDailyDate").textContent = formatDailyDate();
     document.getElementById("addHomeworkButton").addEventListener("click", addHomework);

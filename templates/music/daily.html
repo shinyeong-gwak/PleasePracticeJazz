@@ -170,79 +170,85 @@
                 <div class="practice-card-top">
                     <div>
                         <div class="practice-card-title">합주 노트 추가</div>
-                        <div class="practice-card-subtitle">합주 상태를 연습 카드와 따로 기록합니다.</div>
+                        <div class="practice-card-subtitle">메모를 붙여넣고, 필요한 세부 정보는 아래에서만 펼쳐 적습니다.</div>
                     </div>
                     <button type="button" class="secondary-button practice-homework-add-button" id="addEnsembleButton">+ 합주 추가</button>
                 </div>
 
-                <div class="practice-homework-form">
+                <div class="practice-homework-form practice-ensemble-form">
                     <label class="practice-field">
                         <span class="practice-field-label">합주 곡</span>
                         <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
                     </label>
-                    <div class="practice-form-grid">
-                        <label class="practice-field">
-                            <span class="practice-field-label">BPM</span>
-                            <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">리얼북</span>
-                            <select id="ensembleBookInput">
-                                <option value="">선택</option>
-                                <option value="Real-Book-1.pdf">Real Book 1</option>
-                                <option value="Real-Book-2.pdf">Real Book 2</option>
-                                <option value="Real-Book-3.pdf">Real Book 3</option>
-                                <option value="New-Real-Book.pdf">New Real Book 1</option>
-                                <option value="New-Real-Book-2.pdf">New Real Book 2</option>
-                                <option value="New-Real-Book-3.pdf">New Real Book 3</option>
-                                <option value="ETC">ETC</option>
-                            </select>
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">페이지</span>
-                            <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">상태</span>
-                            <select id="ensembleStatusInput">
-                                <option value="normal">무난했음</option>
-                                <option value="good">잘 됐음</option>
-                                <option value="bad">별로였음</option>
-                            </select>
-                        </label>
-                    </div>
-                    <label class="practice-field">
-                        <span class="practice-field-label">주제 태그</span>
-                        <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">Spotify 링크</span>
-                        <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
-                    </label>
-                    <div class="practice-form-grid practice-asset-grid">
-                        <label class="practice-field">
-                            <span class="practice-field-label">Lick MP3</span>
-                            <select id="ensembleLickFileInput">
-                                <option value="">선택</option>
-                                {% for lick_file in recent_lick_files %}
-                                <option value="{{ lick_file }}">{{ lick_file }}</option>
-                                {% endfor %}
-                            </select>
-                        </label>
-                        <label class="practice-field">
-                            <span class="practice-field-label">Renderer</span>
-                            <select id="ensembleRendererFileInput">
-                                <option value="">선택</option>
-                                {% for score_file in recent_score_files %}
-                                <option value="{{ score_file }}">{{ score_file }}</option>
-                                {% endfor %}
-                            </select>
-                        </label>
-                    </div>
                     <label class="practice-field">
                         <span class="practice-field-label">메모</span>
-                        <textarea id="ensembleMemoInput" placeholder="합주에서 들은 얘기나 다음에 볼 포인트를 적어두세요."></textarea>
+                        <textarea id="ensembleMemoInput" class="practice-ensemble-memo-input" placeholder="여기에 붙여넣고, 카드처럼 기록하세요."></textarea>
                     </label>
+
+                    <button type="button" class="secondary-button practice-ensemble-details-toggle" data-ensemble-details-toggle aria-expanded="false">
+                        세부 펼치기
+                    </button>
+                    <div class="practice-ensemble-details" data-ensemble-details hidden>
+                        <div class="practice-form-grid">
+                            <label class="practice-field">
+                                <span class="practice-field-label">BPM</span>
+                                <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
+                            </label>
+                            <label class="practice-field">
+                                <span class="practice-field-label">리얼북</span>
+                                <select id="ensembleBookInput">
+                                    <option value="">선택</option>
+                                    <option value="Real-Book-1.pdf">Real Book 1</option>
+                                    <option value="Real-Book-2.pdf">Real Book 2</option>
+                                    <option value="Real-Book-3.pdf">Real Book 3</option>
+                                    <option value="New-Real-Book.pdf">New Real Book 1</option>
+                                    <option value="New-Real-Book-2.pdf">New Real Book 2</option>
+                                    <option value="New-Real-Book-3.pdf">New Real Book 3</option>
+                                    <option value="ETC">ETC</option>
+                                </select>
+                            </label>
+                            <label class="practice-field">
+                                <span class="practice-field-label">페이지</span>
+                                <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
+                            </label>
+                            <label class="practice-field">
+                                <span class="practice-field-label">상태</span>
+                                <select id="ensembleStatusInput">
+                                    <option value="normal">무난했음</option>
+                                    <option value="good">잘 됐음</option>
+                                    <option value="bad">별로였음</option>
+                                </select>
+                            </label>
+                        </div>
+                        <label class="practice-field">
+                            <span class="practice-field-label">주제 태그</span>
+                            <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">Spotify 링크</span>
+                            <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
+                        </label>
+                        <div class="practice-form-grid practice-asset-grid">
+                            <label class="practice-field">
+                                <span class="practice-field-label">Lick MP3</span>
+                                <select id="ensembleLickFileInput">
+                                    <option value="">선택</option>
+                                    {% for lick_file in recent_lick_files %}
+                                    <option value="{{ lick_file }}">{{ lick_file }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label class="practice-field">
+                                <span class="practice-field-label">Renderer</span>
+                                <select id="ensembleRendererFileInput">
+                                    <option value="">선택</option>
+                                    {% for score_file in recent_score_files %}
+                                    <option value="{{ score_file }}">{{ score_file }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </article>
 

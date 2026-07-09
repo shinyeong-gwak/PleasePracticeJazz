@@ -1083,6 +1083,27 @@ tr.hidden,
     gap: 14px;
 }
 
+.practice-ensemble-form {
+    gap: 12px;
+}
+
+.practice-ensemble-memo-input {
+    min-height: 140px;
+}
+
+.practice-ensemble-details-toggle {
+    width: fit-content;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.practice-ensemble-details {
+    display: grid;
+    gap: 12px;
+    padding-top: 4px;
+}
+
 .practice-homework-board {
     display: flex;
     gap: 14px;
