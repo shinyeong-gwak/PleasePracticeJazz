@@ -1802,11 +1802,14 @@ tr.hidden,
     background: #f3f7f4;
     padding: 12px;
     min-height: 70vh;
+    display: grid;
+    gap: 12px;
 }
 
 .realbook-viewer-image,
 .realbook-viewer-canvas,
-.realbook-viewer-frame {
+.realbook-viewer-frame,
+.realbook-viewer-object {
     display: block;
     width: 100%;
     min-height: calc(70vh - 24px);
@@ -1823,6 +1826,24 @@ tr.hidden,
 .realbook-viewer-image {
     height: auto;
     object-fit: contain;
+}
+
+.realbook-viewer-status {
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    text-align: center;
+}
+
+.realbook-viewer-fallback {
+    display: grid;
+    place-items: center;
+    gap: 12px;
+    min-height: 260px;
+    padding: 24px;
+    text-align: center;
 }
 
 .viewer-message {

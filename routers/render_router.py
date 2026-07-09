@@ -207,6 +207,7 @@ def realbook_view(
             "pdf_title": title,
             "pdf_book": book,
             "pdf_file_url": f"/music/realbook/file/{safe_name}",
+            "pdf_direct_url": f"/music/realbook/file/{safe_name}#page={page_number}&view=FitH",
             "pdf_image_url": f"/music/realbook/page/{safe_name}?page={page_number}",
         }
     )
