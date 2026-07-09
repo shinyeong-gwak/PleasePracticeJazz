@@ -90,6 +90,7 @@ async def resolve_realbook(
     })
 
     result["fileUrl"] = f"/music/realbook/file/{file_name}"
+    result["directUrl"] = f"/music/realbook/file/{file_name}#page={page_number}&view=FitH"
     result["viewUrl"] = f"/music/realbook/view?{query}"
 
     return JSONResponse(result)
