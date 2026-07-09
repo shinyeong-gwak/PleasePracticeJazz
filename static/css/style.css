@@ -589,32 +589,28 @@ body.login-page {
 
 .audio-track-actions {
     display: grid;
-    gap: 10px;
-    padding: 14px;
+    gap: 6px;
+    padding: 8px;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: 14px;
     background: var(--panel-soft);
-}
-
-.audio-track-actions-head {
-    display: grid;
-    gap: 4px;
-}
-
-.audio-track-actions-sub {
-    color: var(--muted);
-    font-size: 13px;
 }
 
 .audio-track-actions-grid {
     display: grid;
-    grid-template-columns: repeat(2, 42px) minmax(0, 1fr) auto auto;
-    gap: 8px;
+    grid-template-columns: repeat(2, 34px) minmax(0, 1fr) auto auto;
+    gap: 6px;
     align-items: center;
 }
 
 .audio-track-actions-grid select {
     min-width: 0;
+}
+
+.audio-track-actions-grid .icon-button {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
 }
 
 .audio-tree-file-row {

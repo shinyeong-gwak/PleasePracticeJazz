@@ -1,4 +1,4 @@
-const ClipBrowser = (() => {
+﻿const ClipBrowser = (() => {
     let payload = { library: null, pool: [] };
     let selectedFilePath = "";
     let selectedFolderId = "";
@@ -90,7 +90,7 @@ const ClipBrowser = (() => {
         const label = node("[data-audio-selected-label]");
         if (!label) return;
 
-        label.textContent = selectedFilePath || "선택된 음원이 없어요.";
+        label.textContent = selectedFilePath || "?좏깮???뚯썝???놁뼱??";
     }
 
     function selectFile(path, trackId = "", folderId = "") {
@@ -235,7 +235,7 @@ const ClipBrowser = (() => {
     async function readJsonResponse(response) {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(data.message || "요청을 처리하지 못했어요.");
+            throw new Error(data.message || "?붿껌??泥섎━?섏? 紐삵뻽?댁슂.");
         }
         return data;
     }
@@ -255,15 +255,13 @@ const ClipBrowser = (() => {
 
     function renderTrackActions() {
         const panel = node("[data-track-actions]");
-        const title = node("[data-track-selected-title]");
-        const folderLabel = node("[data-track-selected-folder]");
         const folderSelect = node("[data-track-folder-target]");
         const upButton = node("[data-track-move-up]");
         const downButton = node("[data-track-move-down]");
         const moveButton = node("[data-track-move-folder]");
         const rootButton = node("[data-track-move-root]");
 
-        if (!panel || !title || !folderLabel || !folderSelect) return;
+        if (!panel || !folderSelect) return;
 
         const current = findTrackNode(payload.library, selectedTrackId);
         if (!current) {
@@ -273,23 +271,19 @@ const ClipBrowser = (() => {
         }
 
         panel.hidden = false;
-        title.textContent = current.name || current.fileName || "선택된 음원";
-        folderLabel.textContent = current.folderId
-            ? `현재 폴더: ${current.folderId}`
-            : "현재 폴더: 루트";
 
         const folders = collectFolders(payload.library);
         folderSelect.innerHTML = "";
 
         const rootOption = document.createElement("option");
         rootOption.value = "";
-        rootOption.textContent = "루트";
+        rootOption.textContent = "猷⑦듃";
         folderSelect.appendChild(rootOption);
 
         folders.forEach((folder) => {
             const option = document.createElement("option");
             option.value = folder.id;
-            option.textContent = `${"　".repeat(folder.depth)}${folder.name}`;
+            option.textContent = `${"?".repeat(folder.depth)}${folder.name}`;
             folderSelect.appendChild(option);
         });
 
@@ -340,21 +334,21 @@ const ClipBrowser = (() => {
         renderTrackActions();
 
         if (!payload.library && !poolTracks().length) {
-            container.innerHTML = '<div class="audio-tree-empty">음원 풀에 등록된 트랙이 없어요.</div>';
+            container.innerHTML = '<div class="audio-tree-empty">No tracks yet.</div>';
             return;
         }
 
-        container.appendChild(sectionTitle("라이브러리"));
+        container.appendChild(sectionTitle("Library"));
         if (payload.library?.children?.length) {
             renderLibraryNode(payload.library, 0, container);
         } else {
             const empty = document.createElement("div");
             empty.className = "audio-tree-empty";
-            empty.textContent = "아직 폴더나 라이브러리 항목이 없어요.";
+            empty.textContent = "No library items yet.";
             container.appendChild(empty);
         }
 
-        container.appendChild(sectionTitle("공용 음원 풀"));
+        container.appendChild(sectionTitle("Public Pool"));
         if (poolTracks().length) {
             poolTracks().forEach((track) => {
                 const row = document.createElement("div");
@@ -376,7 +370,7 @@ const ClipBrowser = (() => {
                 addButton.type = "button";
                 addButton.className = "audio-pool-add";
                 addButton.textContent = "+";
-                addButton.title = "선택한 폴더에 추가";
+                addButton.title = "Add to selected folder";
                 addButton.addEventListener("click", async () => {
                     await addTrackToLibrary(track.id);
                 });
@@ -387,7 +381,7 @@ const ClipBrowser = (() => {
         } else {
             const empty = document.createElement("div");
             empty.className = "audio-tree-empty";
-            empty.textContent = "공용 음원이 없어요.";
+            empty.textContent = "No public tracks.";
             container.appendChild(empty);
         }
     }
@@ -395,7 +389,7 @@ const ClipBrowser = (() => {
     function showTreeError(error) {
         const container = node("[data-audio-tree]");
         if (container) {
-            container.innerHTML = `<div class="audio-tree-empty">${error.message || "음원을 불러오지 못했어요."}</div>`;
+            container.innerHTML = `<div class="audio-tree-empty">${error.message || "?뚯썝??遺덈윭?ㅼ? 紐삵뻽?댁슂."}</div>`;
         }
     }
 
@@ -456,7 +450,7 @@ const ClipBrowser = (() => {
             try {
                 const nextPayload = await action();
                 await refreshTree(nextPayload);
-                if (status) status.textContent = "적용됐어요.";
+                if (status) status.textContent = "?곸슜?먯뼱??";
                 if (nameInput) nameInput.value = "";
             } catch (error) {
                 if (status) status.textContent = error.message;
@@ -475,7 +469,7 @@ const ClipBrowser = (() => {
 
         deleteButton?.addEventListener("click", () => {
             if (!selectedFolderId) {
-                if (status) status.textContent = "삭제할 폴더를 선택해 주세요.";
+                if (status) status.textContent = "??젣???대뜑瑜??좏깮??二쇱꽭??";
                 return;
             }
             run(() => mutateFolder("DELETE", { folderId: selectedFolderId }));
@@ -553,7 +547,7 @@ async function createClip() {
         body: JSON.stringify({ fileName, startTime, endTime, clipName }),
     });
     const result = await response.json();
-    alert("생성 완료 : " + result.fileName);
+    alert("?앹꽦 ?꾨즺 : " + result.fileName);
 }
 
 function changePlaybackRate() {
@@ -571,7 +565,8 @@ async function createPitchVersion() {
         body: JSON.stringify({ fileName, semitones }),
     });
     const result = await response.json();
-    alert("생성 완료 : " + result.fileName);
+    alert("?앹꽦 ?꾨즺 : " + result.fileName);
 }
 
 document.addEventListener("DOMContentLoaded", ClipBrowser.init);
+

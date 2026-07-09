@@ -1,12 +1,12 @@
-{% extends "layout.html" %}
+﻿{% extends "layout.html" %}
 
 {% block content %}
 <section class="page-shell clips-page">
     <div class="page-header">
         <div>
             <p class="eyebrow">Clip Studio</p>
-            <h1>클립 만들기</h1>
-            <p class="page-copy">폴더 안의 MP3를 고르고 필요한 구간만 잘라 lick 파일로 저장해요.</p>
+            <h1>?대┰ 留뚮뱾湲?/h1>
+            <p class="page-copy">?대뜑 ?덉쓽 MP3瑜?怨좊Ⅴ怨??꾩슂??援ш컙留??섎씪 lick ?뚯씪濡???ν빐??</p>
         </div>
     </div>
 
@@ -14,29 +14,28 @@
         <article class="card clips-browser">
             <div class="clips-browser-head">
                 <div>
-                    <h2>음원</h2>
-                    <p class="section-count" data-audio-selected-label>선택된 음원이 없어요</p>
+                    <h2>?뚯썝</h2>
                 </div>
 
                 <div class="clips-folder-tools">
-                    <button type="button" class="icon-button" data-folder-menu-toggle aria-label="폴더 관리" title="폴더 관리">📂</button>
+                    <button type="button" class="icon-button" data-folder-menu-toggle aria-label="?대뜑 愿由? title="?대뜑 愿由?>?뱛</button>
                     <div class="folder-menu" data-folder-menu hidden>
                         <label class="settings-field">
-                            <span class="practice-field-label">정렬</span>
+                            <span class="practice-field-label">?뺣젹</span>
                             <select data-audio-sort>
-                                <option value="name-asc">이름 오름차순</option>
-                                <option value="name-desc">이름 내림차순</option>
-                                <option value="folder-first">폴더 먼저</option>
+                                <option value="name-asc">?대쫫 ?ㅻ쫫李⑥닚</option>
+                                <option value="name-desc">?대쫫 ?대┝李⑥닚</option>
+                                <option value="folder-first">?대뜑 癒쇱?</option>
                             </select>
                         </label>
                         <label class="settings-field">
-                            <span class="practice-field-label">폴더 이름</span>
-                            <input type="text" data-folder-name placeholder="새 폴더">
+                            <span class="practice-field-label">?대뜑 ?대쫫</span>
+                            <input type="text" data-folder-name placeholder="???대뜑">
                         </label>
                         <div class="folder-menu-actions">
-                            <button type="button" class="secondary-button" data-folder-create>추가</button>
-                            <button type="button" class="secondary-button" data-folder-rename>이름변경</button>
-                            <button type="button" class="danger-button" data-folder-delete>삭제</button>
+                            <button type="button" class="secondary-button" data-folder-create>異붽?</button>
+                            <button type="button" class="secondary-button" data-folder-rename>?대쫫蹂寃?/button>
+                            <button type="button" class="danger-button" data-folder-delete>??젣</button>
                         </div>
                         <div class="folder-menu-status" data-folder-status></div>
                     </div>
@@ -44,16 +43,12 @@
             </div>
 
             <div class="audio-track-actions" data-track-actions hidden>
-                <div class="audio-track-actions-head">
-                    <strong data-track-selected-title>선택된 음원</strong>
-                    <span class="audio-track-actions-sub" data-track-selected-folder>현재 폴더: 루트</span>
-                </div>
                 <div class="audio-track-actions-grid">
-                    <button type="button" class="icon-button" data-track-move-up aria-label="위로" title="위로">▴</button>
-                    <button type="button" class="icon-button" data-track-move-down aria-label="아래로" title="아래로">▾</button>
-                    <select data-track-folder-target aria-label="이동할 폴더"></select>
-                    <button type="button" class="secondary-button" data-track-move-folder>이동</button>
-                    <button type="button" class="secondary-button" data-track-move-root>루트로</button>
+                    <button type="button" class="icon-button" data-track-move-up aria-label="?꾨줈" title="?꾨줈">??/button>
+                    <button type="button" class="icon-button" data-track-move-down aria-label="?꾨옒濡? title="?꾨옒濡?>??/button>
+                    <select data-track-folder-target aria-label="?대룞???대뜑"></select>
+                    <button type="button" class="secondary-button" data-track-move-folder>?대룞</button>
+                    <button type="button" class="secondary-button" data-track-move-root>猷⑦듃濡?/button>
                 </div>
             </div>
 
@@ -69,12 +64,12 @@
         <article class="card clips-editor">
             <div class="clips-player-card">
                 <audio id="player" controls></audio>
-                <button type="button" class="primary-button" onclick="loadAudio()">불러오기</button>
+                <button type="button" class="primary-button" onclick="loadAudio()">遺덈윭?ㅺ린</button>
             </div>
 
             <div class="clip-controls-grid">
                 <label class="settings-field">
-                    <span class="practice-field-label">속도</span>
+                    <span class="practice-field-label">?띾룄</span>
                     <select id="playbackRate" onchange="changePlaybackRate()">
                         <option value="0.5">0.5x</option>
                         <option value="0.75">0.75x</option>
@@ -98,7 +93,7 @@
                     </select>
                 </label>
 
-                <button type="button" class="secondary-button clip-grid-button" onclick="createPitchVersion()">피치 생성</button>
+                <button type="button" class="secondary-button clip-grid-button" onclick="createPitchVersion()">?쇱튂 ?앹꽦</button>
             </div>
 
             <div class="clip-time-grid">
@@ -107,8 +102,8 @@
                     <input id="startTime" type="text" placeholder="1:25">
                 </label>
                 <div class="clip-inline-actions">
-                    <button type="button" onclick="captureStart()">현재 위치</button>
-                    <button type="button" onclick="moveStart()">이동</button>
+                    <button type="button" onclick="captureStart()">?꾩옱 ?꾩튂</button>
+                    <button type="button" onclick="moveStart()">?대룞</button>
                 </div>
 
                 <label class="settings-field">
@@ -116,22 +111,22 @@
                     <input id="endTime" type="text" placeholder="1:32">
                 </label>
                 <div class="clip-inline-actions">
-                    <button type="button" onclick="captureEnd()">현재 위치</button>
-                    <button type="button" onclick="moveEnd()">이동</button>
+                    <button type="button" onclick="captureEnd()">?꾩옱 ?꾩튂</button>
+                    <button type="button" onclick="moveEnd()">?대룞</button>
                 </div>
             </div>
 
             <label class="settings-field">
-                <span class="practice-field-label">Clip 이름</span>
+                <span class="practice-field-label">Clip ?대쫫</span>
                 <input id="clipName" type="text" placeholder="intro / bridge-alt / take2">
             </label>
 
             <p class="clip-help">
-                저장 이름은 원본음원-입력값.mp3 형식으로 만들어져요. 비워두면 원본음원-lick-1.mp3 규칙을 사용합니다.
+                ????대쫫? ?먮낯?뚯썝-?낅젰媛?mp3 ?뺤떇?쇰줈 留뚮뱾?댁졇?? 鍮꾩썙?먮㈃ ?먮낯?뚯썝-lick-1.mp3 洹쒖튃???ъ슜?⑸땲??
             </p>
 
             <div class="clip-editor-actions">
-                <button type="button" class="primary-button" onclick="createClip()">Clip 생성</button>
+                <button type="button" class="primary-button" onclick="createClip()">Clip ?앹꽦</button>
             </div>
         </article>
     </section>
@@ -142,3 +137,5 @@
 {% block scripts %}
 <script src="/static/js/clips.js"></script>
 {% endblock %}
+
+

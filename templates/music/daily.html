@@ -5,22 +5,22 @@
     <div class="page-header practice-daily-header">
         <div>
             <p class="eyebrow">Practice Log</p>
-            <h1>?곗뒿?쇱?</h1>
-            <p class="page-copy">?숈젣, ?⑹＜, ?곗뒿????二??⑥쐞濡?紐⑥븘蹂닿퀬 ?ㅼ쓬 ?섏씠吏?먯꽌 由ы룷?몄? ?몄궗?댄듃濡??댁뼱媛????덉뒿?덈떎.</p>
+            <h1>연습일지</h1>
+            <p class="page-copy">숙제, 합주, 연습을 한 주 단위로 모아보고 다음 페이지에서 리포트와 인사이트로 이어갈 수 있습니다.</p>
         </div>
     </div>
 
     <div class="card practice-daily-intro">
         <div class="practice-daily-intro-grid">
             <div>
-                <div class="practice-daily-label">?ㅻ뒛 ?좎쭨</div>
+                <div class="practice-daily-label">오늘 날짜</div>
                 <div class="practice-daily-date" id="practiceDailyDate"></div>
             </div>
             <div>
-                <div class="practice-daily-label">諛붾줈媛湲?/div>
+                <div class="practice-daily-label">바로가기</div>
                 <div class="practice-shortcuts">
-                    <a class="practice-shortcut-link" href="/music/report">二쇨컙 由ы룷??蹂닿린</a>
-                    <a class="practice-shortcut-link" href="/music/insights">?몄궗?댄듃 紐⑥쑝湲?/a>
+                    <a class="practice-shortcut-link" href="/music/report">주간 리포트 보기</a>
+                    <a class="practice-shortcut-link" href="/music/insights">인사이트 모으기</a>
                 </div>
             </div>
         </div>
@@ -28,28 +28,28 @@
 
     <section class="practice-homework-section">
         <div class="section-title-row">
-            <h2>?대쾲 二??숈젣</h2>
-            <span class="section-count">?쒕옒洹명빐??硫붾え瑜??⑹튌 ???덉뼱??/span>
+            <h2>이번 주 숙제</h2>
+            <span class="section-count">드래그해서 메모를 합칠 수 있어요</span>
         </div>
 
         <div class="practice-homework-layout">
             <article class="card practice-homework-editor" id="practiceHomeworkEditor">
                 <div class="practice-card-top">
                     <div>
-                        <div class="practice-card-title">?숈젣 ?깅줉</div>
-                        <div class="practice-card-subtitle">?낅젰???댁슜? 移대뱶 ?뺥깭濡??꾨옒???볦엯?덈떎.</div>
+                        <div class="practice-card-title">숙제 등록</div>
+                        <div class="practice-card-subtitle">입력한 내용은 카드 형태로 아래에 쌓입니다.</div>
                     </div>
-                    <button type="button" class="secondary-button practice-homework-add-button" id="addHomeworkButton">+ ?숈젣 異붽?</button>
+                    <button type="button" class="secondary-button practice-homework-add-button" id="addHomeworkButton">+ 숙제 추가</button>
                 </div>
 
                 <div class="practice-homework-form">
                     <label class="practice-field">
-                        <span class="practice-field-label">?숈젣 ?쒕ぉ</span>
-                        <input type="text" id="practiceHomeworkTitleInput" placeholder="?? Oleo ?붾줈 ?몃옖?ㅽ겕由쎌뀡">
+                        <span class="practice-field-label">숙제 제목</span>
+                        <input type="text" id="practiceHomeworkTitleInput" placeholder="예: Oleo 솔로 트랜스크립션">
                     </label>
                     <label class="practice-field">
-                        <span class="practice-field-label">硫붾え</span>
-                        <textarea id="practiceHomeworkMemoInput" placeholder="?? 220bpm源뚯?, 硫뷀듃濡쒕냸 ?놁씠???붾뱾由ъ? ?딄쾶"></textarea>
+                        <span class="practice-field-label">메모</span>
+                        <textarea id="practiceHomeworkMemoInput" placeholder="예: 220bpm까지, 메트로놈 없이도 흔들리지 않게"></textarea>
                     </label>
                 </div>
             </article>
@@ -61,15 +61,15 @@
     <article class="card practice-card practice-editor-card" id="practiceEditorCard">
         <div class="practice-card-top">
             <div>
-                <div class="practice-card-title">?곗뒿 移대뱶</div>
-                <div class="practice-card-subtitle">移대뱶瑜??꾨Ⅴ硫??꾨옒 ?몄쭛 ?곸뿭?쇰줈 媛?몄????ㅼ떆 ??ν븷 ???덉뒿?덈떎.</div>
+                <div class="practice-card-title">연습 카드</div>
+                <div class="practice-card-subtitle">카드를 누르면 아래 편집 영역으로 가져와서 다시 저장할 수 있습니다.</div>
             </div>
         </div>
 
         <div class="practice-section">
-            <div class="practice-field-label">?곗뒿 二쇱젣</div>
+            <div class="practice-field-label">연습 주제</div>
             <div class="practice-topic-chips" id="practiceTopicChips">
-                {% for topic in ["諛뺤옄", "?ㅼ???, "由щ벉", "蹂댁씠??, "?대줎", "由ъ뼹遺?] %}
+                {% for topic in ["박자", "스케일", "리듬", "보이싱", "이론", "리얼북"] %}
                 <button type="button" class="practice-topic-chip" data-topic="{{ topic }}">#{{ topic }}</button>
                 {% endfor %}
             </div>
@@ -79,16 +79,16 @@
         <div class="practice-form-grid">
             <label class="practice-field">
                 <span class="practice-field-label">BPM</span>
-                <input type="number" min="1" step="1" placeholder="?? 120" id="practiceBpmInput">
+                <input type="number" min="1" step="1" placeholder="예: 120" id="practiceBpmInput">
             </label>
             <label class="practice-field practice-field-wide">
-                <span class="practice-field-label">?곗뒿 怨?/span>
-                <input type="text" placeholder="?? There Will Never Be Another You" id="practiceTuneInput" list="dailyTuneSuggestions">
+                <span class="practice-field-label">연습 곡</span>
+                <input type="text" placeholder="예: There Will Never Be Another You" id="practiceTuneInput" list="dailyTuneSuggestions">
             </label>
             <label class="practice-field">
-                <span class="practice-field-label">由ъ뼹遺?/span>
+                <span class="practice-field-label">리얼북</span>
                 <select id="practiceBookInput">
-                    <option value="">?좏깮</option>
+                    <option value="">선택</option>
                     <option value="Real-Book-1.pdf">Real Book 1</option>
                     <option value="Real-Book-2.pdf">Real Book 2</option>
                     <option value="Real-Book-3.pdf">Real Book 3</option>
@@ -99,28 +99,28 @@
                 </select>
             </label>
             <label class="practice-field">
-                <span class="practice-field-label">?섏씠吏</span>
-                <input type="number" min="1" step="1" placeholder="?? 132" id="practicePageInput">
+                <span class="practice-field-label">페이지</span>
+                <input type="number" min="1" step="1" placeholder="예: 132" id="practicePageInput">
             </label>
         </div>
 
         <div class="practice-section">
-            <div class="practice-field-label">?곗뒿 ?곹깭</div>
+            <div class="practice-field-label">연습 상태</div>
             <div class="practice-status-chips" id="practiceStatusChips">
-                <button type="button" class="practice-status-chip is-selected" data-status="normal">臾대궃?덉쓬</button>
-                <button type="button" class="practice-status-chip" data-status="good">???먯쓬</button>
-                <button type="button" class="practice-status-chip practice-status-chip-bad" data-status="bad">蹂꾨줈???/button>
+                <button type="button" class="practice-status-chip is-selected" data-status="normal">무난했음</button>
+                <button type="button" class="practice-status-chip" data-status="good">잘 됐음</button>
+                <button type="button" class="practice-status-chip practice-status-chip-bad" data-status="bad">별로였음</button>
             </div>
             <input type="hidden" id="practiceStatusInput" value="normal">
         </div>
 
         <label class="practice-field practice-field-full">
-            <span class="practice-field-label">硫붾え</span>
-            <textarea id="practiceMemoInput" placeholder="?ㅻ뒛 ?ㅼ뿀??臾몄젣, ?ㅼ쓬??蹂??ъ씤?? ?먭????먮굦???곸뼱?먯꽭??"></textarea>
+            <span class="practice-field-label">메모</span>
+            <textarea id="practiceMemoInput" placeholder="오늘 들었던 문제, 다음에 볼 포인트, 손가락 느낌을 적어두세요."></textarea>
         </label>
 
         <label class="practice-field practice-field-full">
-            <span class="practice-field-label">Spotify 留곹겕</span>
+            <span class="practice-field-label">Spotify 링크</span>
             <input type="text" id="practiceSpotifyInput" placeholder="Spotify URL">
         </label>
 
@@ -128,7 +128,7 @@
             <label class="practice-field">
                 <span class="practice-field-label">Lick MP3</span>
                 <select id="practiceLickFileInput">
-                    <option value="">?좏깮</option>
+                    <option value="">선택</option>
                     {% for lick_file in recent_lick_files %}
                     <option value="{{ lick_file }}">{{ lick_file }}</option>
                     {% endfor %}
@@ -137,7 +137,7 @@
             <label class="practice-field">
                 <span class="practice-field-label">Renderer</span>
                 <select id="practiceRendererFileInput">
-                    <option value="">?좏깮</option>
+                    <option value="">선택</option>
                     {% for score_file in recent_score_files %}
                     <option value="{{ score_file }}">{{ score_file }}</option>
                     {% endfor %}
@@ -146,49 +146,49 @@
         </div>
 
         <div class="practice-editor-actions">
-            <button type="button" class="secondary-button hidden" id="cancelPracticeEditButton">?몄쭛 痍⑥냼</button>
-            <button type="button" class="primary-button practice-add-button" id="addPracticeCardButton">+ 移대뱶 異붽?</button>
+            <button type="button" class="secondary-button hidden" id="cancelPracticeEditButton">편집 취소</button>
+            <button type="button" class="primary-button practice-add-button" id="addPracticeCardButton">+ 카드 추가</button>
         </div>
     </article>
 
     <section class="practice-summary-section">
         <div class="section-title-row">
-            <h2>?곗뒿 移대뱶 紐⑸줉</h2>
-            <span class="section-count">?꾨옒 移대뱶?ㅼ쓣 ?뚮윭??諛붾줈 ?섏젙</span>
+            <h2>연습 카드 목록</h2>
+            <span class="section-count">아래 카드들을 눌러서 바로 수정</span>
         </div>
         <div class="practice-cards" id="practiceCards"></div>
     </section>
 
     <section class="practice-homework-section">
         <div class="section-title-row">
-            <h2>?⑹＜ ?명듃</h2>
-            <span class="section-count">移대뱶 ?뺥깭濡?諛붾줈 ?곸뼱?먮㈃ ?뺣━?섍린 ?명빀?덈떎</span>
+            <h2>합주 노트</h2>
+            <span class="section-count">카드 형태로 바로 적어두면 정리하기 편합니다</span>
         </div>
 
         <div class="practice-homework-layout">
             <article class="card practice-homework-editor" id="ensembleEditorCard">
                 <div class="practice-card-top">
                     <div>
-                        <div class="practice-card-title">?⑹＜ ?명듃 異붽?</div>
-                        <div class="practice-card-subtitle">?⑹＜ ?곹깭瑜??곗뒿 移대뱶? ?곕줈 湲곕줉?⑸땲??</div>
+                        <div class="practice-card-title">합주 노트 추가</div>
+                        <div class="practice-card-subtitle">합주 상태를 연습 카드와 따로 기록합니다.</div>
                     </div>
-                    <button type="button" class="secondary-button practice-homework-add-button" id="addEnsembleButton">+ ?⑹＜ 異붽?</button>
+                    <button type="button" class="secondary-button practice-homework-add-button" id="addEnsembleButton">+ 합주 추가</button>
                 </div>
 
                 <div class="practice-homework-form">
                     <label class="practice-field">
-                        <span class="practice-field-label">?⑹＜ 怨?/span>
-                        <input type="text" id="ensembleTitleInput" placeholder="?? Nardis" list="dailyTuneSuggestions">
+                        <span class="practice-field-label">합주 곡</span>
+                        <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
                     </label>
                     <div class="practice-form-grid">
                         <label class="practice-field">
                             <span class="practice-field-label">BPM</span>
-                            <input type="number" id="ensembleBpmInput" placeholder="?? 180" min="1" step="1">
+                            <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
                         </label>
                         <label class="practice-field">
-                            <span class="practice-field-label">由ъ뼹遺?/span>
+                            <span class="practice-field-label">리얼북</span>
                             <select id="ensembleBookInput">
-                                <option value="">?좏깮</option>
+                                <option value="">선택</option>
                                 <option value="Real-Book-1.pdf">Real Book 1</option>
                                 <option value="Real-Book-2.pdf">Real Book 2</option>
                                 <option value="Real-Book-3.pdf">Real Book 3</option>
@@ -199,31 +199,31 @@
                             </select>
                         </label>
                         <label class="practice-field">
-                            <span class="practice-field-label">?섏씠吏</span>
-                            <input type="number" id="ensemblePageInput" placeholder="?? 44" min="1" step="1">
+                            <span class="practice-field-label">페이지</span>
+                            <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
                         </label>
                         <label class="practice-field">
-                            <span class="practice-field-label">?곹깭</span>
+                            <span class="practice-field-label">상태</span>
                             <select id="ensembleStatusInput">
-                                <option value="normal">臾대궃?덉쓬</option>
-                                <option value="good">???먯쓬</option>
-                                <option value="bad">蹂꾨줈???/option>
+                                <option value="normal">무난했음</option>
+                                <option value="good">잘 됐음</option>
+                                <option value="bad">별로였음</option>
                             </select>
                         </label>
                     </div>
                     <label class="practice-field">
-                        <span class="practice-field-label">二쇱젣 ?쒓렇</span>
-                        <input type="text" id="ensembleTopicsInput" placeholder="?? ?⑹＜, 由щ벉, 蹂댁씠??>
+                        <span class="practice-field-label">주제 태그</span>
+                        <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
                     </label>
                     <label class="practice-field">
-                        <span class="practice-field-label">Spotify 留곹겕</span>
+                        <span class="practice-field-label">Spotify 링크</span>
                         <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
                     </label>
                     <div class="practice-form-grid practice-asset-grid">
                         <label class="practice-field">
                             <span class="practice-field-label">Lick MP3</span>
                             <select id="ensembleLickFileInput">
-                                <option value="">?좏깮</option>
+                                <option value="">선택</option>
                                 {% for lick_file in recent_lick_files %}
                                 <option value="{{ lick_file }}">{{ lick_file }}</option>
                                 {% endfor %}
@@ -232,7 +232,7 @@
                         <label class="practice-field">
                             <span class="practice-field-label">Renderer</span>
                             <select id="ensembleRendererFileInput">
-                                <option value="">?좏깮</option>
+                                <option value="">선택</option>
                                 {% for score_file in recent_score_files %}
                                 <option value="{{ score_file }}">{{ score_file }}</option>
                                 {% endfor %}
@@ -240,8 +240,8 @@
                         </label>
                     </div>
                     <label class="practice-field">
-                        <span class="practice-field-label">硫붾え</span>
-                        <textarea id="ensembleMemoInput" placeholder="?⑹＜?먯꽌 ?ㅼ? ?섍린???ㅼ쓬??蹂??ъ씤?몃? ?곸뼱?먯꽭??"></textarea>
+                        <span class="practice-field-label">메모</span>
+                        <textarea id="ensembleMemoInput" placeholder="합주에서 들은 얘기나 다음에 볼 포인트를 적어두세요."></textarea>
                     </label>
                 </div>
             </article>
@@ -252,19 +252,19 @@
 
     <section class="practice-report-section">
         <div class="section-title-row">
-            <h2>?대쾲 二??꾩뭅?대툕</h2>
+            <h2>이번 주 아카이브</h2>
             <span class="section-count" id="currentArchiveWeekLabel">{{ current_archive.weekLabel }}</span>
         </div>
 
         <article class="card practice-report-card">
             <div class="practice-report-grid practice-report-grid-archive">
                 <div class="practice-report-column">
-                    <div class="practice-report-heading">?대쾲 二??숈젣</div>
+                    <div class="practice-report-heading">이번 주 숙제</div>
                     <div class="practice-report-list" id="currentArchiveHomeworkList"></div>
                 </div>
 
                 <div class="practice-report-column">
-                    <div class="practice-report-heading">?붿씪蹂??곗뒿 / ?⑹＜</div>
+                    <div class="practice-report-heading">요일별 연습 / 합주</div>
                     <div class="practice-report-days" id="currentArchiveDays"></div>
                 </div>
             </div>
@@ -275,10 +275,10 @@
         <article class="card practice-card practice-summary-card">
             <div class="practice-card-top">
                 <div>
-                    <div class="practice-card-title practice-summary-title">?곗뒿 移대뱶</div>
+                    <div class="practice-card-title practice-summary-title">연습 카드</div>
                     <div class="practice-card-subtitle practice-summary-topline"></div>
                 </div>
-                <button type="button" class="practice-remove-button" aria-label="?곗뒿 移대뱶 ??젣">횞</button>
+                <button type="button" class="practice-remove-button" aria-label="연습 카드 삭제">×</button>
             </div>
             <div class="practice-summary-meta">
                 <span class="practice-summary-status"></span>
@@ -296,8 +296,8 @@
             <div class="practice-homework-note-top">
                 <div class="practice-homework-note-title"></div>
                 <div class="practice-homework-note-actions">
-                    <button type="button" class="practice-homework-merge-button">?⑹튂湲?/button>
-                    <button type="button" class="practice-homework-remove-button">횞</button>
+                    <button type="button" class="practice-homework-merge-button">합치기</button>
+                    <button type="button" class="practice-homework-remove-button">×</button>
                 </div>
             </div>
             <div class="practice-homework-note-body" contenteditable="true"></div>
@@ -312,8 +312,8 @@
                     <div class="practice-ensemble-topline"></div>
                 </div>
                 <div class="practice-homework-note-actions">
-                    <button type="button" class="practice-ensemble-edit-button">?몄쭛</button>
-                    <button type="button" class="practice-homework-remove-button">횞</button>
+                    <button type="button" class="practice-ensemble-edit-button">편집</button>
+                    <button type="button" class="practice-homework-remove-button">×</button>
                 </div>
             </div>
             <div class="practice-ensemble-summary-meta">
@@ -326,7 +326,7 @@
                 <div class="practice-inline-grid">
                     <input class="practice-inline-bpm" type="number" placeholder="BPM" min="1" step="1">
                     <select class="practice-inline-book">
-                        <option value="">由ъ뼹遺?/option>
+                        <option value="">리얼북</option>
                         <option value="Real-Book-1.pdf">Real Book 1</option>
                         <option value="Real-Book-2.pdf">Real Book 2</option>
                         <option value="Real-Book-3.pdf">Real Book 3</option>
@@ -337,9 +337,9 @@
                     </select>
                     <input class="practice-inline-page" type="number" placeholder="P" min="1" step="1">
                     <select class="practice-inline-status">
-                        <option value="normal">臾대궃</option>
-                        <option value="good">醫뗭쓬</option>
-                        <option value="bad">蹂꾨줈</option>
+                        <option value="normal">무난</option>
+                        <option value="good">좋음</option>
+                        <option value="bad">별로</option>
                     </select>
                     <select class="practice-inline-lick-file">
                         <option value="">Lick MP3</option>
@@ -355,8 +355,8 @@
                     </select>
                 </div>
                 <input class="practice-inline-spotify" type="text" placeholder="Spotify URL">
-                <input class="practice-inline-topics" type="text" placeholder="?쒓렇瑜??쇳몴濡?援щ텇">
-                <textarea class="practice-inline-memo" placeholder="?⑹＜ 硫붾え"></textarea>
+                <input class="practice-inline-topics" type="text" placeholder="태그를 쉼표로 구분">
+                <textarea class="practice-inline-memo" placeholder="합주 메모"></textarea>
             </div>
         </article>
     </template>
@@ -376,44 +376,44 @@
         aria-expanded="false">
     Tools
 </button>
-<div class="practice-mobile-tools is-collapsed" id="practiceMobileTools">
+<div class="practice-mobile-tools" id="practiceMobileTools">
     <div class="practice-mobile-tools-header">
         <div class="practice-mobile-tools-meta">
-            <div class="practice-mobile-tools-title" id="mobileToolTitle">?좏깮???쒕ぉ ?놁쓬</div>
-            <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">?쒕ぉ怨?BPM???덉쑝硫?諛붾줈媛湲곗? 硫뷀듃濡쒕냸???④퍡 蹂댁엯?덈떎.</div>
+            <div class="practice-mobile-tools-title" id="mobileToolTitle">선택된 제목 없음</div>
+            <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">제목과 BPM이 있으면 바로가기와 메트로놈이 함께 보입니다.</div>
         </div>
-        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="false" aria-controls="mobileToolsBody">
-            ?묎린
+        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="true" aria-controls="mobileToolsBody">
+            접기
         </button>
     </div>
     <div class="practice-mobile-tools-body" id="mobileToolsBody">
         <div class="practice-mobile-tools-row">
             <button type="button" class="practice-mobile-tool-button" id="mobileIrealButton">
                 <img src="/static/img/realb_logo.png" alt="iReal Pro">
-                <span class="practice-mobile-tool-value" id="mobileIrealValue">?쒕ぉ</span>
+                <span class="practice-mobile-tool-value" id="mobileIrealValue">제목</span>
             </button>
             <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro2Button">
-                <span class="practice-mobile-tool-emoji">2諛?/span>
+                <span class="practice-mobile-tool-emoji">2박</span>
                 <span class="practice-mobile-tool-value" id="mobileMetro2Value">BPM</span>
             </button>
             <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro4Button">
-                <span class="practice-mobile-tool-emoji">4諛?/span>
+                <span class="practice-mobile-tool-emoji">4박</span>
                 <span class="practice-mobile-tool-value" id="mobileMetro4Value">BPM</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileGoodnotesButton">
                 <img src="/static/img/goodnote.jpeg" alt="Goodnotes">
-                <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">?놁쓬</span>
+                <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">없음</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileRealbookButton">
-                <span class="practice-mobile-tool-emoji">梨?/span>
-                <span class="practice-mobile-tool-value" id="mobileRealbookValue">?놁쓬</span>
+                <span class="practice-mobile-tool-emoji">책</span>
+                <span class="practice-mobile-tool-value" id="mobileRealbookValue">없음</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton">
                 <img src="/static/img/spotify_logo.png" alt="Spotify">
-                <span class="practice-mobile-tool-value" id="mobileSpotifyValue">留곹겕</span>
+                <span class="practice-mobile-tool-value" id="mobileSpotifyValue">링크</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileLickButton">
-                <span class="practice-mobile-tool-emoji">??/span>
+                <span class="practice-mobile-tool-emoji">연</span>
                 <span class="practice-mobile-tool-value" id="mobileLickValue">Lick</span>
             </button>
         </div>
@@ -439,4 +439,3 @@
 </script>
 <script src="/static/js/daily.js"></script>
 {% endblock %}
-
