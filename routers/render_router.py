@@ -1,5 +1,7 @@
+import json
 from pathlib import Path
 from urllib.parse import urlencode
+from shutil import which
 
 from core.render import render_page
 from fastapi import APIRouter, Query, Request
@@ -13,6 +15,12 @@ router = APIRouter()
 SCORE_DIR = Path("downloads/scores")
 REALBOOK_DIR = Path("downloads/realbook")
 REALBOOK_PAGE_CACHE_DIR = Path("data/music/realbook_pages")
+POPLLER_CANDIDATE_DIRS = [
+    Path("/Users/shinyeonggwak/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin"),
+    Path("lib/poppler/bin"),
+    Path("/opt/homebrew/bin"),
+    Path("/usr/local/bin"),
+]
 
 
 @router.get("/music/render")
@@ -100,6 +108,25 @@ async def realbook_file(filename: str):
     )
 
 
+def _find_poppler_path() -> str | None:
+    for candidate in POPPLER_CANDIDATE_DIRS:
+        if (candidate / "pdfinfo").exists() and (candidate / "pdftoppm").exists():
+            return str(candidate)
+
+    if which("pdfinfo") and which("pdftoppm"):
+        return None
+
+    return None
+
+
+def _json_utf8_response(message: str, status_code: int) -> Response:
+    return Response(
+        content=json.dumps({"message": message}, ensure_ascii=False),
+        status_code=status_code,
+        media_type="application/json; charset=utf-8",
+    )
+
+
 def _realbook_page_cache_path(file_name: str, page: int) -> Path:
     return REALBOOK_PAGE_CACHE_DIR / Path(file_name).stem / f"page-{page}.png"
 
@@ -127,6 +154,7 @@ def _render_realbook_page_png(file_name: str, page: int) -> Path:
         dpi=180,
         thread_count=1,
         single_file=True,
+        poppler_path=_find_poppler_path(),
     )
 
     if not images:
@@ -143,9 +171,12 @@ async def realbook_page(filename: str, page: int = Query(default=1)):
     try:
         cache_path = _render_realbook_page_png(safe_name, page)
     except FileNotFoundError:
-        return JSONResponse({"message": "PDF 파일을 찾을 수 없습니다."}, status_code=404)
+        return _json_utf8_response("PDF 파일을 찾을 수 없습니다.", 404)
     except Exception as exc:
-        return JSONResponse({"message": f"PDF 페이지를 이미지로 변환하지 못했습니다: {exc}"}, status_code=500)
+        return _json_utf8_response(
+            f"PDF 페이지를 이미지로 변환하지 못했습니다: {exc}",
+            500,
+        )
 
     return FileResponse(
         cache_path,
