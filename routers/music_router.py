@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, BackgroundTasks, Request, Form
 from starlette.responses import RedirectResponse, JSONResponse
 
 from core.render import render_page
@@ -34,8 +34,12 @@ def add_playlist(name: str = Form(...), url: str = Form(...)):
 
 
 @router.post("/playlist/sync")
-def sync_playlist(playlist_name: str = Form(...), url: str = Form(...)):
-    music_service.sync(playlist_name, url)
+def sync_playlist(
+    background_tasks: BackgroundTasks,
+    playlist_name: str = Form(...),
+    url: str = Form(...),
+):
+    background_tasks.add_task(music_service.sync, playlist_name, url)
     return RedirectResponse("/music/playlist", status_code=303)
 
 
