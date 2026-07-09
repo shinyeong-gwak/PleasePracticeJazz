@@ -178,16 +178,15 @@
                     </div>
                 </div>
 
-                <div class="practice-form-grid">
-                    <label class="practice-field">
-                        <span class="practice-field-label">합주 곡</span>
-                        <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">메모</span>
-                        <textarea id="ensembleMemoInput" placeholder="합주에서 기억할 내용을 적어두세요."></textarea>
-                    </label>
-                </div>
+                <label class="practice-field practice-field-full">
+                    <span class="practice-field-label">합주 곡</span>
+                    <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
+                </label>
+
+                <label class="practice-field practice-field-full">
+                    <span class="practice-field-label">메모</span>
+                    <textarea id="ensembleMemoInput" placeholder="합주에서 기억할 내용을 적어두세요."></textarea>
+                </label>
 
                 <div class="practice-form-grid">
                     <label class="practice-field">
@@ -352,9 +351,6 @@
             <div class="practice-mobile-tools-title" id="mobileToolTitle">선택된 제목 없음</div>
             <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">제목과 BPM이 있으면 바로가기와 메트로놈이 함께 보입니다.</div>
         </div>
-        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="true" aria-controls="mobileToolsBody">
-            접기
-        </button>
     </div>
     <div class="practice-mobile-tools-body" id="mobileToolsBody">
         <div class="practice-mobile-tools-row">

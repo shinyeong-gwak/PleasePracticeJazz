@@ -28,6 +28,7 @@ GENERIC_BOOK_VALUES = {
     "realbook",
     "real book",
 }
+MIN_REALBOOK_CONTENT_PAGE = 4
 
 
 def normalize_title(value: str) -> str:
@@ -42,6 +43,15 @@ def normalize_title(value: str) -> str:
 
 def normalize_query_text(value: str) -> str:
     return unquote_plus(str(value or "").replace("+", " ")).strip()
+
+
+def normalize_phrase(value: str) -> str:
+    return re.sub(
+        r"\s+",
+        " ",
+        str(value or "").strip().casefold(),
+        flags=re.UNICODE,
+    )
 
 
 def resolve_book_file_name(book_name: str) -> str:
@@ -131,6 +141,7 @@ def get_searchable_books(book_name: str):
 def find_page_by_title_in_db(book_name: str, title: str):
     query_text = normalize_query_text(title)
     normalized_query = normalize_title(query_text)
+    normalized_phrase = normalize_phrase(query_text)
     search_all_books = is_generic_book_name(book_name)
     book_label = get_book_label(book_name)
     file_name = resolve_book_file_name(book_name)
@@ -166,24 +177,111 @@ def find_page_by_title_in_db(book_name: str, title: str):
             FROM music.sheet_book sb
             {book_filter_sql}
         ),
+        query_terms AS (
+            SELECT COALESCE(
+                array_agg(DISTINCT token) FILTER (WHERE token <> ''),
+                ARRAY[]::text[]
+            ) AS terms
+            FROM regexp_split_to_table(
+                regexp_replace(lower(:'query_text'), '[^[:alnum:]]+', ' ', 'g'),
+                '\\s+'
+            ) AS token
+        ),
         candidate_song AS (
             SELECT
                 s.id,
                 s.title,
                 s.normalized_title,
+                regexp_replace(
+                    lower(coalesce(s.title, '')),
+                    '[^[:alnum:]]+',
+                    '',
+                    'g'
+                ) AS runtime_normalized_title,
                 CASE
-                    WHEN s.normalized_title = :'normalized_title' THEN 4
-                    WHEN s.normalized_title LIKE :'normalized_prefix' THEN 3
-                    WHEN s.normalized_title LIKE :'normalized_contains' THEN 2
-                    WHEN similarity(s.normalized_title, :'normalized_title') >= 0.45 THEN 1
+                    WHEN s.normalized_title = :'normalized_title'
+                      OR regexp_replace(
+                            lower(coalesce(s.title, '')),
+                            '[^[:alnum:]]+',
+                            '',
+                            'g'
+                         ) = :'normalized_title'
+                    THEN 4
+                    WHEN s.normalized_title LIKE :'normalized_prefix'
+                      OR regexp_replace(
+                            lower(coalesce(s.title, '')),
+                            '[^[:alnum:]]+',
+                            '',
+                            'g'
+                         ) LIKE :'normalized_prefix'
+                    THEN 3
+                    WHEN s.normalized_title LIKE :'normalized_contains'
+                      OR regexp_replace(
+                            lower(coalesce(s.title, '')),
+                            '[^[:alnum:]]+',
+                            '',
+                            'g'
+                         ) LIKE :'normalized_contains'
+                    THEN 2
+                    WHEN GREATEST(
+                            similarity(s.normalized_title, :'normalized_title'),
+                            similarity(
+                                regexp_replace(
+                                    lower(coalesce(s.title, '')),
+                                    '[^[:alnum:]]+',
+                                    '',
+                                    'g'
+                                ),
+                                :'normalized_title'
+                            )
+                         ) >= 0.45
+                    THEN 1
                     ELSE 0
                 END AS match_rank,
-                similarity(s.normalized_title, :'normalized_title') AS title_similarity
+                GREATEST(
+                    similarity(s.normalized_title, :'normalized_title'),
+                    similarity(
+                        regexp_replace(
+                            lower(coalesce(s.title, '')),
+                            '[^[:alnum:]]+',
+                            '',
+                            'g'
+                        ),
+                        :'normalized_title'
+                    )
+                ) AS title_similarity
             FROM music.song s
             WHERE s.normalized_title = :'normalized_title'
+               OR regexp_replace(
+                    lower(coalesce(s.title, '')),
+                    '[^[:alnum:]]+',
+                    '',
+                    'g'
+                  ) = :'normalized_title'
                OR s.normalized_title LIKE :'normalized_prefix'
+               OR regexp_replace(
+                    lower(coalesce(s.title, '')),
+                    '[^[:alnum:]]+',
+                    '',
+                    'g'
+                  ) LIKE :'normalized_prefix'
                OR s.normalized_title LIKE :'normalized_contains'
+               OR regexp_replace(
+                    lower(coalesce(s.title, '')),
+                    '[^[:alnum:]]+',
+                    '',
+                    'g'
+                  ) LIKE :'normalized_contains'
                OR similarity(s.normalized_title, :'normalized_title') >= 0.45
+               OR similarity(
+                    regexp_replace(
+                        lower(coalesce(s.title, '')),
+                        '[^[:alnum:]]+',
+                        '',
+                        'g'
+                    ),
+                    :'normalized_title'
+                  ) >= 0.45
         ),
         ranked_match AS (
             SELECT
@@ -208,9 +306,31 @@ def find_page_by_title_in_db(book_name: str, title: str):
                         ),
                         :'normalized_title'
                     ) * 40
+                )
+                + (
+                    CASE
+                        WHEN tok.token_total = 0 THEN 0
+                        ELSE (tok.token_hits::float / tok.token_total::float) * 120
+                    END
                 ) AS score,
                 cs.match_rank,
                 cs.title_similarity,
+                tok.token_hits,
+                tok.token_total,
+                (regexp_replace(lower(trim(coalesce(cs.title, ''))), '\s+', ' ', 'g') = :'normalized_phrase') AS exact_phrase_title_match,
+                (regexp_replace(lower(trim(coalesce(sbs.bookmark_title, ''))), '\s+', ' ', 'g') = :'normalized_phrase') AS exact_phrase_bookmark_match,
+                (
+                    cs.normalized_title = :'normalized_title'
+                    OR cs.runtime_normalized_title = :'normalized_title'
+                ) AS exact_title_match,
+                (
+                    regexp_replace(
+                        lower(coalesce(sbs.bookmark_title, '')),
+                        '[^[:alnum:]]+',
+                        '',
+                        'g'
+                    ) = :'normalized_title'
+                ) AS exact_bookmark_match,
                 similarity(
                     regexp_replace(
                         lower(coalesce(sbs.bookmark_title, '')),
@@ -225,6 +345,39 @@ def find_page_by_title_in_db(book_name: str, title: str):
               ON sbs.sheet_book_id = cb.id
             JOIN candidate_song cs
               ON cs.id = sbs.song_id
+            CROSS JOIN query_terms qt
+            CROSS JOIN LATERAL (
+                SELECT
+                    COUNT(DISTINCT token) FILTER (
+                        WHERE token <> ''
+                          AND (
+                            token = ANY(
+                                regexp_split_to_array(
+                                    regexp_replace(
+                                        lower(coalesce(cs.title, '')),
+                                        '[^[:alnum:]]+',
+                                        ' ',
+                                        'g'
+                                    ),
+                                    '\\s+'
+                                )
+                            )
+                            OR token = ANY(
+                                regexp_split_to_array(
+                                    regexp_replace(
+                                        lower(coalesce(sbs.bookmark_title, '')),
+                                        '[^[:alnum:]]+',
+                                        ' ',
+                                        'g'
+                                    ),
+                                    '\\s+'
+                                )
+                            )
+                          )
+                    ) AS token_hits,
+                    GREATEST(cardinality(qt.terms), 0) AS token_total
+                FROM unnest(qt.terms) AS token
+            ) AS tok
             WHERE cs.match_rank > 0
                OR similarity(
                     regexp_replace(
@@ -236,7 +389,22 @@ def find_page_by_title_in_db(book_name: str, title: str):
                     :'normalized_title'
                 ) >= 0.5
             ORDER BY
+                (regexp_replace(lower(trim(coalesce(cs.title, ''))), '\s+', ' ', 'g') = :'normalized_phrase') DESC,
+                (regexp_replace(lower(trim(coalesce(sbs.bookmark_title, ''))), '\s+', ' ', 'g') = :'normalized_phrase') DESC,
+                (
+                    cs.normalized_title = :'normalized_title'
+                    OR cs.runtime_normalized_title = :'normalized_title'
+                ) DESC,
+                (
+                    regexp_replace(
+                        lower(coalesce(sbs.bookmark_title, '')),
+                        '[^[:alnum:]]+',
+                        '',
+                        'g'
+                    ) = :'normalized_title'
+                ) DESC,
                 score DESC,
+                tok.token_hits DESC,
                 cs.match_rank DESC,
                 cs.title_similarity DESC,
                 bookmark_similarity DESC,
@@ -260,6 +428,12 @@ def find_page_by_title_in_db(book_name: str, title: str):
                 score,
                 match_rank,
                 title_similarity,
+                token_hits,
+                token_total,
+                exact_phrase_title_match,
+                exact_phrase_bookmark_match,
+                exact_title_match,
+                exact_bookmark_match,
                 bookmark_similarity
             FROM ranked_match
             WHERE score >= 35
@@ -268,6 +442,8 @@ def find_page_by_title_in_db(book_name: str, title: str):
         {
             "book_title": book_label,
             "file_name": file_name,
+            "query_text": query_text,
+            "normalized_phrase": normalized_phrase,
             "normalized_title": normalized_query,
             "normalized_prefix": f"{normalized_query}%",
             "normalized_contains": f"%{normalized_query}%",
@@ -331,7 +507,10 @@ def find_page_by_title(pdf_path: Path, title: str):
     file_cache = cache.setdefault(pdf_path.name, {})
     cached_page = file_cache.get(normalized_query)
 
-    if isinstance(cached_page, int) and cached_page > 0:
+    if (
+        isinstance(cached_page, int)
+        and cached_page >= MIN_REALBOOK_CONTENT_PAGE
+    ):
         return cached_page
 
     if shutil.which("osascript") is None:
@@ -498,7 +677,7 @@ if (!doc) {{
 
     page = int(payload.get("page") or 0)
 
-    if page > 0:
+    if page >= MIN_REALBOOK_CONTENT_PAGE:
         file_cache[normalized_query] = page
         save_cache(cache)
         return page
@@ -507,12 +686,28 @@ if (!doc) {{
 
 
 def resolve_realbook_page(book: str, title: str = "", page: str = ""):
+    generic_book_request = is_generic_book_name(book)
     search_books = get_searchable_books(book)
 
     if not search_books:
         return {
             "success": False,
             "message": "선택한 악보집 PDF를 찾을 수 없습니다."
+        }
+
+    try:
+        explicit_page = int(str(page or "").strip())
+    except ValueError:
+        explicit_page = 0
+
+    if explicit_page > 0:
+        selected_book = search_books[0]
+        return {
+            "success": True,
+            "fileName": selected_book["fileName"],
+            "page": explicit_page,
+            "book": selected_book["label"],
+            "title": str(title or "").strip(),
         }
 
     matched = find_page_by_title_in_db(book, title)
@@ -536,7 +731,7 @@ def resolve_realbook_page(book: str, title: str = "", page: str = ""):
                     "path": pdf_path,
                 }
 
-    if matched is None:
+    if matched is None and not generic_book_request:
         for candidate in search_books:
             resolved_page = find_page_by_title(
                 candidate["path"],
@@ -551,21 +746,6 @@ def resolve_realbook_page(book: str, title: str = "", page: str = ""):
                 }
                 selected_book = candidate
                 break
-
-    if matched is None:
-        try:
-            fallback_page = int(str(page or "").strip())
-        except ValueError:
-            fallback_page = 0
-
-        if fallback_page > 0:
-            selected_book = search_books[0]
-            matched = {
-                "page": fallback_page,
-                "fileName": selected_book["fileName"],
-                "book": selected_book["label"],
-                "title": str(title or "").strip(),
-            }
 
     if matched is None or int(matched.get("page") or 0) <= 0:
         return {

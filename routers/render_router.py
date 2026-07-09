@@ -1,3 +1,4 @@
+import logging
 import json
 from pathlib import Path
 from urllib.parse import urlencode
@@ -12,6 +13,7 @@ from repositories import realbook_repository
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 SCORE_DIR = Path("downloads/scores")
 REALBOOK_DIR = Path("downloads/realbook")
 REALBOOK_PAGE_CACHE_DIR = Path("data/music/realbook_pages")
@@ -67,12 +69,19 @@ async def resolve_realbook(
         book: str = Query(default=""),
         title: str = Query(default=""),
         page: str = Query(default="")):
+    logger.warning(
+        "realbook resolve request: book=%r title=%r page=%r",
+        book,
+        title,
+        page,
+    )
 
     result = realbook_repository.resolve_realbook_page(
         book=book,
         title=title,
         page=page
     )
+    logger.warning("realbook resolve result: %r", result)
 
     if not result.get("success"):
         return JSONResponse(

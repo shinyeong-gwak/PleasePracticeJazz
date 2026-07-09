@@ -13,11 +13,11 @@ def _build_dsn():
     if database_url:
         return database_url
 
-    host = os.getenv("PGHOST", "localhost")
+    host = os.getenv("PGHOST", "172.30.1.70")
     port = os.getenv("PGPORT", "5432")
-    dbname = os.getenv("PGDATABASE", "postgres")
-    user = os.getenv("PGUSER", "postgres")
-    password = os.getenv("PGPASSWORD")
+    dbname = os.getenv("PGDATABASE", "lickgo")
+    user = os.getenv("PGUSER", "sygwak")
+    password = os.getenv("PGPASSWORD","3322DB")
 
     auth = user
     if password:
