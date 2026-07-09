@@ -5,18 +5,18 @@
     <div class="page-header">
         <div>
             <p class="eyebrow">Weekly Report</p>
-            <h1>二쇨컙 由ы룷??/h1>
-            <p class="page-copy">?곗뒿??鍮꾧굅??硫뷀듃濡쒕냸 ?놁씠 吏꾪뻾???좎? 鍮④컙?? ?곗뒿 移대뱶媛 留롮쓣?섎줉 ??吏꾪븳 珥덈줉?됱쑝濡?蹂댁엯?덈떎.</p>
+            <h1>주간 리포트</h1>
+            <p class="page-copy">연습이 비거나 메트로놈 없이 진행된 날은 빨간색, 연습 카드가 많을수록 더 진한 초록색으로 보입니다.</p>
         </div>
     </div>
 
     <article class="card report-card">
         <div class="report-legend">
-            <span class="report-legend-item"><span class="report-dot report-dot-bad"></span> 鍮꾩뿀嫄곕굹 硫뷀듃濡쒕냸 ?놁쓬</span>
-            <span class="report-legend-item"><span class="report-dot report-dot-l1"></span> 1媛?/span>
-            <span class="report-legend-item"><span class="report-dot report-dot-l2"></span> 2媛?/span>
-            <span class="report-legend-item"><span class="report-dot report-dot-l3"></span> 3-4媛?/span>
-            <span class="report-legend-item"><span class="report-dot report-dot-l4"></span> 5媛?</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-bad"></span> 비었거나 메트로놈 없음</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l1"></span> 1개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l2"></span> 2개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l3"></span> 3-4개</span>
+            <span class="report-legend-item"><span class="report-dot report-dot-l4"></span> 5개+</span>
         </div>
         <div class="report-calendar-shell">
             <div class="report-weekdays" id="reportWeekdays"></div>
@@ -26,24 +26,24 @@
 
     <article class="card report-card">
         <div class="section-title-row">
-            <h2>二쇨컙 ?꾩뭅?대툕</h2>
-            <span class="section-count">二쇰? ?꾨Ⅴ硫??꾨옒???곸꽭 湲곕줉???대┰?덈떎.</span>
+            <h2>주간 아카이브</h2>
+            <span class="section-count">주를 누르면 아래에 상세 기록이 열립니다.</span>
         </div>
         <div class="report-week-list" id="reportWeekList"></div>
     </article>
 
     <article class="card report-card">
         <div class="section-title-row">
-            <h2 id="selectedWeekTitle">?좏깮??二?/h2>
+            <h2 id="selectedWeekTitle">선택한 주</h2>
             <span class="section-count" id="selectedWeekMeta"></span>
         </div>
         <div class="practice-report-grid practice-report-grid-archive">
             <div class="practice-report-column">
-                <div class="practice-report-heading">?숈젣</div>
+                <div class="practice-report-heading">숙제</div>
                 <div class="practice-report-list" id="reportHomeworkList"></div>
             </div>
             <div class="practice-report-column">
-                <div class="practice-report-heading">?쇰퀎 ?곗뒿 / ?⑹＜</div>
+                <div class="practice-report-heading">일별 연습 / 합주</div>
                 <div class="practice-report-days" id="reportArchiveDays"></div>
             </div>
         </div>
@@ -53,41 +53,41 @@
 <div class="practice-mobile-tools is-collapsed" id="reportMobileTools">
     <div class="practice-mobile-tools-header">
         <div class="practice-mobile-tools-meta">
-            <div class="practice-mobile-tools-title" id="mobileToolTitle">?좏깮???명듃 ?놁쓬</div>
-            <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">由ы룷??移대뱶?먯꽌 怨≪쓣 ?좏깮?섎㈃ 諛붾줈媛湲곗? 硫뷀듃濡쒕냸???????덉뼱??</div>
+            <div class="practice-mobile-tools-title" id="mobileToolTitle">선택된 노트 없음</div>
+            <div class="practice-mobile-tools-subtitle" id="mobileToolSubtitle">리포트 카드에서 곡을 선택하면 바로가기와 메트로놈을 쓸 수 있어요.</div>
         </div>
-        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="false" aria-controls="mobileToolsBody">
-            ?묎린
+        <button type="button" class="practice-mobile-tools-toggle" id="mobileToolsToggleButton" aria-expanded="true" aria-controls="mobileToolsBody">
+            접기
         </button>
     </div>
     <div class="practice-mobile-tools-body" id="mobileToolsBody">
         <div class="practice-mobile-tools-row">
             <button type="button" class="practice-mobile-tool-button" id="mobileIrealButton">
                 <img src="/static/img/realb_logo.png" alt="iReal Pro">
-                <span class="practice-mobile-tool-value" id="mobileIrealValue">?쒕ぉ</span>
+                <span class="practice-mobile-tool-value" id="mobileIrealValue">제목</span>
             </button>
             <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro2Button">
-                <span class="practice-mobile-tool-emoji">2截뤴깵</span>
+                <span class="practice-mobile-tool-emoji">2️⃣</span>
                 <span class="practice-mobile-tool-value" id="mobileMetro2Value">BPM</span>
             </button>
             <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro4Button">
-                <span class="practice-mobile-tool-emoji">4截뤴깵</span>
+                <span class="practice-mobile-tool-emoji">4️⃣</span>
                 <span class="practice-mobile-tool-value" id="mobileMetro4Value">BPM</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileGoodnotesButton">
                 <img src="/static/img/goodnote.jpeg" alt="Goodnotes">
-                <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">?낅낫</span>
+                <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">악보</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileRealbookButton">
-                <span class="practice-mobile-tool-emoji">?뱰</span>
-                <span class="practice-mobile-tool-value" id="mobileRealbookValue">?낅낫</span>
+                <span class="practice-mobile-tool-emoji">📖</span>
+                <span class="practice-mobile-tool-value" id="mobileRealbookValue">악보</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton">
                 <img src="/static/img/spotify_logo.png" alt="Spotify">
-                <span class="practice-mobile-tool-value" id="mobileSpotifyValue">留곹겕</span>
+                <span class="practice-mobile-tool-value" id="mobileSpotifyValue">링크</span>
             </button>
             <button type="button" class="practice-mobile-tool-button" id="mobileLickButton">
-                <span class="practice-mobile-tool-emoji">?렦</span>
+                <span class="practice-mobile-tool-emoji">🎵</span>
                 <span class="practice-mobile-tool-value" id="mobileLickValue">Lick</span>
             </button>
         </div>
