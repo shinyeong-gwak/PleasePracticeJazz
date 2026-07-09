@@ -59,7 +59,7 @@ def _load_pool_tracks():
                 at.id::text AS id,
                 at.file_name AS "fileName",
                 at.file_path AS "filePath",
-                COALESCE(NULLIF(at.title, ''), regexp_replace(at.file_name, '\\.mp3$', '', 'i')) AS "displayName",
+                regexp_replace(at.file_name, '\\.mp3$', '', 'i') AS "displayName",
                 COALESCE(NULLIF(at.source_type, ''), 'local') AS "sourceType",
                 COALESCE(at.source_url, '') AS "sourceUrl",
                 at.duration_sec AS "durationSec"
@@ -101,7 +101,7 @@ def _load_library_items():
                 li.id::text AS id,
                 li.folder_id::text AS "folderId",
                 li.track_id::text AS "trackId",
-                COALESCE(NULLIF(li.display_name, ''), NULLIF(at.title, ''), at.file_name) AS "displayName",
+                COALESCE(NULLIF(li.display_name, ''), at.file_name) AS "displayName",
                 li.sort_order AS "sortOrder",
                 at.file_name AS "fileName",
                 at.file_path AS "filePath",
@@ -111,7 +111,7 @@ def _load_library_items():
             FROM audio_library_item li
             JOIN audio_track at ON at.id = li.track_id
             WHERE li.user_id = :'user_id'::uuid
-            ORDER BY li.sort_order, COALESCE(NULLIF(li.display_name, ''), NULLIF(at.title, ''), at.file_name)
+            ORDER BY li.sort_order, COALESCE(NULLIF(li.display_name, ''), at.file_name)
         ) AS t
         """,
         {"user_id": user_id},
@@ -353,7 +353,7 @@ def add_track_to_library(track_id, folder_id=None):
                 :'user_id'::uuid,
                 at.id,
                 NULLIF(:'folder_id', '')::uuid,
-                COALESCE(NULLIF(at.title, ''), regexp_replace(at.file_name, '\\.mp3$', '', 'i')),
+                regexp_replace(at.file_name, '\\.mp3$', '', 'i'),
                 :'sort_order'::int
             FROM audio_track at
             WHERE at.id = :'track_id'::uuid
