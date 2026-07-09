@@ -16,6 +16,16 @@ router = APIRouter(prefix="/music")
 
 def _build_daily_payload():
     current_report = daily_repository.get_current_report()
+    if not (
+        current_report.get("homework")
+        or current_report.get("practice")
+        or current_report.get("ensemble")
+    ):
+        for report in daily_repository.get_all_reports():
+            if report.get("homework") or report.get("practice") or report.get("ensemble"):
+                current_report = report
+                break
+
     return {
         "daily_report": current_report,
         "current_archive": daily_repository.build_week_archive(current_report),

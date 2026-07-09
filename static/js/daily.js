@@ -1288,9 +1288,16 @@ function renderEnsembleBoard() {
 
     board.innerHTML = "";
 
-    DAILY_STATE.ensemble.forEach((item) => {
-        board.appendChild(createEnsembleCardNode(item, template));
-    });
+    if (DAILY_STATE.ensemble.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "practice-report-empty";
+        empty.textContent = "합주 노트가 없습니다.";
+        board.appendChild(empty);
+    } else {
+        DAILY_STATE.ensemble.forEach((item) => {
+            board.appendChild(createEnsembleCardNode(item, template));
+        });
+    }
 
     renderInlineAssetOptions();
 }
@@ -1300,6 +1307,14 @@ function renderPracticeCards() {
     const template = document.getElementById("practiceCardTemplate");
 
     cards.innerHTML = "";
+
+    if (DAILY_STATE.practice.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "practice-report-empty";
+        empty.textContent = "연습 카드가 없습니다.";
+        cards.appendChild(empty);
+        return;
+    }
 
     DAILY_STATE.practice.forEach((item) => {
         const fragment = template.content.cloneNode(true);
