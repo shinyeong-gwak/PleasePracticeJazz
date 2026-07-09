@@ -110,7 +110,6 @@ def _upsert_audio_track(item):
 
 
 def get_all():
-    user_id = get_or_create_user_id()
     playlists = query_rows(
         """
         SELECT row_to_json(t)
@@ -137,13 +136,11 @@ def get_all():
                 ON pt.playlist_id = p.id
             LEFT JOIN audio_track at
                 ON at.id = pt.track_id
-            WHERE p.user_id = :'user_id'::uuid
-              AND LEFT(p.name, 2) <> '__'
+            WHERE LEFT(p.name, 2) <> '__'
             GROUP BY p.id
             ORDER BY p.created_at DESC
         ) AS t
         """,
-        {"user_id": user_id},
     )
 
     return {
@@ -214,12 +211,11 @@ def iter_other_playlist_tracks(playlist_name):
             FROM playlist p
             JOIN playlist_track pt ON pt.playlist_id = p.id
             JOIN audio_track at ON at.id = pt.track_id
-            WHERE p.user_id = :'user_id'::uuid
-              AND LEFT(p.name, 2) <> '__'
+            WHERE LEFT(p.name, 2) <> '__'
               AND p.name <> :'playlist_name'
         ) AS t
         """,
-        {"playlist_name": playlist_name, "user_id": get_or_create_user_id()},
+        {"playlist_name": playlist_name},
     )
 
     for row in rows:

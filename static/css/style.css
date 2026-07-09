@@ -1704,6 +1704,7 @@ tr.hidden,
     min-height: 70vh;
 }
 
+.realbook-viewer-canvas,
 .realbook-viewer-frame {
     display: block;
     width: 100%;
@@ -1712,6 +1713,27 @@ tr.hidden,
     border-radius: 12px;
     box-shadow: 0 16px 36px rgba(24, 45, 35, 0.12);
     background: white;
+}
+
+.realbook-viewer-canvas {
+    height: auto;
+}
+
+.viewer-message {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff7e8;
+    color: #6a4b00;
+    border: 1px solid #ead3a7;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.viewer-message[data-state="error"] {
+    background: #fff0f0;
+    color: #9b1c1c;
+    border-color: #f0c0c0;
 }
 
 .insight-columns {

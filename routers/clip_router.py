@@ -34,7 +34,14 @@ def create_clip(req: ClipRequest):
         req.endTime,
         req.clipName
     )
-    clip_repository.sync_created_audio_file(out)
+    clip_repository.register_generated_clip(
+        out,
+        req.fileName,
+        req.startTime,
+        req.endTime,
+        pitch_shift=0,
+        tempo_ratio=1.0,
+    )
     return {"fileName": out.name}
 
 
@@ -65,7 +72,14 @@ class LibraryItemRequest(BaseModel):
 @router.post("/clips/pitch")
 def pitch(req: PitchRequest):
     out = clip_service.create_pitch_version(req.fileName, req.semitones)
-    clip_repository.sync_created_audio_file(out)
+    clip_repository.register_generated_clip(
+        out,
+        req.fileName,
+        start_sec=None,
+        end_sec=None,
+        pitch_shift=req.semitones,
+        tempo_ratio=1.0,
+    )
     return {"fileName": out.name}
 
 

@@ -63,6 +63,7 @@ def _load_pool_tracks():
                 COALESCE(source_url, '') AS "sourceUrl",
                 duration_sec AS "durationSec"
             FROM audio_track
+            WHERE file_path LIKE 'downloads/mp3/%'
             ORDER BY file_name
         ) AS t
         """
@@ -352,6 +353,35 @@ def add_track_to_library(track_id, folder_id=None):
     return row["id"] if row else None
 
 
+def _resolve_audio_track_id(source_file):
+    source_text = str(source_file or "").strip()
+    if not source_text:
+        return None
+
+    source_path = resolve_audio_path(source_text)
+    source_name = source_path.name
+    source_relative = _relative_key(source_path)
+
+    row = query_one(
+        """
+        SELECT row_to_json(t)
+        FROM (
+            SELECT id::text AS id
+            FROM audio_track
+            WHERE file_path = :'file_path'
+               OR file_name = :'file_name'
+            ORDER BY created_at DESC
+            LIMIT 1
+        ) AS t
+        """,
+        {
+            "file_path": source_relative,
+            "file_name": source_name,
+        },
+    )
+    return row["id"] if row else None
+
+
 def sync_created_audio_file(file_path, source_url=None):
     path = Path(file_path).resolve()
     downloads_base = DOWNLOADS_DIR.resolve()
@@ -394,5 +424,76 @@ def sync_created_audio_file(file_path, source_url=None):
 
     if row:
         add_track_to_library(row["id"])
+
+    return row["id"] if row else None
+
+
+def register_generated_clip(
+    output_file,
+    source_file,
+    start_sec=None,
+    end_sec=None,
+    pitch_shift=0,
+    tempo_ratio=1.0,
+):
+    output_path = Path(output_file).resolve()
+    downloads_base = DOWNLOADS_DIR.resolve()
+    if output_path != downloads_base and downloads_base not in output_path.parents:
+        raise ValueError("Invalid path")
+
+    if output_path.suffix.lower() != ".mp3":
+        raise ValueError("Invalid audio file")
+
+    source_track_id = _resolve_audio_track_id(source_file)
+    if not source_track_id:
+        raise ValueError("Source track not found")
+
+    row = query_one(
+        """
+        WITH inserted AS (
+            INSERT INTO clip (
+                user_id,
+                source_track_id,
+                file_name,
+                file_path,
+                start_sec,
+                end_sec,
+                pitch_shift,
+                tempo_ratio
+            )
+            VALUES (
+                :'user_id'::uuid,
+                :'source_track_id'::uuid,
+                :'file_name',
+                :'file_path',
+                NULLIF(:'start_sec', '')::numeric,
+                NULLIF(:'end_sec', '')::numeric,
+                :'pitch_shift'::int,
+                :'tempo_ratio'::numeric
+            )
+            ON CONFLICT (file_path) DO UPDATE SET
+                source_track_id = EXCLUDED.source_track_id,
+                file_name = EXCLUDED.file_name,
+                start_sec = EXCLUDED.start_sec,
+                end_sec = EXCLUDED.end_sec,
+                pitch_shift = EXCLUDED.pitch_shift,
+                tempo_ratio = EXCLUDED.tempo_ratio,
+                updated_at = now()
+            RETURNING id::text AS id
+        )
+        SELECT row_to_json(inserted)
+        FROM inserted
+        """,
+        {
+            "user_id": get_or_create_user_id(),
+            "source_track_id": source_track_id,
+            "file_name": output_path.name,
+            "file_path": _relative_key(output_path),
+            "start_sec": "" if start_sec is None else start_sec,
+            "end_sec": "" if end_sec is None else end_sec,
+            "pitch_shift": pitch_shift,
+            "tempo_ratio": tempo_ratio,
+        },
+    )
 
     return row["id"] if row else None

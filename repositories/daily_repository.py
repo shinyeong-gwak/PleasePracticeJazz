@@ -562,7 +562,7 @@ def _build_insights():
 
 
 def get_current_report():
-    return _build_report_for_week()
+    return _build_report_for_week(get_today())
 
 
 def get_all_reports(reports=None):

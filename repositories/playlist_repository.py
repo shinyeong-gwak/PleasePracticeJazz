@@ -11,7 +11,6 @@ def _infer_source(url):
 
 
 def get_all():
-    user_id = get_or_create_user_id()
     rows = query_rows(
         """
         SELECT row_to_json(t)
@@ -38,13 +37,11 @@ def get_all():
               ON pt.playlist_id = p.id
             LEFT JOIN audio_track at
               ON at.id = pt.track_id
-            WHERE p.user_id = :'user_id'::uuid
-              AND LEFT(p.name, 2) <> '__'
+            WHERE LEFT(p.name, 2) <> '__'
             GROUP BY p.id
             ORDER BY p.created_at DESC
         ) AS t
         """,
-        {"user_id": user_id},
     )
     for row in rows:
         row["source"] = _infer_source(row.get("url"))

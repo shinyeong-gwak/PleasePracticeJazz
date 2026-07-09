@@ -14,6 +14,7 @@ def render_page(request, template_name: str, page_title: str, context: dict = No
         "navigation": NAVIGATION,
         "page_title": page_title,
         "app_settings": app_settings_repository.get_settings(),
+        "current_user_id": getattr(request.state, "user_id", ""),
     })
 
     return templates.TemplateResponse(

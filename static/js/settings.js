@@ -1,6 +1,7 @@
 const LickSettings = (() => {
-    const STORAGE_KEY = "please-practice-jazz.settings";
+    const STORAGE_KEY_PREFIX = "please-practice-jazz.settings";
     const SERVER_SETTINGS_NODE_ID = "app-settings-data";
+    const AUTH_CONTEXT_NODE_ID = "auth-context-data";
 
     const COUNTRY_OPTIONS = {
         kr: { label: "한국", timeZone: "Asia/Seoul" },
@@ -36,6 +37,18 @@ const LickSettings = (() => {
         }
     }
 
+    function readAuthContext() {
+        const context = readJsonNode(AUTH_CONTEXT_NODE_ID) || {};
+        return {
+            userId: String(context.userId || "").trim(),
+        };
+    }
+
+    function getStorageKey() {
+        const userId = readAuthContext().userId || "anonymous";
+        return `${STORAGE_KEY_PREFIX}.${userId}`;
+    }
+
     function normalizeCountry(country) {
         return COUNTRY_OPTIONS[country] ? country : DEFAULT_SETTINGS.country;
     }
@@ -62,14 +75,14 @@ const LickSettings = (() => {
 
     function readRawSettings() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") || {};
+            return JSON.parse(localStorage.getItem(getStorageKey()) || "{}") || {};
         } catch {
             return {};
         }
     }
 
     function writeSettingsToStorage(settings) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizeSettings(settings)));
+        localStorage.setItem(getStorageKey(), JSON.stringify(normalizeSettings(settings)));
     }
 
     function ensureLocalSettings() {

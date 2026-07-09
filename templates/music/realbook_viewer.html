@@ -18,17 +18,17 @@
         </div>
 
         <div class="realbook-viewer-shell">
-            <iframe
-                id="realbookFrame"
-                class="realbook-viewer-frame"
-                src="{{ pdf_embed_url }}"
-                title="{{ pdf_title or '악보 보기' }}"
-                loading="eager">
-            </iframe>
+            <div id="realbookViewerMessage" class="viewer-message" hidden></div>
+            <canvas id="realbookCanvas" class="realbook-viewer-canvas"></canvas>
         </div>
     </article>
 </section>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script id="realbook-viewer-data" type="application/json">
+    {{ {"fileUrl": pdf_file_url, "page": pdf_page} | tojson | safe }}
+</script>
+<script src="/static/js/realbook_viewer.js"></script>
 {% endblock %}
