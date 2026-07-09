@@ -1026,6 +1026,7 @@ function collectEnsemblePayload() {
 }
 
 function resetEnsembleEditor() {
+    DAILY_STATE.editingEnsembleId = null;
     document.getElementById("ensembleTitleInput").value = "";
     document.getElementById("ensembleBpmInput").value = "";
     document.getElementById("ensembleBookInput").value = "";
@@ -1036,35 +1037,53 @@ function resetEnsembleEditor() {
     document.getElementById("ensembleTopicsInput").value = "";
     document.getElementById("ensembleStatusInput").value = "normal";
     document.getElementById("ensembleMemoInput").value = "";
-
-    const details = document.querySelector("[data-ensemble-details]");
-    const toggle = document.querySelector("[data-ensemble-details-toggle]");
-    if (details) {
-        details.hidden = true;
+    document.getElementById("addEnsembleButton").textContent = "+ 합주 추가";
+    const cancelButton = document.getElementById("cancelEnsembleEditButton");
+    if (cancelButton) {
+        cancelButton.classList.add("hidden");
     }
-    if (toggle) {
-        toggle.setAttribute("aria-expanded", "false");
-        toggle.textContent = "세부 펼치기";
-    }
+    setActiveMobileTarget({
+        kind: "ensemble",
+        title: "",
+        bpm: "",
+        book: "",
+        page: "",
+        spotifyUrl: "",
+        lickFile: "",
+        rendererFile: "",
+    });
 }
 
-function bindEnsembleDetailsToggle() {
-    const button = document.querySelector("[data-ensemble-details-toggle]");
-    const panel = document.querySelector("[data-ensemble-details]");
-
-    if (!button || !panel) {
-        return;
+function fillEnsembleForm(item) {
+    DAILY_STATE.editingEnsembleId = item.id;
+    document.getElementById("ensembleTitleInput").value = item.title || "";
+    document.getElementById("ensembleBpmInput").value = item.bpm || "";
+    document.getElementById("ensembleBookInput").value = item.book || "";
+    document.getElementById("ensemblePageInput").value = item.page || "";
+    document.getElementById("ensembleSpotifyInput").value = item.spotifyUrl || "";
+    document.getElementById("ensembleLickFileInput").value = item.lickFile || "";
+    document.getElementById("ensembleRendererFileInput").value = item.rendererFile || "";
+    document.getElementById("ensembleTopicsInput").value = (item.topics || []).join(", ");
+    document.getElementById("ensembleStatusInput").value = item.status || "normal";
+    document.getElementById("ensembleMemoInput").value = item.memo || "";
+    document.getElementById("addEnsembleButton").textContent = "수정";
+    const cancelButton = document.getElementById("cancelEnsembleEditButton");
+    if (cancelButton) {
+        cancelButton.classList.remove("hidden");
     }
-
-    panel.hidden = true;
-    button.setAttribute("aria-expanded", "false");
-    button.textContent = "세부 펼치기";
-
-    button.addEventListener("click", () => {
-        const willOpen = panel.hidden;
-        panel.hidden = !willOpen;
-        button.setAttribute("aria-expanded", willOpen ? "true" : "false");
-        button.textContent = willOpen ? "세부 접기" : "세부 펼치기";
+    document.getElementById("ensembleEditorCard").scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+    });
+    setActiveMobileTarget({
+        kind: "ensemble",
+        title: item.title || "",
+        bpm: item.bpm || "",
+        book: item.book || "",
+        page: item.page || "",
+        spotifyUrl: item.spotifyUrl || "",
+        lickFile: item.lickFile || "",
+        rendererFile: item.rendererFile || "",
     });
 }
 
@@ -1213,19 +1232,7 @@ function renderHomeworkBoard() {
 function createEnsembleCardNode(item, template) {
     const fragment = template.content.cloneNode(true);
     const card = fragment.querySelector(".practice-ensemble-note");
-    const summary = fragment.querySelector(".practice-ensemble-summary");
-    const editPanel = fragment.querySelector(".practice-ensemble-edit");
     const editButton = fragment.querySelector(".practice-ensemble-edit-button");
-    const titleInput = fragment.querySelector(".practice-inline-title");
-    const bpmInput = fragment.querySelector(".practice-inline-bpm");
-    const bookInput = fragment.querySelector(".practice-inline-book");
-    const pageInput = fragment.querySelector(".practice-inline-page");
-    const statusInput = fragment.querySelector(".practice-inline-status");
-    const lickFileInput = fragment.querySelector(".practice-inline-lick-file");
-    const rendererFileInput = fragment.querySelector(".practice-inline-renderer-file");
-    const spotifyInput = fragment.querySelector(".practice-inline-spotify");
-    const topicsInput = fragment.querySelector(".practice-inline-topics");
-    const memoInput = fragment.querySelector(".practice-inline-memo");
     const removeButton = fragment.querySelector(".practice-homework-remove-button");
     const titleValue = fragment.querySelector(".practice-ensemble-title");
     const toplineValue = fragment.querySelector(".practice-ensemble-topline");
@@ -1234,7 +1241,6 @@ function createEnsembleCardNode(item, template) {
     const memoValue = fragment.querySelector(".practice-ensemble-memo");
 
     card.dataset.ensembleId = item.id;
-    card.classList.toggle("is-editing", DAILY_STATE.editingEnsembleId === item.id);
     card.classList.toggle("practice-ensemble-note-bad", item.status === "bad");
     card.classList.toggle("practice-ensemble-note-good", item.status === "good");
 
@@ -1248,90 +1254,18 @@ function createEnsembleCardNode(item, template) {
         : "Topics none";
     memoValue.textContent = item.memo || "메모 없음";
 
-    titleInput.value = item.title || "";
-    bpmInput.value = item.bpm || "";
-    bookInput.value = item.book || "";
-    pageInput.value = item.page || "";
-    statusInput.value = item.status || "normal";
-    lickFileInput.value = item.lickFile || "";
-    rendererFileInput.value = item.rendererFile || "";
-    spotifyInput.value = item.spotifyUrl || "";
-    topicsInput.value = (item.topics || []).join(", ");
-    memoInput.value = item.memo || "";
-
-    function syncEditState() {
-        const isEditing = DAILY_STATE.editingEnsembleId === item.id;
-
-        card.classList.toggle("is-editing", isEditing);
-        if (summary) {
-            summary.hidden = isEditing;
-        }
-        if (editPanel) {
-            editPanel.hidden = !isEditing;
-        }
-        if (editButton) {
-            editButton.textContent = isEditing ? "닫기" : "편집";
-        }
-    }
-
-    syncEditState();
-
-    async function saveInline() {
-        const report = await requestJson(`/music/daily/ensemble/${item.id}`, {
-            method: "PUT",
-            body: JSON.stringify({
-                title: titleInput.value.trim(),
-                bpm: bpmInput.value.trim(),
-                book: bookInput.value.trim(),
-                page: pageInput.value.trim(),
-                lickFile: lickFileInput.value.trim(),
-                rendererFile: rendererFileInput.value.trim(),
-                spotifyUrl: spotifyInput.value.trim(),
-                status: statusInput.value.trim(),
-                topics: topicsInput.value.trim(),
-                memo: memoInput.value.trim(),
-            }),
-        });
-        updateStateFromReport(report);
-        renderAll();
-    }
-
     if (editButton) {
         editButton.addEventListener("click", () => {
-            DAILY_STATE.editingEnsembleId = DAILY_STATE.editingEnsembleId === item.id ? null : item.id;
-            renderAll();
+            fillEnsembleForm(item);
         });
     }
 
-    [titleInput, bpmInput, bookInput, pageInput, statusInput, lickFileInput, rendererFileInput, spotifyInput, topicsInput, memoInput]
-        .forEach((field) => {
-            const eventName = field.tagName === "SELECT" ? "change" : "blur";
-            field.addEventListener(eventName, saveInline);
-            field.addEventListener("focus", () => {
-                setActiveMobileTarget({
-                    kind: "ensemble",
-                    title: titleInput.value.trim(),
-                    bpm: bpmInput.value.trim(),
-                    book: bookInput.value.trim(),
-                    page: pageInput.value.trim(),
-                    lickFile: lickFileInput.value.trim(),
-                    rendererFile: rendererFileInput.value.trim(),
-                    spotifyUrl: spotifyInput.value.trim(),
-                });
-            });
-            field.addEventListener("input", () => {
-                setActiveMobileTarget({
-                    kind: "ensemble",
-                    title: titleInput.value.trim(),
-                    bpm: bpmInput.value.trim(),
-                    book: bookInput.value.trim(),
-                    page: pageInput.value.trim(),
-                    lickFile: lickFileInput.value.trim(),
-                    rendererFile: rendererFileInput.value.trim(),
-                    spotifyUrl: spotifyInput.value.trim(),
-                });
-            });
-        });
+    card.addEventListener("click", (event) => {
+        if (event.target.closest(".practice-homework-remove-button, .practice-ensemble-edit-button")) {
+            return;
+        }
+        fillEnsembleForm(item);
+    });
 
     removeButton.addEventListener("click", async () => {
         if (!confirmDelete("이 합주 카드를 삭제할까요?")) {
@@ -1479,10 +1413,15 @@ async function addEnsemble() {
         return;
     }
 
-    const report = await requestJson("/music/daily/ensemble", {
-        method: "POST",
-        body: JSON.stringify(payload),
-    });
+    const report = await requestJson(
+        DAILY_STATE.editingEnsembleId
+            ? `/music/daily/ensemble/${DAILY_STATE.editingEnsembleId}`
+            : "/music/daily/ensemble",
+        {
+            method: DAILY_STATE.editingEnsembleId ? "PUT" : "POST",
+            body: JSON.stringify(payload),
+        }
+    );
     updateStateFromReport(report);
     resetEnsembleEditor();
     renderAll();
@@ -1500,11 +1439,12 @@ async function initPracticeDailyPage() {
     bindStatusButtons();
     bindHomeworkBoardAutoScroll();
     bindTapOutsideBlur();
-    bindEnsembleDetailsToggle();
+    resetEnsembleEditor();
 
     document.getElementById("practiceDailyDate").textContent = formatDailyDate();
     document.getElementById("addHomeworkButton").addEventListener("click", addHomework);
     document.getElementById("addEnsembleButton").addEventListener("click", addEnsemble);
+    document.getElementById("cancelEnsembleEditButton").addEventListener("click", resetEnsembleEditor);
     document.getElementById("addPracticeCardButton").addEventListener("click", savePractice);
     document.getElementById("cancelPracticeEditButton").addEventListener("click", resetPracticeForm);
     bindMobileTargetInputs();

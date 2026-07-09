@@ -1083,27 +1083,6 @@ tr.hidden,
     gap: 14px;
 }
 
-.practice-ensemble-form {
-    gap: 12px;
-}
-
-.practice-ensemble-memo-input {
-    min-height: 140px;
-}
-
-.practice-ensemble-details-toggle {
-    width: fit-content;
-    padding: 8px 12px;
-    font-size: 13px;
-    border-radius: 999px;
-}
-
-.practice-ensemble-details {
-    display: grid;
-    gap: 12px;
-    padding-top: 4px;
-}
-
 .practice-homework-board {
     display: flex;
     gap: 14px;
@@ -1523,21 +1502,11 @@ tr.hidden,
     font-size: 14px;
 }
 
-.practice-ensemble-edit {
-    display: grid;
-    gap: 10px;
-    margin-top: 12px;
-}
-
 .practice-ensemble-note {
     width: 300px;
     min-width: 300px;
     background: #f7fbff;
     border-color: #d6e1ec;
-}
-
-.practice-ensemble-note.is-editing {
-    width: 340px;
 }
 
 .practice-ensemble-note-bad {
