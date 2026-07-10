@@ -64,11 +64,15 @@ def _get_connection():
     if psycopg is None:
         return None
 
-    if _connection is not None and not _connection.closed:
-        return _connection
+    try:
+        if _connection is not None and not _connection.closed:
+            return _connection
 
-    _connection = psycopg.connect(_build_dsn(), autocommit=True)
-    return _connection
+        _connection = psycopg.connect(_build_dsn(), autocommit=True)
+        return _connection
+    except Exception:
+        _connection = None
+        return None
 
 
 def _render_params(params):
