@@ -2,10 +2,18 @@ import json
 import os
 import subprocess
 from contextvars import ContextVar
+import re
+
+try:
+    import psycopg
+except ImportError:  # pragma: no cover - optional dependency fallback
+    psycopg = None
 
 
 DEFAULT_USER_NICKNAME = "default"
 current_user_id = ContextVar("current_user_id", default=None)
+PARAM_PATTERN = re.compile(r":'([A-Za-z0-9_]+)'")
+_connection = None
 
 
 def _build_dsn():
@@ -38,6 +46,31 @@ def _psql_args():
     ]
 
 
+def _prepare_psycopg_sql(sql, params=None):
+    values = []
+
+    def replace(match):
+        key = match.group(1)
+        values.append((params or {}).get(key))
+        return "%s"
+
+    prepared_sql = PARAM_PATTERN.sub(replace, sql)
+    return prepared_sql, values
+
+
+def _get_connection():
+    global _connection
+
+    if psycopg is None:
+        return None
+
+    if _connection is not None and not _connection.closed:
+        return _connection
+
+    _connection = psycopg.connect(_build_dsn(), autocommit=True)
+    return _connection
+
+
 def _render_params(params):
     args = []
     for key, value in (params or {}).items():
@@ -52,6 +85,27 @@ def _render_params(params):
 
 
 def _run(sql, params=None):
+    connection = _get_connection()
+    if connection is not None:
+        prepared_sql, values = _prepare_psycopg_sql(sql, params)
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(prepared_sql, values)
+                if cursor.description:
+                    rows = cursor.fetchall()
+                    return "\n".join(
+                        _render_db_row(row)
+                        for row in rows
+                    ).strip()
+                return ""
+        except Exception:
+            try:
+                connection.close()
+            except Exception:
+                pass
+            globals()["_connection"] = None
+            raise
+
     command = _psql_args() + _render_params(params)
     result = subprocess.run(
         command,
@@ -70,6 +124,27 @@ def _run(sql, params=None):
         )
 
     return result.stdout.strip()
+
+
+def _render_db_row(row):
+    if not isinstance(row, tuple):
+        row = tuple(row)
+
+    if len(row) == 1:
+        value = row[0]
+        if isinstance(value, (dict, list)):
+            return json.dumps(value, ensure_ascii=False)
+        return "" if value is None else str(value)
+
+    rendered = []
+    for value in row:
+        if isinstance(value, (dict, list)):
+            rendered.append(json.dumps(value, ensure_ascii=False))
+        elif value is None:
+            rendered.append("")
+        else:
+            rendered.append(str(value))
+    return "\t".join(rendered)
 
 
 def query_rows(sql, params=None):

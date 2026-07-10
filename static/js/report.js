@@ -338,7 +338,7 @@ async function duplicateArchiveTarget(target) {
 
     REPORT_STATE.activeMobileTarget = target;
     updateMobileToolState();
-    alert("등록된 숙제가 없습니다.");
+    alert("오늘 카드로 복제했어요.");
 }
 
 function bindMobileToolButtons() {
