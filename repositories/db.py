@@ -11,6 +11,7 @@ except ImportError:  # pragma: no cover - optional dependency fallback
 
 
 DEFAULT_USER_NICKNAME = "default"
+DEFAULT_DB_TIME_ZONE = os.getenv("APP_DEFAULT_TIME_ZONE", "Asia/Seoul")
 current_user_id = ContextVar("current_user_id", default=None)
 PARAM_PATTERN = re.compile(r":'([A-Za-z0-9_]+)'")
 _connection = None
@@ -71,7 +72,11 @@ def _get_connection():
         if _connection is not None and not _connection.closed:
             return _connection
 
-        _connection = psycopg.connect(_build_dsn(), autocommit=True)
+        _connection = psycopg.connect(
+            _build_dsn(),
+            autocommit=True,
+            options=f"-c timezone={DEFAULT_DB_TIME_ZONE}",
+        )
         return _connection
     except Exception:
         _connection = None
@@ -120,7 +125,11 @@ def _run(sql, params=None):
         text=True,
         encoding="utf-8",
         errors="replace",
-        env={**os.environ, "PGCLIENTENCODING": "UTF8"},
+        env={
+            **os.environ,
+            "PGCLIENTENCODING": "UTF8",
+            "PGTZ": DEFAULT_DB_TIME_ZONE,
+        },
         capture_output=True,
         check=False,
     )
