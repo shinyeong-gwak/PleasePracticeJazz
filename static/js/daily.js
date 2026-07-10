@@ -49,7 +49,7 @@ function getRealbookLabel(value) {
 }
 
 function formatDailyDate() {
-    return LickSettings.formatDateLabel(new Date());
+    return LickSettings.formatDateWithWeekdayLabel(new Date());
 }
 
 function updateStateFromReport(report) {
@@ -199,11 +199,11 @@ function getArchiveWeekStart() {
 }
 
 function formatArchiveDayLabel(dateValue) {
-    return `${dateValue.toISOString().slice(5, 7)}.${dateValue.toISOString().slice(8, 10)}`;
+    return LickSettings.formatMonthDayLabel(dateValue);
 }
 
 function formatLocalDateKey(dateValue) {
-    return dateValue.toISOString().slice(0, 10);
+    return LickSettings.formatDateKey(dateValue);
 }
 
 function getArchiveWeekdays() {

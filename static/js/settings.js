@@ -106,7 +106,10 @@ const LickSettings = (() => {
 
         const text = String(value || "").trim();
         if (!text) return null;
-        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return new Date(`${text}T00:00:00Z`);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+            const [year, month, day] = text.split("-").map((part) => Number.parseInt(part, 10));
+            return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+        }
         if (/Z$|[+-]\d{2}:\d{2}$/.test(text)) return new Date(text);
         return new Date(`${text}Z`);
     }
@@ -145,6 +148,27 @@ const LickSettings = (() => {
     function formatDateLabel(value, timeZone = getTimeZone()) {
         const parts = getDateParts(value, timeZone);
         return parts ? `${parts.year}.${parts.month}.${parts.day}` : "";
+    }
+
+    function formatMonthDayLabel(value, timeZone = getTimeZone()) {
+        const parts = getDateParts(value, timeZone);
+        return parts ? `${parts.month}.${parts.day}` : "";
+    }
+
+    function formatDateWithWeekdayLabel(value, timeZone = getTimeZone(), locale = "ko-KR") {
+        const date = parseDate(value);
+        const dateLabel = formatDateLabel(value, timeZone);
+
+        if (!dateLabel || !date || Number.isNaN(date.getTime())) {
+            return dateLabel;
+        }
+
+        const weekday = new Intl.DateTimeFormat(locale, {
+            timeZone,
+            weekday: "long",
+        }).format(date);
+
+        return `${dateLabel} ${weekday}`;
     }
 
     function formatWeekdayLabel(index) {
@@ -285,7 +309,8 @@ const LickSettings = (() => {
         parseDate,
         formatDateKey,
         formatDateLabel,
+        formatMonthDayLabel,
+        formatDateWithWeekdayLabel,
         formatWeekdayLabel,
     };
 })();
-

@@ -1063,8 +1063,11 @@ def build_calendar_summary(days=140):
     for report in all_reports:
         for bucket_name in ["practice", "ensemble"]:
             for item in report.get(bucket_name, []):
-                created = str(item.get("createdAt") or "")
-                day_key = created[:10]
+                item_date = parse_item_date(item.get("createdAt"))
+                if item_date is None:
+                    continue
+
+                day_key = item_date.isoformat()
 
                 if day_key not in summary:
                     continue
