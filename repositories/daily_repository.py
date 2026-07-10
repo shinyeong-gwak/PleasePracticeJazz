@@ -57,6 +57,10 @@ def get_today():
     return datetime.now(get_app_timezone()).date()
 
 
+def get_app_weekday_index(target_date):
+    return (target_date.weekday() + 1) % 7
+
+
 def parse_timestamp(value):
     text = str(value or "").strip()
 
@@ -81,7 +85,10 @@ def get_week_range(target_date=None):
     if target_date is None:
         target_date = get_today()
 
-    delta = (target_date.weekday() - get_week_start_day()) % 7
+    delta = (
+        get_app_weekday_index(target_date)
+        - get_week_start_day()
+    ) % 7
     start = target_date - timedelta(days=delta)
     end = start + timedelta(days=6)
 
@@ -1058,7 +1065,10 @@ def build_calendar_summary(days=140):
             "level": 0,
             "soloCount": 0,
             "ensembleCount": 0,
-            "weekdayIndex": (current_day.weekday() - week_start_day) % 7,
+            "weekdayIndex": (
+                get_app_weekday_index(current_day)
+                - week_start_day
+            ) % 7,
             "weekKey": get_week_key(current_day),
         }
 
