@@ -47,15 +47,85 @@ def build_headers():
     }
 
 
+def parse_browser_cookie_spec(raw_value):
+
+    text = str(raw_value or "").strip()
+
+    if not text:
+        return None
+
+    browser_and_keyring, _, profile_and_container = text.partition(":")
+    browser, _, keyring = browser_and_keyring.partition("+")
+    profile, _, container = profile_and_container.partition("::")
+
+    parts = [browser.strip()]
+
+    if profile or keyring or container:
+        parts.append(profile.strip() or None)
+    if keyring or container:
+        parts.append(keyring.strip() or None)
+    if container:
+        parts.append(container.strip() or None)
+
+    return tuple(parts)
+
+
+def build_ytdlp_base_opts():
+
+    opts = {
+        "nocheckcertificate": True,
+        "http_headers": build_headers(),
+        "retries": 3,
+        "extractor_retries": 3,
+        "fragment_retries": 3,
+        "file_access_retries": 3,
+        "retry_sleep_functions": {
+            "http": lambda attempt: min(2 * attempt, 6),
+            "fragment": lambda attempt: min(2 * attempt, 6),
+            "file_access": lambda attempt: min(2 * attempt, 6),
+            "extractor": lambda attempt: min(2 * attempt, 6),
+        },
+        "extractor_args": {
+            "youtube": {
+                "player_client": [
+                    "android_vr",
+                    "web_safari",
+                    "tv_downgraded",
+                ]
+            }
+        },
+    }
+
+    cookie_file = str(
+        os.getenv("YTDLP_COOKIES_FILE", "")
+    ).strip()
+    browser_cookie_spec = parse_browser_cookie_spec(
+        os.getenv("YTDLP_COOKIES_FROM_BROWSER", "")
+    )
+    impersonate = str(
+        os.getenv("YTDLP_IMPERSONATE", "")
+    ).strip()
+
+    if cookie_file:
+        opts["cookiefile"] = cookie_file
+
+    if browser_cookie_spec:
+        opts["cookiesfrombrowser"] = browser_cookie_spec
+
+    if impersonate:
+        opts["impersonate"] = impersonate
+
+    return opts
+
+
 def extract_playlist_entries(url):
 
     ydl_opts = {
+        **build_ytdlp_base_opts(),
         "extract_flat": "in_playlist",
         "skip_download": True,
         "quiet": True,
         "no_warnings": True,
-        "nocheckcertificate": True,
-        "http_headers": build_headers(),
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -96,6 +166,7 @@ def expected_mp3_filename(info):
 def download_youtube_entry(video_url):
 
     ydl_opts = {
+        **build_ytdlp_base_opts(),
         "format": "bestaudio/best",
         "ffmpeg_location": FFMPEG_LOCATION,
         "postprocessors": [
@@ -106,10 +177,8 @@ def download_youtube_entry(video_url):
             }
         ],
         "outtmpl": os.path.join(MP3_DIR, "%(title)s.%(ext)s"),
-        "nocheckcertificate": True,
         "quiet": False,
         "no_warnings": True,
-        "http_headers": build_headers(),
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:

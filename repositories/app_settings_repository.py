@@ -1,4 +1,6 @@
 from functools import lru_cache
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from repositories.db import execute, get_or_create_user_id, query_one
 
@@ -41,6 +43,16 @@ WEEKDAY_LABELS = [
     "목",
     "금",
     "토",
+]
+
+PYTHON_WEEKDAY_LABELS = [
+    "월",
+    "화",
+    "수",
+    "목",
+    "금",
+    "토",
+    "일",
 ]
 
 
@@ -92,6 +104,28 @@ def normalize_settings(settings):
         "timeZone": time_zone,
         "weekStartDay": normalize_week_start_day(settings.get("weekStartDay")),
     }
+
+
+def _build_current_date_fields(time_zone):
+    now = datetime.now(ZoneInfo(time_zone))
+    weekday = PYTHON_WEEKDAY_LABELS[now.weekday()]
+    date_key = now.date().isoformat()
+    date_label = now.strftime("%Y.%m.%d")
+
+    return {
+        "currentDateKey": date_key,
+        "currentDateLabel": date_label,
+        "currentWeekdayLabel": weekday,
+        "currentDateWithWeekday": f"{date_label} {weekday}요일",
+    }
+
+
+def build_settings_payload(settings):
+    normalized = normalize_settings(settings)
+    normalized.update(
+        _build_current_date_fields(normalized["timeZone"])
+    )
+    return normalized
 
 
 def _select_settings_row(user_id):
@@ -153,7 +187,7 @@ def ensure_settings_row():
 
 def load_all():
     row = ensure_settings_row()
-    return normalize_settings(row)
+    return build_settings_payload(row)
 
 
 def save_all(settings):
@@ -188,7 +222,7 @@ def save_for_user(user_id, settings):
     )
 
     _invalidate_settings_cache()
-    return normalized
+    return build_settings_payload(normalized)
 
 
 def get_settings():
@@ -200,7 +234,7 @@ def update_settings(payload):
     current.update(payload or {})
     saved = normalize_settings(current)
     save_all(saved)
-    return saved
+    return get_settings()
 
 
 def get_time_zone_name():

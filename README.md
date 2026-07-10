@@ -1,89 +1,260 @@
-### 이거 먼저 하셈
-- pip install --upgrade pip
-- pip install -r requirements.txt 
-- ffmpeg 로컬에 설치하기
-- uvicorn app:app
+# Please Practice Jazz
+
+재즈 연습용 개인 웹앱입니다.  
+플레이리스트 동기화, MP3 클립 관리, lick 정리, MusicXML 내보내기, 연습일지/주간 리포트/인사이트 기록까지 한 흐름으로 묶는 프로젝트입니다.
+
+## 실행 방법
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
+
+추가로 필요한 것:
+
+- `ffmpeg` 로컬 설치
+- PostgreSQL 연결 정보 설정 또는 기본 로컬 DB 준비
+- Real Book PDF를 쓰려면 `downloads/realbook/` 아래에 PDF 파일 배치
+
+## 현재 개발된 기능
+
+### 1. 계정/인증
+
+- 회원가입
+  - 이메일, 아이디, 비밀번호 기반 가입
+  - 약관 동의 체크
+  - 가입 시 국가/시간대, 주 시작 요일 기본 설정 저장
+- 로그인
+  - 이메일 또는 아이디 + 비밀번호 로그인
+  - 인증 토큰을 쿠키로 저장
+- 로그아웃
+  - 저장된 인증 쿠키 삭제
+- 인증 가드
+  - 로그인하지 않은 사용자는 대부분의 화면 접근 불가
+  - HTML 요청은 로그인 페이지로 리다이렉트
+  - API 요청은 401 반환
+
+### 2. 설정
+
+- 국가/시간대 설정
+  - 한국, 일본, 미국 동부, UTC 지원
+- 주 시작 요일 설정
+  - 일요일~토요일 중 선택
+- 현재 날짜/시간 미리보기
+- 설정 저장 후 연습일지/리포트 집계 기준에 반영
+
+### 3. 메인 화면
+
+- `Practice Hub` 형태의 시작 화면 제공
+- 주요 기능 페이지로 이동하는 허브 역할
+
+### 4. 플레이리스트 관리
+
+- 플레이리스트 등록
+  - 이름 + URL 저장
+- 플레이리스트 삭제
+- 플레이리스트 목록 조회
+- 플레이리스트별 곡 목록 펼쳐보기
+- 소스 유형 추론
+  - URL 기준으로 `youtube`, `spotify`, 일반 링크 구분
+
+### 5. 유튜브 플레이리스트 동기화
+
+- 플레이리스트 URL 기준 곡 목록 읽기
+- 새 곡 MP3 다운로드
+- 기존에 받은 곡은 재사용
+- 플레이리스트에서 빠진 곡은 다른 플레이리스트에서 안 쓰면 삭제
+- 동기화 상태 로그 저장
+  - 시작
+  - 성공
+  - 실패
+- 백그라운드 태스크로 동기화 실행
+
+### 6. MP3 풀/클립 라이브러리
+
+- 다운로드된 MP3 풀 조회
+- 클립 라이브러리 트리 조회
+  - 루트 라이브러리
+  - 폴더
+  - 트랙 파일
+- 라이브러리 폴더 생성
+- 폴더 이름 변경
+- 빈 폴더 삭제
+  - 하위 폴더가 있거나 파일이 있으면 삭제 제한
+- 트랙을 라이브러리에 추가
+- 트랙 폴더 이동
+- 트랙 순서 변경
+
+### 7. 오디오 클립 생성/가공
+
+- 원본 MP3에서 구간 잘라 lick용 MP3 생성
+  - 시작 시간 / 종료 시간 지정
+  - 커스텀 clip 이름 지원
+- pitch 변경 버전 생성
+  - 반음 단위 이동
+- 저장된 lick MP3 서빙
+- 가공된 MP3 서빙
+- 임시 processed 파일 자동 정리
+
+### 8. Lick 편집기
+
+- 저장된 lick 파일 목록 조회
+- lick 메타데이터 조회
+- lick 저장
+  - 이름
+  - 조성
+  - 박자
+  - 코드
+  - 음정
+  - 멜로디
+  - 멜로디 리듬
+  - 보이싱
+  - 보이싱 리듬
+- 기존 lick 수정
+- lick 삭제
+- lick 입력값 정규화
+  - 보이싱/리듬이 뒤바뀐 경우 일부 자동 보정
+
+### 9. 악보 생성 / MusicXML Export
+
+- lick 입력값을 리드 시트로 파싱
+- MusicXML 파일 생성
+- 12키 전체 순환 악보 생성
+- 생성된 MusicXML 파일 다운로드
+- 저장된 MusicXML 목록 조회
+- MusicXML 원본 텍스트 조회
+- 렌더 페이지에서 생성된 악보 미리보기
+  - OpenSheetMusicDisplay 사용
+
+### 10. Real Book 연동
+
+- Real Book / New Real Book PDF 파일 서빙
+- 책 이름, 곡명, 페이지 번호 기반 Real Book 페이지 찾기
+- 여러 Real Book 파일 대상 검색 지원
+- 매칭 결과에 따라 전용 뷰어 페이지 이동
+- PDF 특정 페이지를 PNG로 렌더링해서 표시
+- 원본 PDF 바로 열기 링크 제공
+- 캐시 파일 기반 매칭 결과 재사용
+
+### 11. 연습일지
+
+- 이번 주 숙제 기록
+  - 제목
+  - 메모
+  - 상태
+- 숙제 수정 / 삭제
+- 숙제 카드 병합
+- 연습 카드 기록
+  - 주제 태그
+  - BPM
+  - 곡명
+  - 리얼북/페이지
+  - 상태
+  - 메모
+  - Spotify 링크
+  - 연결된 lick 파일
+  - 연결된 렌더 악보 파일
+- 연습 카드 수정 / 삭제
+- 합주 노트 기록
+  - 곡명
+  - BPM
+  - 리얼북/페이지
+  - 메모
+- 합주 노트 수정 / 삭제
+- 최근 lick 파일 / 최근 악보 파일 빠른 선택
+- 기존에 기록한 곡명을 기반으로 자동 추천
+
+### 12. 주간 리포트
+
+- 현재 주차 리포트 계산
+- 주간 아카이브 목록 조회
+- 날짜별 버킷 집계
+  - 숙제 수
+  - 연습 수
+  - 합주 수
+- 메트로놈 사용 여부 반영
+- 빈 날 / 메트로놈 없는 날 강조
+- 캘린더 히트맵 형태 데이터 제공
+
+### 13. 인사이트
+
+- 카테고리별 인사이트 기록
+  - rhythm
+  - solo
+  - ensemble
+  - voicing
+- 인사이트 추가 / 수정 / 삭제
+- 제목 + 메모 구조로 저장
+
+## 화면 기준으로 보면
+
+### `/music/playlist`
+
+- 플레이리스트 등록/삭제
+- 동기화 실행
+- 플레이리스트에 속한 곡 확인
+
+### `/music/clips`
+
+- MP3 풀 확인
+- 구간 잘라 lick MP3 생성
+- pitch 버전 생성
+- 라이브러리 폴더 정리
+
+### `/music/licks`
+
+- lick 작성/수정/삭제
+- 키보드 입력 보조
+- 악보 렌더
+- MusicXML / 12키 Export
+
+### `/music/render`
+
+- 저장된 MusicXML 파일 목록 확인
+- 악보 미리보기
+- 파일 다운로드
+
+### `/music/daily`
+
+- 숙제 / 연습 / 합주 기록
+- 주간 기준으로 현재 기록 확인
+
+### `/music/report`
+
+- 주간 아카이브
+- 캘린더형 리포트 확인
+
+### `/music/insights`
+
+- 연습 중 생긴 인사이트 분류/정리
+
+### `/settings`
+
+- 시간대 / 주 시작 요일 설정
+- 로그아웃
+
+## 현재 구조
 
 ```text
-.
-├── app.py
-├── navigation.py
-├── README.md
-├── requirements.txt
-│
-├── data
-│   └── music
-│       ├── playlist.py
-│       ├── playlists.json
-│       └── sync_logs.json
-│
-├── downloads
-├── licks
-│   ├── Ugetsu-lick-1.mp3
-│   ├── Ugetsu-lick-2.mp3
-│   └── Ugetsu-pitch-1.mp3
-│
-├── mp3
-│   ├── This I Dig Of You (Remastered 1999-Rudy Van Gelder Edition).mp3
-│   └── Ugetsu.mp3
-│
-├── lib
-│   └── ffmpeg
-│       ├── LICENSE.txt
-│       └── bin
-│           ├── ffmpeg.exe
-│           ├── ffplay.exe
-│           ├── ffprobe.exe
-│           ├── avcodec-62.dll
-│           ├── avdevice-62.dll
-│           ├── avfilter-11.dll
-│           ├── avformat-62.dll
-│           ├── avutil-60.dll
-│           ├── swresample-6.dll
-│           └── swscale-9.dll
-│
-├── pages
-│
-├── repositories
-│   ├── __init__.py
-│   ├── clip_repository.py
-│   ├── lick_repository.py
-│   ├── music_log_repository.py
-│   └── playlist_repository.py
-│
-├── routers
-│   ├── __init__.py
-│   └── audio_router.py
-│
-├── services
-│   ├── __init__.py
-│   ├── audio_service.py
-│   ├── clip_service.py
-│   └── music_service.py
-│
-├── static
-│   ├── css
-│   │   └── style.css
-│   └── js
-│       ├── clips.js
-│       ├── licks.js
-│       └── sidebar.js
-│
-├── templates
-│   ├── layout.html
-│   ├── sidebar.html
-│   ├── account
-│   │   └── index.html
-│   ├── dev
-│   │   └── index.html
-│   └── music
-│       ├── clips.html
-│       ├── index.html
-│       ├── licks.html
-│       └── playlist.html
-│
-└── utils
-    ├── __init__.py
-    ├── accountbook.py
-    └── music_util.py
+app.py
+routers/
+  auth_router.py
+  audio_router.py
+  clip_router.py
+  lick_router.py
+  music_router.py
+  page_router.py
+  render_router.py
+services/
+repositories/
+templates/
+static/
+sql/schema.sql
 ```
+
+## 한 줄 요약
+
+이 프로젝트는
+`곡 수집 -> MP3 클립 생성 -> lick 정리 -> 악보 Export -> 연습일지 기록 -> 주간 회고`
+흐름을 한 앱 안에서 이어서 쓰도록 만든 재즈 연습 관리 도구입니다.

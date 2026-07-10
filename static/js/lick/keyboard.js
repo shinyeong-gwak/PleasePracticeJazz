@@ -130,7 +130,7 @@ function updateKeyboardLayout() {
         .forEach(row => {
             row.classList.toggle(
                 "hidden",
-                rhythmMode
+                false
             );
         });
 }
@@ -578,6 +578,11 @@ async function runButtonAction(button) {
         return;
     }
 
+    if (action === "enterKey") {
+        enterKey();
+        return;
+    }
+
     if (action === "moveCaretLeft") {
         moveCaretLeft();
         return;
@@ -866,4 +871,5 @@ document.addEventListener(
 window.insertText = insertText;
 window.insertToken = insertToken;
 window.backspaceKey = backspaceKey;
+window.enterKey = enterKey;
 window.spaceKey = spaceKey;

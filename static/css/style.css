@@ -587,32 +587,6 @@ body.login-page {
     font-weight: 900;
 }
 
-.audio-track-actions {
-    display: grid;
-    gap: 6px;
-    padding: 8px;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: var(--panel-soft);
-}
-
-.audio-track-actions-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 34px) minmax(0, 1fr) auto auto;
-    gap: 6px;
-    align-items: center;
-}
-
-.audio-track-actions-grid select {
-    min-width: 0;
-}
-
-.audio-track-actions-grid .icon-button {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-}
-
 .audio-tree-file-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2290,14 +2264,6 @@ tr.hidden,
     .clip-editor-actions button,
     .clips-player-card button {
         width: 100%;
-    }
-
-    .audio-track-actions-grid {
-        grid-template-columns: repeat(2, 42px) minmax(0, 1fr);
-    }
-
-    .audio-track-actions-grid .secondary-button:last-child {
-        grid-column: 1 / -1;
     }
 
     .practice-mobile-tools {

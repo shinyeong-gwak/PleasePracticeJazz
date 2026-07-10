@@ -851,6 +851,8 @@ def _upsert_practice_payload(payload, collection="practice", existing_id=None):
     memo = str(payload.get("memo") or "").strip()
     bpm_text = str(payload.get("bpm") or "").strip()
     bpm = int(bpm_text) if bpm_text.isdigit() else None
+    page_text = str(payload.get("page") or "").strip()
+    page = int(page_text) if page_text.isdigit() else None
     lick_file = payload.get("lickFile")
     renderer_file = payload.get("rendererFile")
     lick_id = _resolve_clip_id(lick_file)
@@ -882,9 +884,9 @@ def _upsert_practice_payload(payload, collection="practice", existing_id=None):
             :'user_id'::uuid,
             :'type'::practice_type,
             :'title',
-            NULLIF(:'bpm', '')::int,
+            :'bpm'::int,
             :'book',
-            :'page',
+            :'page'::smallint,
             :'memo',
             :'spotify_url',
             :'metronome'::boolean,
@@ -913,9 +915,9 @@ def _upsert_practice_payload(payload, collection="practice", existing_id=None):
             "user_id": user_id,
             "type": normalize_collection(collection),
             "title": title,
-            "bpm": bpm if bpm is not None else "",
+            "bpm": bpm,
             "book": str(payload.get("book") or "").strip(),
-            "page": str(payload.get("page") or "").strip(),
+            "page": page,
             "memo": memo,
             "spotify_url": str(payload.get("spotifyUrl") or "").strip(),
             "metronome": "true" if bool(bpm_text) else "false",

@@ -49,7 +49,10 @@ function getRealbookLabel(value) {
 }
 
 function formatDailyDate() {
-    return LickSettings.formatDateWithWeekdayLabel(new Date());
+    return (
+        LickSettings.getCurrentDateWithWeekday()
+        || LickSettings.formatDateWithWeekdayLabel(new Date())
+    );
 }
 
 function updateStateFromReport(report) {

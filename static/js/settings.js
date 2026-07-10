@@ -53,6 +53,10 @@ const LickSettings = (() => {
             country,
             timeZone: COUNTRY_OPTIONS[country].timeZone,
             weekStartDay: normalizeWeekStartDay(settings.weekStartDay),
+            currentDateKey: String(settings.currentDateKey || "").trim(),
+            currentDateLabel: String(settings.currentDateLabel || "").trim(),
+            currentWeekdayLabel: String(settings.currentWeekdayLabel || "").trim(),
+            currentDateWithWeekday: String(settings.currentDateWithWeekday || "").trim(),
         };
     }
 
@@ -99,6 +103,10 @@ const LickSettings = (() => {
 
     function getWeekStartLabel() {
         return WEEKDAY_OPTIONS[getWeekStartDay()].label;
+    }
+
+    function getCurrentDateWithWeekday() {
+        return getSettings().currentDateWithWeekday || "";
     }
 
     function parseDate(value) {
@@ -305,6 +313,7 @@ const LickSettings = (() => {
         getCountryLabel,
         getWeekStartDay,
         getWeekStartLabel,
+        getCurrentDateWithWeekday,
         getWeekdayLabels,
         parseDate,
         formatDateKey,

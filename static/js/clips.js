@@ -36,26 +36,6 @@
         return payload.pool || [];
     }
 
-    function collectFolders(node, depth = 0, list = []) {
-        if (!node) return list;
-
-        if (node.type === "folder" && node.id) {
-            list.push({
-                id: node.id,
-                name: node.name || "Untitled",
-                depth,
-            });
-        }
-
-        (node.children || []).forEach((child) => {
-            if (child?.type === "folder") {
-                collectFolders(child, child.id ? depth + 1 : depth, list);
-            }
-        });
-
-        return list;
-    }
-
     function findTrackNode(node, trackId) {
         if (!node) return null;
         if (node.type === "file" && node.id === trackId) return node;
@@ -253,85 +233,11 @@
         return title;
     }
 
-    function renderTrackActions() {
-        const panel = node("[data-track-actions]");
-        const folderSelect = node("[data-track-folder-target]");
-        const upButton = node("[data-track-move-up]");
-        const downButton = node("[data-track-move-down]");
-        const moveButton = node("[data-track-move-folder]");
-        const rootButton = node("[data-track-move-root]");
-
-        if (!panel || !folderSelect) return;
-
-        const current = findTrackNode(payload.library, selectedTrackId);
-        if (!current) {
-            panel.hidden = true;
-            folderSelect.innerHTML = "";
-            return;
-        }
-
-        panel.hidden = false;
-
-        const folders = collectFolders(payload.library);
-        folderSelect.innerHTML = "";
-
-        const rootOption = document.createElement("option");
-        rootOption.value = "";
-        rootOption.textContent = "猷⑦듃";
-        folderSelect.appendChild(rootOption);
-
-        folders.forEach((folder) => {
-            const option = document.createElement("option");
-            option.value = folder.id;
-            option.textContent = `${"?".repeat(folder.depth)}${folder.name}`;
-            folderSelect.appendChild(option);
-        });
-
-        folderSelect.value = current.folderId || "";
-
-        if (upButton) {
-            upButton.onclick = () => {
-                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/reorder", {
-                    trackId: current.trackId || current.id,
-                    direction: "up",
-                }));
-            };
-        }
-
-        if (downButton) {
-            downButton.onclick = () => {
-                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/reorder", {
-                    trackId: current.trackId || current.id,
-                    direction: "down",
-                }));
-            };
-        }
-
-        if (moveButton) {
-            moveButton.onclick = () => {
-                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/move", {
-                    trackId: current.trackId || current.id,
-                    folderId: folderSelect.value,
-                }));
-            };
-        }
-
-        if (rootButton) {
-            rootButton.onclick = () => {
-                void runTrackMutation(() => mutateLibraryItem("/music/clips/library-items/move", {
-                    trackId: current.trackId || current.id,
-                    folderId: "",
-                }));
-            };
-        }
-    }
-
     function renderTree() {
         const container = node("[data-audio-tree]");
         if (!container) return;
 
         container.innerHTML = "";
-        renderTrackActions();
 
         if (!payload.library && !poolTracks().length) {
             container.innerHTML = '<div class="audio-tree-empty">No tracks yet.</div>';
@@ -569,4 +475,3 @@ async function createPitchVersion() {
 }
 
 document.addEventListener("DOMContentLoaded", ClipBrowser.init);
-
