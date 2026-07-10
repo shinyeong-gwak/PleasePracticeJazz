@@ -796,12 +796,12 @@ async function openRealbookView(target) {
     const response = await fetch(`/music/realbook/resolve?${params.toString()}`);
     const result = await response.json();
 
-    if (!response.ok || !result.success || !result.viewUrl) {
+    if (!response.ok || !result.success || !(result.directUrl || result.viewUrl)) {
         alert(result.message || "정보를 찾지 못했습니다.");
         return;
     }
 
-    window.location.href = result.viewUrl;
+    window.location.href = result.directUrl || result.viewUrl;
 }
 
 function bindMobileToolButtons() {
@@ -1494,7 +1494,6 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
 
 
 

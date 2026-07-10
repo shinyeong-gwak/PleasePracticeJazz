@@ -13,81 +13,65 @@ function loadRealbookViewerData() {
     }
 }
 
-function setViewerMessage(message, isError = false) {
-    const node = document.getElementById("realbookViewerMessage");
+function isNativePdfPreferred() {
+    const userAgent = navigator.userAgent || "";
+    const touchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+
+    return /iPhone|iPad|iPod|Android/iu.test(userAgent) || touchMac;
+}
+
+function setViewerStatus(message) {
+    const node = document.getElementById("realbookViewerStatus");
 
     if (!node) {
         return;
     }
 
     node.textContent = message;
-    node.hidden = false;
-    node.dataset.state = isError ? "error" : "info";
 }
 
-function hideViewerMessage() {
-    const node = document.getElementById("realbookViewerMessage");
+function mountEmbeddedPdf(directUrl) {
+    const objectNode = document.getElementById("realbookViewerObject");
 
-    if (!node) {
+    if (!objectNode) {
         return;
     }
 
-    node.hidden = true;
+    objectNode.data = directUrl;
+    objectNode.classList.remove("hidden");
+    setViewerStatus("PDF가 보이지 않으면 위의 'PDF 열기' 버튼을 눌러주세요.");
 }
 
-async function renderRealbookPage() {
+function redirectToNativePdf(directUrl) {
+    setViewerStatus("기기 PDF 뷰어로 여는 중입니다. 잠시만 기다려주세요.");
+    window.location.replace(directUrl);
+}
+
+function initRealbookViewer() {
     const data = loadRealbookViewerData();
-    const canvas = document.getElementById("realbookCanvas");
 
-    if (!data || !canvas) {
-        setViewerMessage("PDF 뷰어 정보를 찾지 못했습니다.", true);
+    if (!data?.directUrl) {
+        setViewerStatus("PDF 뷰어 정보를 찾지 못했습니다.");
         return;
     }
 
-    if (!window.pdfjsLib) {
-        setViewerMessage("PDF 뷰어 라이브러리를 불러오지 못했습니다.", true);
+    const openButton = document.getElementById("realbookOpenButton");
+    const fallbackButton = document.getElementById("realbookFallbackButton");
+
+    if (openButton) {
+        openButton.href = data.directUrl;
+    }
+
+    if (fallbackButton) {
+        fallbackButton.href = data.directUrl;
+    }
+
+    if (isNativePdfPreferred()) {
+        redirectToNativePdf(data.directUrl);
         return;
     }
 
-    try {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-        const loadingTask = window.pdfjsLib.getDocument({
-            url: data.fileUrl,
-            cMapPacked: true,
-        });
-        const pdf = await loadingTask.promise;
-        const pageNumber = Math.max(1, parseInt(data.page, 10) || 1);
-        const page = await pdf.getPage(pageNumber);
-        const shell = canvas.parentElement;
-        const baseViewport = page.getViewport({ scale: 1 });
-        const shellWidth = Math.max(320, (shell?.clientWidth || baseViewport.width) - 24);
-        const scale = shellWidth / baseViewport.width;
-        const viewport = page.getViewport({ scale });
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-            throw new Error("canvas context unavailable");
-        }
-
-        canvas.width = Math.ceil(viewport.width);
-        canvas.height = Math.ceil(viewport.height);
-        canvas.style.width = `${Math.ceil(viewport.width)}px`;
-        canvas.style.height = `${Math.ceil(viewport.height)}px`;
-
-        await page.render({
-            canvasContext: context,
-            viewport,
-        }).promise;
-
-        hideViewerMessage();
-    } catch (error) {
-        console.error("realbook render error", error);
-        setViewerMessage("PDF 페이지를 렌더하지 못했습니다. 'PDF 열기' 버튼으로 원본을 확인해 주세요.", true);
-    }
+    mountEmbeddedPdf(data.directUrl);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    void renderRealbookPage();
-});
+document.addEventListener("DOMContentLoaded", initRealbookViewer);

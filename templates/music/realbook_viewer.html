@@ -14,18 +14,37 @@
         <div class="realbook-viewer-toolbar">
             <a class="secondary-button" href="/music/daily">연습일지로</a>
             <a class="secondary-button" href="/music/report">리포트로</a>
-            <a class="primary-button" href="{{ pdf_file_url }}" target="_blank" rel="noreferrer">PDF 열기</a>
+            <a class="primary-button" id="realbookOpenButton" href="{{ pdf_direct_url }}" target="_blank" rel="noreferrer">PDF 열기</a>
         </div>
 
         <div class="realbook-viewer-shell">
-            <img
-                class="realbook-viewer-image"
-                src="{{ pdf_image_url }}"
-                alt="{{ pdf_title or 'Real Book page' }}">
+            <div class="realbook-viewer-status" id="realbookViewerStatus">
+                PDF 뷰어를 준비하는 중입니다.
+            </div>
+            <object
+                id="realbookViewerObject"
+                class="realbook-viewer-object hidden"
+                type="application/pdf"
+                data="">
+                <div class="realbook-viewer-fallback">
+                    <p>브라우저 안에서 바로 열리지 않으면 아래 버튼으로 여세요.</p>
+                    <a class="primary-button" id="realbookFallbackButton" href="{{ pdf_direct_url }}" target="_blank" rel="noreferrer">원본 PDF 열기</a>
+                </div>
+            </object>
         </div>
     </article>
 </section>
 {% endblock %}
 
 {% block scripts %}
+<script id="realbook-viewer-data" type="application/json">
+    {{ {
+        "fileUrl": pdf_file_url,
+        "directUrl": pdf_direct_url,
+        "page": pdf_page,
+        "title": pdf_title,
+        "book": pdf_book
+    } | tojson | safe }}
+</script>
+<script src="/static/js/realbook_viewer.js"></script>
 {% endblock %}
