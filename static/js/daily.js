@@ -1042,6 +1042,10 @@ function resetHomeworkEditor() {
     document.getElementById("practiceHomeworkMemoInput").value = "";
 }
 
+function isCompactPracticeEditorLayout() {
+    return window.matchMedia("(max-width: 1024px)").matches;
+}
+
 function setEditorPanelExpanded(editorId, expanded) {
     const editor = document.getElementById(editorId);
 
@@ -1051,13 +1055,17 @@ function setEditorPanelExpanded(editorId, expanded) {
 
     const body = editor.querySelector("[data-editor-body]");
     const toggle = editor.querySelector("[data-editor-toggle]");
+    const shouldCollapse = isCompactPracticeEditorLayout();
+
+    editor.classList.toggle("is-collapsed", shouldCollapse && !expanded);
 
     if (body) {
-        body.hidden = !expanded;
+        body.hidden = shouldCollapse ? !expanded : false;
     }
 
     if (toggle) {
-        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+        toggle.hidden = !shouldCollapse;
+        toggle.setAttribute("aria-expanded", shouldCollapse && expanded ? "true" : "false");
     }
 }
 
@@ -1186,13 +1194,40 @@ function bindEditorPanelToggles() {
             const editor = document.getElementById(editorId);
             const body = editor?.querySelector("[data-editor-body]");
 
-            if (!body) {
+            if (!body || !isCompactPracticeEditorLayout()) {
                 return;
             }
 
             setEditorPanelExpanded(editorId, body.hidden);
         });
     });
+}
+
+function syncEditorPanelsForViewport() {
+    [
+        "practiceHomeworkEditor",
+        "practiceEditorCard",
+        "ensembleEditorCard",
+    ].forEach((editorId) => {
+        const editor = document.getElementById(editorId);
+        const body = editor?.querySelector("[data-editor-body]");
+        const expanded = body ? !body.hidden : true;
+
+        setEditorPanelExpanded(editorId, isCompactPracticeEditorLayout() ? expanded : true);
+    });
+}
+
+function bindEditorPanelViewportSync() {
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+
+    if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", syncEditorPanelsForViewport);
+        return;
+    }
+
+    if (typeof mediaQuery.addListener === "function") {
+        mediaQuery.addListener(syncEditorPanelsForViewport);
+    }
 }
 
 function renderHomeworkBoard() {
@@ -1540,9 +1575,11 @@ async function initPracticeDailyPage() {
     bindHomeworkBoardAutoScroll();
     bindEditorPanelToggles();
     bindTapOutsideBlur();
+    bindEditorPanelViewportSync();
     resetPracticeForm();
     collapseEditorPanel("practiceHomeworkEditor");
     resetEnsembleEditor();
+    syncEditorPanelsForViewport();
 
     document.getElementById("practiceDailyDate").textContent = formatDailyDate();
     document.getElementById("addHomeworkButton").addEventListener("click", addHomework);
@@ -1583,5 +1620,3 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
-

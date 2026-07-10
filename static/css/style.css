@@ -1109,6 +1109,10 @@ tr.hidden,
     gap: 14px;
 }
 
+.practice-editor-panel.is-collapsed {
+    gap: 0;
+}
+
 .practice-editor-actions button {
     border: none;
 }
@@ -1970,6 +1974,18 @@ tr.hidden,
 }
 
 @media (min-width: 1025px) {
+    .practice-editor-toggle {
+        display: none;
+    }
+
+    .practice-editor-body[hidden] {
+        display: grid !important;
+    }
+
+    .practice-editor-panel.is-collapsed {
+        gap: 14px;
+    }
+
     .practice-desktop-tools-toggle {
         display: inline-flex;
         align-items: center;
@@ -2108,7 +2124,7 @@ tr.hidden,
     }
 }
 
-@media (max-width: 768px), (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+@media (max-width: 1024px) {
     .container {
         display: block;
         min-height: 100vh;
@@ -2165,6 +2181,16 @@ tr.hidden,
         display: none;
     }
 
+    .practice-editor-panel {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .practice-editor-panel.is-collapsed {
+        padding-top: 16px;
+        padding-bottom: 16px;
+    }
+
     .practice-homework-note {
         width: 82vw;
         min-width: 82vw;
@@ -2202,6 +2228,10 @@ tr.hidden,
 
     .practice-editor-toggle {
         min-height: 50px;
+    }
+
+    .practice-editor-body[hidden] {
+        display: none !important;
     }
 
     .clips-layout,
@@ -2432,7 +2462,7 @@ tr.hidden,
     }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+@media (min-width: 769px) and (max-width: 1024px) {
     .main {
         padding: 24px;
     }
@@ -2490,4 +2520,3 @@ tr.hidden,
         bottom: 20px;
     }
 }
-
