@@ -6,6 +6,7 @@ const DAILY_STATE = {
     homework: [],
     practice: [],
     ensemble: [],
+    currentArchive: null,
     tuneSuggestions: [],
     recentLickFiles: [],
     recentScoreFiles: [],
@@ -57,6 +58,22 @@ function updateStateFromReport(report) {
     DAILY_STATE.homework = report.homework || [];
     DAILY_STATE.practice = report.practice || [];
     DAILY_STATE.ensemble = report.ensemble || [];
+    DAILY_STATE.currentArchive = null;
+}
+
+function loadInitialCurrentArchive() {
+    const node = document.getElementById("current-archive-data");
+
+    if (!node) {
+        return;
+    }
+
+    try {
+        DAILY_STATE.currentArchive = JSON.parse(node.textContent);
+    } catch (error) {
+        console.error("current archive parse error", error);
+        DAILY_STATE.currentArchive = null;
+    }
 }
 
 function loadInitialReport() {
@@ -256,6 +273,10 @@ function renderTuneSuggestions() {
 }
 
 function groupCurrentArchive() {
+    if (DAILY_STATE.currentArchive?.dailyBuckets?.length) {
+        return DAILY_STATE.currentArchive.dailyBuckets;
+    }
+
     const buckets = getArchiveWeekdays();
     const bucketMap = new Map(
         buckets.map((bucket) => [bucket.date, bucket])
@@ -1511,6 +1532,7 @@ async function initPracticeDailyPage() {
     }
 
     loadInitialReport();
+    loadInitialCurrentArchive();
     loadInitialTuneSuggestions();
     loadInitialRecentFiles();
     bindTopicButtons();
@@ -1561,6 +1583,5 @@ document.addEventListener("visibilitychange", () => {
         stopMetronome();
     }
 });
-
 
 
