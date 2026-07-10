@@ -319,7 +319,7 @@ def _next_library_sort(user_id, folder_id=None):
         """
         SELECT row_to_json(t)
         FROM (
-            SELECT COALESCE(MAX(sort_order), -1) + 1 AS next_sort
+            SELECT COALESCE(MAX(sort_order), -1) + 1 AS "nextSort"
             FROM audio_library_item
             WHERE user_id = :'user_id'::uuid
               AND COALESCE(folder_id, '00000000-0000-0000-0000-000000000000'::uuid)
