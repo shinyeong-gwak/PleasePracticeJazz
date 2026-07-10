@@ -4,7 +4,7 @@
   "start_url": "/music",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#fffffe",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "/static/img/lickgologo.png",
