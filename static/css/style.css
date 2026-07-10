@@ -1085,6 +1085,7 @@ tr.hidden,
     width: 100%;
     min-height: 46px;
     padding: 0 14px;
+    border: none;
     border-radius: 14px;
     background: #f4faf7;
     color: var(--accent-strong);
@@ -1106,6 +1107,10 @@ tr.hidden,
 .practice-editor-body {
     display: grid;
     gap: 14px;
+}
+
+.practice-editor-actions button {
+    border: none;
 }
 
 .practice-homework-add-button {
@@ -2027,7 +2032,7 @@ tr.hidden,
         min-height: 34px;
         padding: 0 12px;
         border-radius: 999px;
-        border: 1px solid rgba(120, 148, 138, 0.2);
+        border: none;
         background: #f5faf7;
         color: var(--accent-strong);
         font-size: 12px;
