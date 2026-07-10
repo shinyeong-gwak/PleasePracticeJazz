@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #f4f8f6;
     --panel: #ffffff;
     --panel-soft: #f7fbf9;
@@ -1074,6 +1074,40 @@ tr.hidden,
     border-color: #e7dcc0;
 }
 
+.practice-editor-panel {
+    gap: 14px;
+}
+
+.practice-editor-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 46px;
+    padding: 0 14px;
+    border-radius: 14px;
+    background: #f4faf7;
+    color: var(--accent-strong);
+    font-weight: 800;
+    text-align: left;
+}
+
+.practice-editor-toggle::after {
+    content: "v";
+    font-size: 14px;
+    line-height: 1;
+    color: var(--muted);
+}
+
+.practice-editor-toggle[aria-expanded="true"]::after {
+    content: "^";
+}
+
+.practice-editor-body {
+    display: grid;
+    gap: 14px;
+}
+
 .practice-homework-add-button {
     white-space: nowrap;
 }
@@ -1084,19 +1118,11 @@ tr.hidden,
 }
 
 .practice-homework-board {
-    display: grid;
-    grid-template-rows: repeat(2, minmax(0, auto));
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
+    display: flex;
     gap: 14px;
     align-items: flex-start;
-    align-content: flex-start;
     overflow-x: auto;
     padding-bottom: 6px;
-}
-
-#ensembleBoard {
-    grid-template-rows: repeat(3, minmax(0, auto));
 }
 
 .practice-homework-note {
@@ -2130,6 +2156,10 @@ tr.hidden,
         position: static;
     }
 
+    .practice-editor-panel > .practice-card-top {
+        display: none;
+    }
+
     .practice-homework-note {
         width: 82vw;
         min-width: 82vw;
@@ -2163,6 +2193,10 @@ tr.hidden,
     .practice-card-top {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .practice-editor-toggle {
+        min-height: 50px;
     }
 
     .clips-layout,
@@ -2285,26 +2319,26 @@ tr.hidden,
     }
 
     .practice-mobile-tool-button {
-        flex: 0 0 88px;
-        min-width: 88px;
-        min-height: 88px;
-        padding: 10px 8px;
-        border-radius: 18px;
+        flex: 0 0 62px;
+        min-width: 62px;
+        min-height: 62px;
+        padding: 8px 6px;
+        border-radius: 16px;
         border: none;
         background: rgba(255, 255, 255, 0.82);
         display: grid;
         grid-template-columns: 1fr;
         align-items: center;
         justify-items: center;
-        gap: 8px;
+        gap: 4px;
         box-shadow: none;
         text-align: center;
         scroll-snap-align: start;
     }
 
     .practice-mobile-tool-button img {
-        width: 32px;
-        height: 32px;
+        width: 24px;
+        height: 24px;
         object-fit: contain;
         border-radius: 6px;
     }
@@ -2319,18 +2353,19 @@ tr.hidden,
     }
 
     .practice-mobile-tool-emoji {
-        font-size: 28px;
+        font-size: 22px;
         line-height: 1;
         justify-self: center;
     }
 
     .practice-mobile-tool-value {
+        display: none;
+    }
+
+    .practice-mobile-tool-icon {
+        width: 24px;
+        height: 24px;
         display: block;
-        font-size: 11px;
-        line-height: 1.25;
-        font-weight: 800;
-        color: var(--text);
-        word-break: keep-all;
     }
 
     .practice-mobile-tools.is-collapsed {
@@ -2435,7 +2470,13 @@ tr.hidden,
     }
 
     .practice-mobile-tool-value {
-        font-size: 12px;
+        display: none;
+    }
+
+    .practice-mobile-tool-icon {
+        width: 28px;
+        height: 28px;
+        display: block;
     }
 
     .mobile-nav {
@@ -2444,3 +2485,4 @@ tr.hidden,
         bottom: 20px;
     }
 }
+

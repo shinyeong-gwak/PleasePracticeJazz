@@ -804,6 +804,19 @@ async function openRealbookView(target) {
     window.location.href = result.directUrl || result.viewUrl;
 }
 
+function syncMobileToolToggleState() {
+    const tools = document.getElementById("practiceMobileTools");
+    const toggleButton = document.getElementById("mobileToolsToggleButton");
+
+    if (!tools || !toggleButton) {
+        return;
+    }
+
+    tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
+    toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "펼치기" : "접기";
+    toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
+}
+
 function bindMobileToolButtons() {
     const tools = document.getElementById("practiceMobileTools");
     const desktopToggle = document.getElementById("practiceDesktopToolsToggle");
@@ -832,17 +845,13 @@ function bindMobileToolButtons() {
         });
     }
 
-        if (toggleButton && tools) {
-            tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
-            toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "열기" : "숨기기";
-            toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
-            toggleButton.addEventListener("click", () => {
-                DAILY_STATE.mobileToolsCollapsed = !DAILY_STATE.mobileToolsCollapsed;
-                tools.classList.toggle("is-collapsed", DAILY_STATE.mobileToolsCollapsed);
-                toggleButton.textContent = DAILY_STATE.mobileToolsCollapsed ? "열기" : "숨기기";
-                toggleButton.setAttribute("aria-expanded", DAILY_STATE.mobileToolsCollapsed ? "false" : "true");
-            });
-        }
+    if (toggleButton && tools) {
+        syncMobileToolToggleState();
+        toggleButton.addEventListener("click", () => {
+            DAILY_STATE.mobileToolsCollapsed = !DAILY_STATE.mobileToolsCollapsed;
+            syncMobileToolToggleState();
+        });
+    }
 
     irealButton.addEventListener("click", () => {
         const title = encodeURIComponent(getMobileTargetTitle(DAILY_STATE.activeMobileTarget));
@@ -950,6 +959,7 @@ function resetPracticeForm() {
     setPracticeStatus("normal");
     document.getElementById("addPracticeCardButton").textContent = "+ 카드 추가";
     document.getElementById("cancelPracticeEditButton").classList.add("hidden");
+    collapseEditorPanel("practiceEditorCard");
     setActiveMobileTarget(getPracticeFormTarget());
 }
 
@@ -967,6 +977,7 @@ function fillPracticeForm(item) {
     setPracticeStatus(item.status || "normal");
     document.getElementById("addPracticeCardButton").textContent = "Update";
     document.getElementById("cancelPracticeEditButton").classList.remove("hidden");
+    expandEditorPanel("practiceEditorCard");
     document.getElementById("practiceEditorCard").scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -1010,6 +1021,33 @@ function resetHomeworkEditor() {
     document.getElementById("practiceHomeworkMemoInput").value = "";
 }
 
+function setEditorPanelExpanded(editorId, expanded) {
+    const editor = document.getElementById(editorId);
+
+    if (!editor) {
+        return;
+    }
+
+    const body = editor.querySelector("[data-editor-body]");
+    const toggle = editor.querySelector("[data-editor-toggle]");
+
+    if (body) {
+        body.hidden = !expanded;
+    }
+
+    if (toggle) {
+        toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    }
+}
+
+function expandEditorPanel(editorId) {
+    setEditorPanelExpanded(editorId, true);
+}
+
+function collapseEditorPanel(editorId) {
+    setEditorPanelExpanded(editorId, false);
+}
+
 function collectEnsemblePayload() {
     return {
         title: document.getElementById("ensembleTitleInput").value.trim(),
@@ -1042,6 +1080,7 @@ function resetEnsembleEditor() {
     if (cancelButton) {
         cancelButton.classList.add("hidden");
     }
+    collapseEditorPanel("ensembleEditorCard");
     setActiveMobileTarget({
         kind: "ensemble",
         title: "",
@@ -1071,6 +1110,7 @@ function fillEnsembleForm(item) {
     if (cancelButton) {
         cancelButton.classList.remove("hidden");
     }
+    expandEditorPanel("ensembleEditorCard");
     document.getElementById("ensembleEditorCard").scrollIntoView({
         behavior: "smooth",
         block: "start",
@@ -1110,6 +1150,27 @@ function bindHomeworkBoardAutoScroll() {
 
     board.addEventListener("drop", () => {
         DAILY_STATE.draggedHomeworkId = null;
+    });
+}
+
+function bindEditorPanelToggles() {
+    document.querySelectorAll("[data-editor-toggle]").forEach((button) => {
+        const editorId = button.dataset.editorToggle;
+
+        if (!editorId) {
+            return;
+        }
+
+        button.addEventListener("click", () => {
+            const editor = document.getElementById(editorId);
+            const body = editor?.querySelector("[data-editor-body]");
+
+            if (!body) {
+                return;
+            }
+
+            setEditorPanelExpanded(editorId, body.hidden);
+        });
     });
 }
 
@@ -1400,6 +1461,7 @@ async function addHomework() {
     });
     updateStateFromReport(report);
     resetHomeworkEditor();
+    collapseEditorPanel("practiceHomeworkEditor");
     renderAll();
 }
 
@@ -1418,6 +1480,7 @@ async function savePractice() {
 
     updateStateFromReport(report);
     resetPracticeForm();
+    collapseEditorPanel("practiceEditorCard");
     renderAll();
 }
 
@@ -1453,7 +1516,10 @@ async function initPracticeDailyPage() {
     bindTopicButtons();
     bindStatusButtons();
     bindHomeworkBoardAutoScroll();
+    bindEditorPanelToggles();
     bindTapOutsideBlur();
+    resetPracticeForm();
+    collapseEditorPanel("practiceHomeworkEditor");
     resetEnsembleEditor();
 
     document.getElementById("practiceDailyDate").textContent = formatDailyDate();
@@ -1474,6 +1540,7 @@ async function initPracticeDailyPage() {
     renderAssetOptions("ensembleRendererFileInput", DAILY_STATE.recentScoreFiles, "선택");
     renderAll();
     setActiveMobileTarget(getPracticeFormTarget());
+    syncMobileToolToggleState();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -33,24 +33,38 @@
         </div>
 
         <div class="practice-homework-layout">
-            <article class="card practice-homework-editor" id="practiceHomeworkEditor">
+            <article class="card practice-homework-editor practice-editor-panel" id="practiceHomeworkEditor">
                 <div class="practice-card-top">
                     <div>
                         <div class="practice-card-title">숙제 등록</div>
                         <div class="practice-card-subtitle">입력한 내용은 카드 형태로 아래에 쌓입니다.</div>
                     </div>
-                    <button type="button" class="secondary-button practice-homework-add-button" id="addHomeworkButton">+ 숙제 추가</button>
                 </div>
 
-                <div class="practice-homework-form">
-                    <label class="practice-field">
-                        <span class="practice-field-label">숙제 제목</span>
-                        <input type="text" id="practiceHomeworkTitleInput" placeholder="예: Oleo 솔로 트랜스크립션">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">메모</span>
-                        <textarea id="practiceHomeworkMemoInput" placeholder="예: 220bpm까지, 메트로놈 없이도 흔들리지 않게"></textarea>
-                    </label>
+                <button
+                    type="button"
+                    class="practice-editor-toggle"
+                    data-editor-toggle="practiceHomeworkEditor"
+                    aria-controls="practiceHomeworkBody"
+                    aria-expanded="false">
+                    숙제 노트 추가
+                </button>
+
+                <div class="practice-editor-body" id="practiceHomeworkBody" data-editor-body hidden>
+                    <div class="practice-homework-form">
+                        <label class="practice-field">
+                            <span class="practice-field-label">숙제 제목</span>
+                            <input type="text" id="practiceHomeworkTitleInput" placeholder="예: Oleo 솔로 트랜스크립션">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">메모</span>
+                            <textarea id="practiceHomeworkMemoInput" placeholder="예: 220bpm까지, 메트로놈 없이도 흔들리지 않게"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="practice-editor-actions">
+                        <button type="button" class="secondary-button" id="addHomeworkButton">추가</button>
+                    </div>
                 </div>
             </article>
 
@@ -58,7 +72,7 @@
         </div>
     </section>
 
-    <article class="card practice-card practice-editor-card" id="practiceEditorCard">
+    <article class="card practice-card practice-editor-card practice-editor-panel" id="practiceEditorCard">
         <div class="practice-card-top">
             <div>
                 <div class="practice-card-title">연습 카드</div>
@@ -66,88 +80,99 @@
             </div>
         </div>
 
-        <div class="practice-section">
-            <div class="practice-field-label">연습 주제</div>
-            <div class="practice-topic-chips" id="practiceTopicChips">
-                {% for topic in ["박자", "스케일", "리듬", "보이싱", "이론", "리얼북"] %}
-                <button type="button" class="practice-topic-chip" data-topic="{{ topic }}">#{{ topic }}</button>
-                {% endfor %}
-            </div>
-            <input type="hidden" class="practice-topic-value" id="practiceTopicValue" value="">
-        </div>
+        <button
+            type="button"
+            class="practice-editor-toggle"
+            data-editor-toggle="practiceEditorCard"
+            aria-controls="practiceEditorBody"
+            aria-expanded="false">
+            연습 노트 추가
+        </button>
 
-        <div class="practice-form-grid">
-            <label class="practice-field">
-                <span class="practice-field-label">BPM</span>
-                <input type="number" min="1" step="1" placeholder="예: 120" id="practiceBpmInput">
-            </label>
-            <label class="practice-field practice-field-wide">
-                <span class="practice-field-label">연습 곡</span>
-                <input type="text" placeholder="예: There Will Never Be Another You" id="practiceTuneInput" list="dailyTuneSuggestions">
-            </label>
-            <label class="practice-field">
-                <span class="practice-field-label">리얼북</span>
-                <select id="practiceBookInput">
-                    <option value="">선택</option>
-                    <option value="Real-Book-1.pdf">Real Book 1</option>
-                    <option value="Real-Book-2.pdf">Real Book 2</option>
-                    <option value="Real-Book-3.pdf">Real Book 3</option>
-                    <option value="New-Real-Book.pdf">New Real Book 1</option>
-                    <option value="New-Real-Book-2.pdf">New Real Book 2</option>
-                    <option value="New-Real-Book-3.pdf">New Real Book 3</option>
-                    <option value="ETC">ETC</option>
-                </select>
-            </label>
-            <label class="practice-field">
-                <span class="practice-field-label">페이지</span>
-                <input type="number" min="1" step="1" placeholder="예: 132" id="practicePageInput">
-            </label>
-        </div>
-
-        <div class="practice-section">
-            <div class="practice-field-label">연습 상태</div>
-            <div class="practice-status-chips" id="practiceStatusChips">
-                <button type="button" class="practice-status-chip is-selected" data-status="normal">무난했음</button>
-                <button type="button" class="practice-status-chip" data-status="good">잘 됐음</button>
-                <button type="button" class="practice-status-chip practice-status-chip-bad" data-status="bad">별로였음</button>
-            </div>
-            <input type="hidden" id="practiceStatusInput" value="normal">
-        </div>
-
-        <label class="practice-field practice-field-full">
-            <span class="practice-field-label">메모</span>
-            <textarea id="practiceMemoInput" placeholder="오늘 들었던 문제, 다음에 볼 포인트, 손가락 느낌을 적어두세요."></textarea>
-        </label>
-
-        <label class="practice-field practice-field-full">
-            <span class="practice-field-label">Spotify 링크</span>
-            <input type="text" id="practiceSpotifyInput" placeholder="Spotify URL">
-        </label>
-
-        <div class="practice-form-grid practice-asset-grid">
-            <label class="practice-field">
-                <span class="practice-field-label">Lick MP3</span>
-                <select id="practiceLickFileInput">
-                    <option value="">선택</option>
-                    {% for lick_file in recent_lick_files %}
-                    <option value="{{ lick_file }}">{{ lick_file }}</option>
+        <div class="practice-editor-body" id="practiceEditorBody" data-editor-body hidden>
+            <div class="practice-section">
+                <div class="practice-field-label">연습 주제</div>
+                <div class="practice-topic-chips" id="practiceTopicChips">
+                    {% for topic in ["박자", "스케일", "리듬", "보이싱", "이론", "리얼북"] %}
+                    <button type="button" class="practice-topic-chip" data-topic="{{ topic }}">#{{ topic }}</button>
                     {% endfor %}
-                </select>
-            </label>
-            <label class="practice-field">
-                <span class="practice-field-label">Renderer</span>
-                <select id="practiceRendererFileInput">
-                    <option value="">선택</option>
-                    {% for score_file in recent_score_files %}
-                    <option value="{{ score_file }}">{{ score_file }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-        </div>
+                </div>
+                <input type="hidden" class="practice-topic-value" id="practiceTopicValue" value="">
+            </div>
 
-        <div class="practice-editor-actions">
-            <button type="button" class="secondary-button hidden" id="cancelPracticeEditButton">편집 취소</button>
-            <button type="button" class="primary-button practice-add-button" id="addPracticeCardButton">+ 카드 추가</button>
+            <div class="practice-form-grid">
+                <label class="practice-field">
+                    <span class="practice-field-label">BPM</span>
+                    <input type="number" min="1" step="1" placeholder="예: 120" id="practiceBpmInput">
+                </label>
+                <label class="practice-field practice-field-wide">
+                    <span class="practice-field-label">연습 곡</span>
+                    <input type="text" placeholder="예: There Will Never Be Another You" id="practiceTuneInput" list="dailyTuneSuggestions">
+                </label>
+                <label class="practice-field">
+                    <span class="practice-field-label">리얼북</span>
+                    <select id="practiceBookInput">
+                        <option value="">선택</option>
+                        <option value="Real-Book-1.pdf">Real Book 1</option>
+                        <option value="Real-Book-2.pdf">Real Book 2</option>
+                        <option value="Real-Book-3.pdf">Real Book 3</option>
+                        <option value="New-Real-Book.pdf">New Real Book 1</option>
+                        <option value="New-Real-Book-2.pdf">New Real Book 2</option>
+                        <option value="New-Real-Book-3.pdf">New Real Book 3</option>
+                        <option value="ETC">ETC</option>
+                    </select>
+                </label>
+                <label class="practice-field">
+                    <span class="practice-field-label">페이지</span>
+                    <input type="number" min="1" step="1" placeholder="예: 132" id="practicePageInput">
+                </label>
+            </div>
+
+            <div class="practice-section">
+                <div class="practice-field-label">연습 상태</div>
+                <div class="practice-status-chips" id="practiceStatusChips">
+                    <button type="button" class="practice-status-chip is-selected" data-status="normal">무난했음</button>
+                    <button type="button" class="practice-status-chip" data-status="good">잘 됐음</button>
+                    <button type="button" class="practice-status-chip practice-status-chip-bad" data-status="bad">별로였음</button>
+                </div>
+                <input type="hidden" id="practiceStatusInput" value="normal">
+            </div>
+
+            <label class="practice-field practice-field-full">
+                <span class="practice-field-label">메모</span>
+                <textarea id="practiceMemoInput" placeholder="오늘 들었던 문제, 다음에 볼 포인트, 손가락 느낌을 적어두세요."></textarea>
+            </label>
+
+            <label class="practice-field practice-field-full">
+                <span class="practice-field-label">Spotify 링크</span>
+                <input type="text" id="practiceSpotifyInput" placeholder="Spotify URL">
+            </label>
+
+            <div class="practice-form-grid practice-asset-grid">
+                <label class="practice-field">
+                    <span class="practice-field-label">Lick MP3</span>
+                    <select id="practiceLickFileInput">
+                        <option value="">선택</option>
+                        {% for lick_file in recent_lick_files %}
+                        <option value="{{ lick_file }}">{{ lick_file }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="practice-field">
+                    <span class="practice-field-label">Renderer</span>
+                    <select id="practiceRendererFileInput">
+                        <option value="">선택</option>
+                        {% for score_file in recent_score_files %}
+                        <option value="{{ score_file }}">{{ score_file }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </div>
+
+            <div class="practice-editor-actions">
+                <button type="button" class="secondary-button hidden" id="cancelPracticeEditButton">편집 취소</button>
+                <button type="button" class="primary-button practice-add-button" id="addPracticeCardButton">+ 카드 추가</button>
+            </div>
         </div>
     </article>
 
@@ -166,89 +191,101 @@
         </div>
 
         <div class="practice-homework-layout">
-            <article class="card practice-card practice-editor-card practice-ensemble-editor" id="ensembleEditorCard">
+            <article class="card practice-card practice-editor-card practice-ensemble-editor practice-editor-panel" id="ensembleEditorCard">
                 <div class="practice-card-top">
                     <div>
                         <div class="practice-card-title">합주 노트 추가</div>
                         <div class="practice-card-subtitle">카드를 누르면 여기로 내용을 가져와서 다시 저장할 수 있습니다.</div>
                     </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="practice-editor-toggle"
+                    data-editor-toggle="ensembleEditorCard"
+                    aria-controls="ensembleEditorBody"
+                    aria-expanded="false">
+                    합주 노트 추가
+                </button>
+
+                <div class="practice-editor-body" id="ensembleEditorBody" data-editor-body hidden>
+                    <label class="practice-field practice-field-full">
+                        <span class="practice-field-label">합주 곡</span>
+                        <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
+                    </label>
+
+                    <label class="practice-field practice-field-full">
+                        <span class="practice-field-label">메모</span>
+                        <textarea id="ensembleMemoInput" placeholder="합주에서 기억할 내용을 적어두세요."></textarea>
+                    </label>
+
+                    <div class="practice-form-grid">
+                        <label class="practice-field">
+                            <span class="practice-field-label">BPM</span>
+                            <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">리얼북</span>
+                            <select id="ensembleBookInput">
+                                <option value="">선택</option>
+                                <option value="Real-Book-1.pdf">Real Book 1</option>
+                                <option value="Real-Book-2.pdf">Real Book 2</option>
+                                <option value="Real-Book-3.pdf">Real Book 3</option>
+                                <option value="New-Real-Book.pdf">New Real Book 1</option>
+                                <option value="New-Real-Book-2.pdf">New Real Book 2</option>
+                                <option value="New-Real-Book-3.pdf">New Real Book 3</option>
+                                <option value="ETC">ETC</option>
+                            </select>
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">페이지</span>
+                            <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">상태</span>
+                            <select id="ensembleStatusInput">
+                                <option value="normal">무난했음</option>
+                                <option value="good">잘 됐음</option>
+                                <option value="bad">별로였음</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <label class="practice-field practice-field-full">
+                        <span class="practice-field-label">주제 태그</span>
+                        <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
+                    </label>
+
+                    <label class="practice-field practice-field-full">
+                        <span class="practice-field-label">Spotify 링크</span>
+                        <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
+                    </label>
+
+                    <div class="practice-form-grid practice-asset-grid">
+                        <label class="practice-field">
+                            <span class="practice-field-label">Lick MP3</span>
+                            <select id="ensembleLickFileInput">
+                                <option value="">선택</option>
+                                {% for lick_file in recent_lick_files %}
+                                <option value="{{ lick_file }}">{{ lick_file }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label class="practice-field">
+                            <span class="practice-field-label">Renderer</span>
+                            <select id="ensembleRendererFileInput">
+                                <option value="">선택</option>
+                                {% for score_file in recent_score_files %}
+                                <option value="{{ score_file }}">{{ score_file }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                    </div>
+
                     <div class="practice-editor-actions">
                         <button type="button" class="secondary-button hidden" id="cancelEnsembleEditButton">편집 취소</button>
                         <button type="button" class="primary-button practice-add-button" id="addEnsembleButton">+ 합주 추가</button>
                     </div>
-                </div>
-
-                <label class="practice-field practice-field-full">
-                    <span class="practice-field-label">합주 곡</span>
-                    <input type="text" id="ensembleTitleInput" placeholder="예: Nardis" list="dailyTuneSuggestions">
-                </label>
-
-                <label class="practice-field practice-field-full">
-                    <span class="practice-field-label">메모</span>
-                    <textarea id="ensembleMemoInput" placeholder="합주에서 기억할 내용을 적어두세요."></textarea>
-                </label>
-
-                <div class="practice-form-grid">
-                    <label class="practice-field">
-                        <span class="practice-field-label">BPM</span>
-                        <input type="number" id="ensembleBpmInput" placeholder="예: 180" min="1" step="1">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">리얼북</span>
-                        <select id="ensembleBookInput">
-                            <option value="">선택</option>
-                            <option value="Real-Book-1.pdf">Real Book 1</option>
-                            <option value="Real-Book-2.pdf">Real Book 2</option>
-                            <option value="Real-Book-3.pdf">Real Book 3</option>
-                            <option value="New-Real-Book.pdf">New Real Book 1</option>
-                            <option value="New-Real-Book-2.pdf">New Real Book 2</option>
-                            <option value="New-Real-Book-3.pdf">New Real Book 3</option>
-                            <option value="ETC">ETC</option>
-                        </select>
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">페이지</span>
-                        <input type="number" id="ensemblePageInput" placeholder="예: 44" min="1" step="1">
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">상태</span>
-                        <select id="ensembleStatusInput">
-                            <option value="normal">무난했음</option>
-                            <option value="good">잘 됐음</option>
-                            <option value="bad">별로였음</option>
-                        </select>
-                    </label>
-                </div>
-
-                <label class="practice-field practice-field-full">
-                    <span class="practice-field-label">주제 태그</span>
-                    <input type="text" id="ensembleTopicsInput" placeholder="예: 합주, 리듬, 보이싱">
-                </label>
-
-                <label class="practice-field practice-field-full">
-                    <span class="practice-field-label">Spotify 링크</span>
-                    <input type="text" id="ensembleSpotifyInput" placeholder="Spotify URL">
-                </label>
-
-                <div class="practice-form-grid practice-asset-grid">
-                    <label class="practice-field">
-                        <span class="practice-field-label">Lick MP3</span>
-                        <select id="ensembleLickFileInput">
-                            <option value="">선택</option>
-                            {% for lick_file in recent_lick_files %}
-                            <option value="{{ lick_file }}">{{ lick_file }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
-                    <label class="practice-field">
-                        <span class="practice-field-label">Renderer</span>
-                        <select id="ensembleRendererFileInput">
-                            <option value="">선택</option>
-                            {% for score_file in recent_score_files %}
-                            <option value="{{ score_file }}">{{ score_file }}</option>
-                            {% endfor %}
-                        </select>
-                    </label>
                 </div>
             </article>
 
@@ -354,31 +391,31 @@
     </div>
     <div class="practice-mobile-tools-body" id="mobileToolsBody">
         <div class="practice-mobile-tools-row">
-            <button type="button" class="practice-mobile-tool-button" id="mobileIrealButton">
+            <button type="button" class="practice-mobile-tool-button" id="mobileIrealButton" aria-label="iReal Pro">
                 <img src="/static/img/realb_logo.png" alt="iReal Pro">
                 <span class="practice-mobile-tool-value" id="mobileIrealValue">제목</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro2Button">
-                <span class="practice-mobile-tool-emoji">2박</span>
+            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro2Button" aria-label="메트로놈 2박">
+                <img class="practice-mobile-tool-icon" src="/static/img/metronome-2.svg" alt="" aria-hidden="true">
                 <span class="practice-mobile-tool-value" id="mobileMetro2Value">BPM</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro4Button">
-                <span class="practice-mobile-tool-emoji">4박</span>
+            <button type="button" class="practice-mobile-tool-button practice-mobile-tool-button-metro" id="mobileMetro4Button" aria-label="메트로놈 4박">
+                <img class="practice-mobile-tool-icon" src="/static/img/metronome-4.svg" alt="" aria-hidden="true">
                 <span class="practice-mobile-tool-value" id="mobileMetro4Value">BPM</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button" id="mobileGoodnotesButton">
+            <button type="button" class="practice-mobile-tool-button" id="mobileGoodnotesButton" aria-label="Goodnotes">
                 <img src="/static/img/goodnote.jpeg" alt="Goodnotes">
                 <span class="practice-mobile-tool-value" id="mobileGoodnotesValue">없음</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button" id="mobileRealbookButton">
+            <button type="button" class="practice-mobile-tool-button" id="mobileRealbookButton" aria-label="리얼북">
                 <span class="practice-mobile-tool-emoji">책</span>
                 <span class="practice-mobile-tool-value" id="mobileRealbookValue">없음</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton">
+            <button type="button" class="practice-mobile-tool-button" id="mobileSpotifyButton" aria-label="Spotify">
                 <img src="/static/img/spotify_logo.png" alt="Spotify">
                 <span class="practice-mobile-tool-value" id="mobileSpotifyValue">링크</span>
             </button>
-            <button type="button" class="practice-mobile-tool-button" id="mobileLickButton">
+            <button type="button" class="practice-mobile-tool-button" id="mobileLickButton" aria-label="Lick">
                 <span class="practice-mobile-tool-emoji">연</span>
                 <span class="practice-mobile-tool-value" id="mobileLickValue">Lick</span>
             </button>
