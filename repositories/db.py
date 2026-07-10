@@ -47,6 +47,9 @@ def _psql_args():
 
 
 def _prepare_psycopg_sql(sql, params=None):
+    # psycopg treats "%" as a formatting token in queries, so any literal
+    # percent signs used by SQL (for example in LIKE patterns) must be escaped.
+    escaped_sql = sql.replace("%", "%%")
     values = []
 
     def replace(match):
@@ -54,7 +57,7 @@ def _prepare_psycopg_sql(sql, params=None):
         values.append((params or {}).get(key))
         return "%s"
 
-    prepared_sql = PARAM_PATTERN.sub(replace, sql)
+    prepared_sql = PARAM_PATTERN.sub(replace, escaped_sql)
     return prepared_sql, values
 
 
