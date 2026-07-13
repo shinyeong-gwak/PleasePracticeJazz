@@ -396,6 +396,18 @@
 window.ClipBrowser = ClipBrowser;
 
 let clipPlayerLooped = false;
+let clipLoopInitialized = false;
+
+function readLoopRange() {
+    const startTime = parseTime(document.getElementById("startTime").value);
+    const endTime = parseTime(document.getElementById("endTime").value);
+
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
+        return null;
+    }
+
+    return { startTime, endTime };
+}
 
 function updateLoopButton() {
     const player = document.getElementById("player");
@@ -403,10 +415,10 @@ function updateLoopButton() {
 
     if (!player || !loopButton) return;
 
-    player.loop = clipPlayerLooped;
+    player.loop = false;
     loopButton.innerText = clipPlayerLooped ? "🔂" : "🔁";
     loopButton.setAttribute("aria-pressed", clipPlayerLooped ? "true" : "false");
-    loopButton.setAttribute("title", clipPlayerLooped ? "반복 켜짐" : "반복 꺼짐");
+    loopButton.setAttribute("title", clipPlayerLooped ? "구간 반복 켜짐" : "구간 반복 꺼짐");
     loopButton.classList.toggle("is-active", clipPlayerLooped);
 }
 
@@ -415,7 +427,47 @@ function togglePlayerLoop() {
 
     if (!player) return;
 
+    const range = readLoopRange();
+    if (!clipPlayerLooped && !range) {
+        alert("구간 반복을 켜려면 Start와 End를 먼저 올바르게 입력해 주세요.");
+        return;
+    }
+
     clipPlayerLooped = !clipPlayerLooped;
+    updateLoopButton();
+
+    if (clipPlayerLooped) {
+        player.currentTime = range.startTime;
+        player.play();
+    }
+}
+
+function handleClipLoopTimeUpdate() {
+    if (!clipPlayerLooped) return;
+
+    const player = document.getElementById("player");
+    const range = readLoopRange();
+
+    if (!player || !range) {
+        clipPlayerLooped = false;
+        updateLoopButton();
+        return;
+    }
+
+    if (player.currentTime >= range.endTime) {
+        player.currentTime = range.startTime;
+        player.play();
+    }
+}
+
+function initClipLoop() {
+    const player = document.getElementById("player");
+
+    if (!player || clipLoopInitialized) return;
+
+    clipLoopInitialized = true;
+    player.loop = false;
+    player.addEventListener("timeupdate", handleClipLoopTimeUpdate);
     updateLoopButton();
 }
 
@@ -426,7 +478,7 @@ function loadAudio() {
     if (!fileName || !player) return;
 
     player.src = "/music/audio/" + encodeURIComponent(fileName).replace(/%2F/g, "/");
-    player.loop = clipPlayerLooped;
+    player.loop = false;
     player.load();
 }
 
@@ -532,4 +584,4 @@ async function createPitchVersion() {
 }
 
 document.addEventListener("DOMContentLoaded", ClipBrowser.init);
-document.addEventListener("DOMContentLoaded", updateLoopButton);
+document.addEventListener("DOMContentLoaded", initClipLoop);
