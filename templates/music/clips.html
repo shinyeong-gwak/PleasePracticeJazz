@@ -55,6 +55,15 @@
             <div class="clips-player-card">
                 <audio id="player" controls></audio>
                 <button type="button" class="primary-button" onclick="loadAudio()">불러오기</button>
+                <button
+                        type="button"
+                        id="loopPlayerBtn"
+                        class="secondary-button clip-loop-button"
+                        aria-pressed="false"
+                        title="반복 꺼짐"
+                        onclick="togglePlayerLoop()">
+                    🔁
+                </button>
             </div>
 
             <div class="clip-controls-grid">

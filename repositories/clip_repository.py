@@ -1,4 +1,5 @@
 from pathlib import Path
+from decimal import Decimal, InvalidOperation
 
 from repositories.db import execute, get_or_create_user_id, query_one, query_rows
 
@@ -579,6 +580,22 @@ def sync_created_audio_file(file_path, source_url=None):
     return row["id"] if row else None
 
 
+def _format_clip_seconds(value):
+    if value is None:
+        return ""
+
+    text = str(value).strip().replace(",", ".")
+    if not text:
+        return ""
+
+    try:
+        seconds = Decimal(text)
+    except InvalidOperation as exc:
+        raise ValueError("Invalid clip time") from exc
+
+    return format(seconds.quantize(Decimal("0.001")), "f")
+
+
 def register_generated_clip(
     output_file,
     source_file,
@@ -640,8 +657,8 @@ def register_generated_clip(
             "source_track_id": source_track_id,
             "file_name": output_path.name,
             "file_path": _relative_key(output_path),
-            "start_sec": "" if start_sec is None else start_sec,
-            "end_sec": "" if end_sec is None else end_sec,
+            "start_sec": _format_clip_seconds(start_sec),
+            "end_sec": _format_clip_seconds(end_sec),
             "pitch_shift": pitch_shift,
             "tempo_ratio": tempo_ratio,
         },

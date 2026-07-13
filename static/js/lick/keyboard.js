@@ -598,6 +598,11 @@ async function runButtonAction(button) {
         return;
     }
 
+    if (action === "enterKey") {
+        enterKey();
+        return;
+    }
+
     if (action === "togglePianoMode") {
         togglePianoMode();
     }

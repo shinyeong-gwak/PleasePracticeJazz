@@ -634,6 +634,12 @@ body.login-page {
     width: 100%;
 }
 
+.clip-loop-button.is-active {
+    background: #e8f7ef;
+    color: #1f7a52;
+    border-color: #bfe0cf;
+}
+
 .clip-controls-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr)) auto;

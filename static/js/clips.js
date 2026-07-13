@@ -70,7 +70,7 @@
         const label = node("[data-audio-selected-label]");
         if (!label) return;
 
-        label.textContent = selectedFilePath || "?좏깮???뚯썝???놁뼱??";
+        label.textContent = selectedFilePath || "선택된 음원이 없어요.";
     }
 
     function selectFile(path, trackId = "", folderId = "") {
@@ -215,7 +215,7 @@
     async function readJsonResponse(response) {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(data.message || "?붿껌??泥섎━?섏? 紐삵뻽?댁슂.");
+            throw new Error(data.message || "요청을 처리하지 못했어요.");
         }
         return data;
     }
@@ -295,7 +295,7 @@
     function showTreeError(error) {
         const container = node("[data-audio-tree]");
         if (container) {
-            container.innerHTML = `<div class="audio-tree-empty">${error.message || "?뚯썝??遺덈윭?ㅼ? 紐삵뻽?댁슂."}</div>`;
+            container.innerHTML = `<div class="audio-tree-empty">${error.message || "음원을 불러오지 못했어요."}</div>`;
         }
     }
 
@@ -356,7 +356,7 @@
             try {
                 const nextPayload = await action();
                 await refreshTree(nextPayload);
-                if (status) status.textContent = "?곸슜?먯뼱??";
+                if (status) status.textContent = "적용됐어요.";
                 if (nameInput) nameInput.value = "";
             } catch (error) {
                 if (status) status.textContent = error.message;
@@ -375,7 +375,7 @@
 
         deleteButton?.addEventListener("click", () => {
             if (!selectedFolderId) {
-                if (status) status.textContent = "??젣???대뜑瑜??좏깮??二쇱꽭??";
+                if (status) status.textContent = "삭제할 폴더를 선택해 주세요.";
                 return;
             }
             run(() => mutateFolder("DELETE", { folderId: selectedFolderId }));
@@ -395,6 +395,30 @@
 
 window.ClipBrowser = ClipBrowser;
 
+let clipPlayerLooped = false;
+
+function updateLoopButton() {
+    const player = document.getElementById("player");
+    const loopButton = document.getElementById("loopPlayerBtn");
+
+    if (!player || !loopButton) return;
+
+    player.loop = clipPlayerLooped;
+    loopButton.innerText = clipPlayerLooped ? "🔂" : "🔁";
+    loopButton.setAttribute("aria-pressed", clipPlayerLooped ? "true" : "false");
+    loopButton.setAttribute("title", clipPlayerLooped ? "반복 켜짐" : "반복 꺼짐");
+    loopButton.classList.toggle("is-active", clipPlayerLooped);
+}
+
+function togglePlayerLoop() {
+    const player = document.getElementById("player");
+
+    if (!player) return;
+
+    clipPlayerLooped = !clipPlayerLooped;
+    updateLoopButton();
+}
+
 function loadAudio() {
     const fileName = ClipBrowser.getSelectedFilePath();
     const player = document.getElementById("player");
@@ -402,6 +426,7 @@ function loadAudio() {
     if (!fileName || !player) return;
 
     player.src = "/music/audio/" + encodeURIComponent(fileName).replace(/%2F/g, "/");
+    player.loop = clipPlayerLooped;
     player.load();
 }
 
@@ -412,13 +437,24 @@ function formatTime(seconds) {
 }
 
 function parseTime(text) {
-    const value = String(text || "").trim();
+    const value = String(text || "").trim().replace(",", ".");
     if (!value) return 0;
-    if (!value.includes(":")) return Number.parseFloat(value) || 0;
+    if (!value.includes(":")) {
+        const seconds = Number.parseFloat(value);
+        return Number.isFinite(seconds) ? seconds : Number.NaN;
+    }
 
-    const parts = value.split(":");
-    return (Number.parseInt(parts[0], 10) || 0) * 60
-        + (Number.parseFloat(parts[1]) || 0);
+    const parts = value.split(":").map(part => part.trim());
+    if (parts.length !== 2) return Number.NaN;
+
+    const minutes = Number.parseInt(parts[0], 10);
+    const seconds = Number.parseFloat(parts[1]);
+
+    if (!Number.isFinite(minutes) || !Number.isFinite(seconds)) {
+        return Number.NaN;
+    }
+
+    return minutes * 60 + seconds;
 }
 
 function moveStart() {
@@ -447,13 +483,34 @@ async function createClip() {
     const endTime = parseTime(document.getElementById("endTime").value);
     const clipName = document.getElementById("clipName").value.trim();
 
+    if (!fileName) {
+        alert("음원을 먼저 선택해 주세요.");
+        return;
+    }
+
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) {
+        alert("시간은 4:02.87 또는 12.3 형식으로 입력해 주세요.");
+        return;
+    }
+
+    if (endTime <= startTime) {
+        alert("End는 Start보다 뒤여야 합니다.");
+        return;
+    }
+
     const response = await fetch("/music/clips/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileName, startTime, endTime, clipName }),
     });
     const result = await response.json();
-    alert("?앹꽦 ?꾨즺 : " + result.fileName);
+
+    if (!response.ok) {
+        alert(result.message || "Clip 생성에 실패했어요.");
+        return;
+    }
+
+    alert("생성 완료 : " + result.fileName);
 }
 
 function changePlaybackRate() {
@@ -471,7 +528,8 @@ async function createPitchVersion() {
         body: JSON.stringify({ fileName, semitones }),
     });
     const result = await response.json();
-    alert("?앹꽦 ?꾨즺 : " + result.fileName);
+    alert("생성 완료 : " + result.fileName);
 }
 
 document.addEventListener("DOMContentLoaded", ClipBrowser.init);
+document.addEventListener("DOMContentLoaded", updateLoopButton);

@@ -28,21 +28,24 @@ def clips_page(request: Request):
 
 @router.post("/clips/create")
 def create_clip(req: ClipRequest):
-    out = clip_service.create_clip(
-        req.fileName,
-        req.startTime,
-        req.endTime,
-        req.clipName
-    )
-    clip_repository.register_generated_clip(
-        out,
-        req.fileName,
-        req.startTime,
-        req.endTime,
-        pitch_shift=0,
-        tempo_ratio=1.0,
-    )
-    return {"fileName": out.name}
+    try:
+        out = clip_service.create_clip(
+            req.fileName,
+            req.startTime,
+            req.endTime,
+            req.clipName
+        )
+        clip_repository.register_generated_clip(
+            out,
+            req.fileName,
+            req.startTime,
+            req.endTime,
+            pitch_shift=0,
+            tempo_ratio=1.0,
+        )
+        return {"fileName": out.name}
+    except ValueError as exc:
+        return JSONResponse({"message": str(exc)}, status_code=400)
 
 
 class PitchRequest(BaseModel):

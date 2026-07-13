@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 import os
+import math
 
 from pydub import AudioSegment
 from repositories.clip_repository import resolve_mp3_path
@@ -26,6 +27,12 @@ def create_clip(
         start_sec: float,
         end_sec: float,
         clip_name: str = ""):
+
+    if not math.isfinite(start_sec) or not math.isfinite(end_sec):
+        raise ValueError("Invalid clip time")
+
+    if end_sec <= start_sec:
+        raise ValueError("End time must be greater than start time")
 
     source_file = resolve_mp3_path(file_name)
 
