@@ -61,6 +61,7 @@ def normalize_lick_item(item):
 
 
 def _load_lick_files_from_db():
+    #이런
     return query_rows(
         """
         SELECT row_to_json(t)
